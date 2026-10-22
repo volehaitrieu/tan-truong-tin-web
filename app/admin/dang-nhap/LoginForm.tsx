@@ -17,7 +17,7 @@ export function LoginForm() {
     <form action={action} noValidate className="space-y-4">
       <label className="block">
         <span className="mb-1.5 block text-sm font-medium">Số điện thoại hoặc email</span>
-        <input name="id" autoComplete="username" placeholder="Số điện thoại của bạn" className={`${field} border-line`} />
+        <input name="id" key={state.id} defaultValue={state.id} maxLength={200} autoComplete="username" placeholder="Số điện thoại của bạn" className={`${field} border-line`} />
       </label>
       <label className="block">
         <span className="mb-1.5 block text-sm font-medium">Mật khẩu</span>

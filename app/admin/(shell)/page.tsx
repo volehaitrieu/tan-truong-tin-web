@@ -1,3 +1,4 @@
+import { requireStaff } from "@/lib/auth";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AlertTriangle, ClipboardList, PackageX, Wallet } from "lucide-react";
@@ -8,7 +9,7 @@ import { formatNum, formatVnd } from "@/lib/shop";
 
 export const metadata: Metadata = { title: "Tổng quan" };
 
-export default function DashboardPage() {
+export default async function DashboardPage() { await requireStaff();
   const today = REVENUE_7D[REVENUE_7D.length - 1].value;
   const yesterday = REVENUE_7D[REVENUE_7D.length - 2].value;
   const pending = ORDERS.filter((o) => o.status === "cho-xac-nhan").length;
