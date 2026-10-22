@@ -140,8 +140,11 @@ let orderId;
   check("Hủy đơn hoàn lại đúng số đã trừ", mv.reduce((s, m) => s + m.delta, 0) === 0, `tồn hiện ${after.qty}`);
   const { error: neg } = await owner.rpc("adjust_stock", { p_product_id: after.id, p_delta: -100000, p_reason: "Khác" });
   check("Không thể điều chỉnh tồn xuống âm", !!neg, neg?.message);
-  const { data: audit } = await owner.from("audit_log").select("id").limit(1);
-  check("Chủ shop xem được nhật ký thao tác", Array.isArray(audit));
+  const { error: upd } = await owner.from("products").update({ sale_price: 425000 }).eq("sku", "QUA-HALI-TR2").select();
+  check("Chủ shop sửa được giá KM", !upd, upd?.message);
+  await owner.from("products").update({ sale_price: 430000 }).eq("sku", "QUA-HALI-TR2");
+  const { data: audit } = await owner.from("audit_log").select("action, target").order("created_at", { ascending: false }).limit(1);
+  check("Sửa giá được ghi vào nhật ký thao tác", audit?.[0]?.action === "update:products" && audit[0].target === "QUA-HALI-TR2");
 }
 
 // Dọn đơn kiểm thử
