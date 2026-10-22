@@ -143,7 +143,14 @@ let orderId;
   const { error: upd } = await owner.from("products").update({ sale_price: 425000 }).eq("sku", "QUA-HALI-TR2").select();
   check("Chủ shop sửa được giá KM", !upd, upd?.message);
   await owner.from("products").update({ sale_price: 430000 }).eq("sku", "QUA-HALI-TR2");
-  const { data: audit } = await owner.from("audit_log").select("action, target").order("created_at", { ascending: false }).limit(1);
+  const { data: pr } = await owner.from("products").select("id").eq("sku", "QUA-HALI-TR2").single();
+  const { error: minE } = await owner.from("inventory").update({ min_qty: 4 }).eq("product_id", pr.id);
+  check("Chủ shop sửa được tồn tối thiểu", !minE, minE?.message);
+  const { error: costE } = await owner.from("product_costs").upsert({ product_id: pr.id, cost_price: 300000 });
+  check("Chủ shop ghi được giá nhập", !costE, costE?.message);
+  const { error: costO } = await orderStaff.from("product_costs").upsert({ product_id: pr.id, cost_price: 1 });
+  check("NV đơn KHÔNG ghi được giá nhập", !!costO);
+  const { data: audit } = await owner.from("audit_log").select("action, target").eq("action", "update:products").order("created_at", { ascending: false }).limit(1);
   check("Sửa giá được ghi vào nhật ký thao tác", audit?.[0]?.action === "update:products" && audit[0].target === "QUA-HALI-TR2");
 }
 

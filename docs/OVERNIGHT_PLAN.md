@@ -63,6 +63,6 @@ _Chủ shop chốt 2026-10-22. Mỗi lượt `/loop`: đọc file này + mục c
 - [ ] Backend theo `docs/DEV_PLAN.md` (Supabase `ztbwxfzklznpqbofbwlk`, RLS từ đầu)
   - [x] 1.2–1.4 (23/10): migration `supabase/migrations/*` (bảng + RLS mọi bảng + hàm `private.has_perm` + hàm nghiệp vụ đặt hàng/tra cứu/trừ-hoàn tồn có khóa dòng + seed quyền/danh mục/SP mẫu); `lib/supabase/*`, `lib/auth.ts`, `proxy.ts` chặn /admin; đăng nhập SĐT/email thật; menu theo quyền; 3 tài khoản thử (mật khẩu ở `.env.local`); `scripts/kiem-thu-bao-mat.mjs` 39/39 đạt
   - [ ] Nối trang bán hàng vào DB (SP, đặt hàng, tra cứu, báo giá)
-  - [ ] Nối các màn Admin vào DB (SP, tồn kho, đơn, kiểm kho, nhân viên, cài đặt, nhật ký)
+  - [ ] Nối các màn Admin vào DB — XONG: đơn, tồn kho, nhật ký, sản phẩm (danh sách + sửa). CÒN: Tổng quan, Kiểm kho + đếm ĐT, Nhân viên & quyền, Cài đặt, Báo cáo, Khuyến mãi, Danh mục, Bán tại quầy, Nhập Excel
   - [ ] Nhập Excel thật (1.5 / 2.3)
 - [ ] Chụp ảnh mọi màn ở 1440px và 440px → báo chủ shop
