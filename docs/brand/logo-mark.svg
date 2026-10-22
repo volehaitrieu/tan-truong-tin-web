@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="10 10 180 170" role="img" aria-label="Logo Tân Trường Tín">
+  <!-- Vẽ lại đơn giản từ logo-goc.webp: 3 vòng tròn đan nhau — điện (tia sét), nước + lá, mái nhà. Màu phẳng theo DESIGN.md -->
+  <g fill="none" stroke="#0D6B45" stroke-width="12" stroke-linecap="butt">
+    <path d="M86.3 24.4 A40 40 0 1 1 62.4 48.3"/>
+    <path d="M101.4 111.1 A40 40 0 1 1 87.7 87.4"/>
+    <path d="M99.4 128.4 A40 40 0 1 1 112.3 148.6"/>
+  </g>
+  <path d="M104 40 L92 63 H101 L96 82 L111 57 H102 L108 40 Z" fill="#5CC896"/>
+  <path d="M34 124 C46 112 57 136 74 122 C81 116 87 114 93 117" fill="none" stroke="#0D6B45" stroke-width="8" stroke-linecap="round"/>
+  <path d="M50 104 C58 94 72 95 78 102 C70 108 58 110 50 104 Z" fill="#14915F"/>
+  <path d="M118 130 L138 111 L158 130" fill="none" stroke="#14915F" stroke-width="8"/>
+  <rect x="148" y="107" width="6" height="11" fill="#14915F"/>
+</svg>

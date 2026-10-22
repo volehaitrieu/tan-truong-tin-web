@@ -1,0 +1,70 @@
+"use client";
+import Link from "next/link";
+import { useSyncExternalStore } from "react";
+import { CircleCheck, QrCode } from "lucide-react";
+import { OrderSteps } from "@/components/storefront/OrderSteps";
+import { ORDER_KEY, type PlacedOrder } from "@/components/storefront/CheckoutForm";
+import { formatVnd } from "@/lib/shop";
+
+const noop = () => () => {};
+function readOrder() {
+  try {
+    return sessionStorage.getItem(ORDER_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function ThankYou() {
+  const raw = useSyncExternalStore(noop, readOrder, () => undefined);
+  if (raw === undefined) return null;
+  const order = raw ? (JSON.parse(raw) as PlacedOrder) : null;
+  if (!order)
+    return (
+      <div className="mx-auto max-w-xl rounded-md bg-white p-6 text-center">
+        <h1 className="text-2xl font-extrabold">Chưa có đơn hàng nào</h1>
+        <p className="mt-2 text-ink-2">Nếu bạn vừa đặt hàng, hãy dùng trang Tra cứu đơn với mã đơn và số điện thoại.</p>
+        <Link href="/tra-cuu" className="mt-5 inline-flex h-11 items-center rounded-md bg-brand px-5 font-semibold text-white">Tra cứu đơn</Link>
+      </div>
+    );
+
+  const shipLater = order.method !== "pickup";
+  return (
+    <div className="mx-auto max-w-2xl">
+      <div className="rounded-md bg-white p-6 text-center sm:p-8">
+        <CircleCheck className="mx-auto size-14 text-ok" aria-hidden />
+        <h1 className="mt-3 text-[26px] font-extrabold">Cảm ơn bạn đã đặt hàng!</h1>
+        <p className="mt-4 text-sm text-ink-2">Mã đơn hàng của bạn</p>
+        <p className="num mt-1 text-[34px] font-extrabold tracking-wide text-brand">{order.code}</p>
+        <p className="mt-1 text-[13px] text-ink-2">Hãy lưu lại mã này để tra cứu đơn.</p>
+        <p className="mt-5 text-[15px]">
+          Tổng tiền hàng <b className="num">{formatVnd(order.total)}</b>
+          {shipLater ? " — phí ship sẽ được báo khi shop gọi xác nhận đơn." : " — nhận tại cửa hàng, không mất phí ship."}
+        </p>
+      </div>
+
+      <div className="mt-4 rounded-md bg-white p-5 sm:p-6">
+        <h2 className="mb-4 font-bold">Trạng thái đơn</h2>
+        <OrderSteps current={0} />
+        <ul className="mt-5 divide-y divide-line border-t border-line text-sm">
+          {order.lines.map((l) => (
+            <li key={l.name} className="flex justify-between gap-3 py-2.5">
+              <span>{l.name} <span className="num text-ink-2">× {l.quantity}</span></span>
+              <b className="num">{formatVnd(l.price * l.quantity)}</b>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="mt-4 flex items-center gap-4 rounded-md bg-white p-5">
+        <span className="grid size-20 shrink-0 place-items-center rounded-md bg-sunk text-ink-2"><QrCode className="size-10" aria-hidden /></span>
+        <p className="text-sm text-ink-2"><b className="text-ink">Chuyển khoản VietQR</b> <span className="rounded-full bg-gold-tint px-2 py-0.5 text-xs font-medium text-gold-ink">Sắp có</span><br />Hiện shop nhận tiền mặt khi giao/nhận hàng.</p>
+      </div>
+
+      <div className="mt-5 flex flex-wrap justify-center gap-3">
+        <Link href={`/tra-cuu?ma=${order.code}`} className="inline-flex h-12 items-center rounded-md bg-brand px-6 font-semibold text-white hover:bg-brand-deep">Tra cứu đơn</Link>
+        <Link href="/" className="inline-flex h-12 items-center rounded-md border border-brand bg-white px-6 font-semibold text-brand">Tiếp tục mua</Link>
+      </div>
+    </div>
+  );
+}

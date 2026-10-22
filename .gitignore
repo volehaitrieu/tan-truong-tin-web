@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# công cụ hỗ trợ / ảnh chụp tạo lại được
+/.playwright-cli/
+/.taste-skill/
+/docs/anh-giao-dien/
+/.agents/

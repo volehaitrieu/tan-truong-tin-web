@@ -1,26 +1,72 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Bộ màu Tân Trường Tín — docs/DESIGN.md. Chỉ giao diện sáng. */
+@theme {
+  --color-brand: #0d6b45;
+  --color-brand-deep: #08482f;
+  --color-brand-tint: #e3f2e9;
+  --color-gold: #f2b705;
+  --color-gold-ink: #3a2c00;
+  --color-gold-tint: #fff3c7;
+  --color-ground: #f7faf7;
+  --color-surface: #ffffff;
+  --color-sunk: #eef3ef;
+  --color-line: #e5e7eb;
+  --color-ink: #14231b;
+  --color-ink-2: #4b5a51;
+  --color-danger: #b3261e;
+  --color-ok: #1b7a47;
+  --color-ask: #b7791f;
+
+  --font-sans: var(--font-be-vietnam), system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+
+  --radius-card: 8px;
+  --radius-ctl: 4px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* A consistent, quiet icon language across storefront and admin. */
+svg.lucide { stroke-width: 1.75; }
+
+::selection { background: #cde6d6; color: #08482f; }
+
+/* Hiệu ứng nhẹ: ≤200ms (quy tắc dự án) */
+.product-card { transition: border-color 180ms ease, transform 180ms ease; }
+.product-card:hover { border-color: #b7d4c1; transform: translateY(-2px); }
+.product-art { transition: transform 200ms ease; }
+.product-card:hover .product-art { transform: scale(1.03); }
+
+input, textarea, select, button, a { -webkit-tap-highlight-color: transparent; }
+
+/* Ô tích, ô chọn dùng màu thương hiệu */
+input[type="checkbox"], input[type="radio"] { accent-color: var(--color-brand); }
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-brand);
+  border-radius: var(--radius-ctl);
+}
+/* Trang bán hàng: viền focus vàng 3px */
+.store :focus-visible { box-shadow: 0 0 0 3px var(--color-gold); }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }

@@ -1,0 +1,46 @@
+import type { Metadata } from "next";
+import { MapPin, Phone } from "lucide-react";
+import { POLICIES } from "@/components/storefront/StoreShell";
+import { SHOP } from "@/lib/shop";
+
+export const metadata: Metadata = { title: "Chính sách & giới thiệu" };
+
+// Nội dung tạm — chủ shop sẽ chốt (xem docs/CHU_SHOP_CAN_CHUAN_BI.md)
+const BODY: Record<string, { text: string; pending?: boolean }> = {
+  "doi-tra": { text: "Chính sách đổi trả đang chờ chủ shop chốt (thời hạn, điều kiện, hàng không đổi). Trong lúc chờ, vui lòng gọi shop để được hỗ trợ.", pending: true },
+  "bao-hanh": { text: "Sản phẩm có bảo hành được bảo hành theo chính sách của hãng. Mang sản phẩm kèm hóa đơn đến cửa hàng, shop hỗ trợ gửi bảo hành." },
+  "van-chuyen": { text: "Nhận tại cửa hàng: miễn phí. Giao nội thành Nha Trang: phí theo khu vực, shop báo khi gọi xác nhận đơn. Gửi đi tỉnh qua SPX, GHTK: phí báo sau.", pending: true },
+  "thanh-toan": { text: "Trả tiền mặt khi nhận hàng (COD) hoặc tại quầy. Chuyển khoản VietQR sắp có." },
+  "bao-mat": { text: "Shop chỉ dùng họ tên, số điện thoại và địa chỉ để xác nhận và giao đơn hàng; không chia sẻ cho bên khác ngoài đơn vị vận chuyển." },
+  "gioi-thieu": { text: `Tân Trường Tín — ${SHOP.tagline.toLowerCase()} tại Nha Trang. “${SHOP.slogan}”` },
+};
+
+export default function PolicyPage() {
+  return (
+    <article className="mx-auto max-w-[760px]">
+      <h1 className="text-[28px] font-extrabold sm:text-[34px]">Chính sách & giới thiệu</h1>
+      <nav aria-label="Mục lục" className="mt-4 flex flex-wrap gap-2">
+        {POLICIES.map(([id, label]) => (
+          <a key={id} href={`#${id}`} className="flex min-h-10 items-center rounded-full bg-white px-4 text-sm font-medium hover:bg-brand-tint hover:text-brand">{label}</a>
+        ))}
+      </nav>
+      <div className="mt-6 rounded-md bg-white px-5 sm:px-8">
+        {POLICIES.map(([id, label]) => (
+          <section key={id} id={id} className="scroll-mt-32 border-b border-line py-6 last:border-0">
+            <h2 className="flex flex-wrap items-center gap-2 text-xl font-bold">
+              {label}
+              {BODY[id].pending && <span className="rounded-full bg-gold-tint px-2 py-0.5 text-xs font-medium text-gold-ink">Chờ chủ shop</span>}
+            </h2>
+            <p className="mt-2 text-[15px] leading-7 text-ink-2">{BODY[id].text}</p>
+            {id === "gioi-thieu" && (
+              <div className="mt-4 space-y-1.5 text-[15px]">
+                <p className="flex gap-2"><MapPin className="mt-1 size-4 shrink-0 text-brand" aria-hidden />{SHOP.address} · mở cửa {SHOP.hours} hằng ngày</p>
+                <p className="flex gap-2"><Phone className="mt-1 size-4 shrink-0 text-brand" aria-hidden /><a href="tel:0948732064" className="font-semibold text-brand">{SHOP.phone}</a> · <a href="tel:0793783379" className="text-brand">{SHOP.phone2}</a></p>
+              </div>
+            )}
+          </section>
+        ))}
+      </div>
+    </article>
+  );
+}

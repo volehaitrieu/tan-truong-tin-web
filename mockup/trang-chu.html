@@ -1,0 +1,794 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tân Trường Tín</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">
+<style>
+/* Bố cục: menu danh mục dọc mở sẵn bên trái + banner; bên dưới là lưới danh mục, nhu cầu, sản phẩm, cách mua, cửa hàng */
+:root{
+  --ground:#F7FAF7; --surface:#FFFFFF; --sunk:#EEF3EF;
+  --ink:#14231B; --ink-2:#4B5A51;
+  --brand:#0D6B45; --brand-deep:#08482F; --brand-tint:#E3F2E9;
+  --gold:#F2B705; --gold-ink:#3A2C00; --gold-tint:#FFF3C7;
+  --danger:#B3261E; --ok:#1B7A47;
+  --ill-a:#0D6B45; --ill-b:#7FBF9C; --ill-c:#CFE6D8; --ill-d:#F2B705; --ill-e:#2B3A32;
+  color-scheme:light;
+  --font:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --r:6px; --wrap:1240px;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0}
+body{background:var(--ground);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--surface)}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.wrap{max-width:var(--wrap);margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.15;letter-spacing:-.015em}
+h2{font-size:clamp(22px,2.4vw,30px);font-weight:800}
+.num{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* thanh trên cùng */
+.topbar{background:var(--brand-tint);color:var(--brand-deep);font-size:13px}
+.topbar .wrap{display:flex;gap:20px;justify-content:space-between;align-items:center;padding-block:7px;flex-wrap:wrap}
+.topbar b{color:var(--brand);font-weight:700}
+.topbar .tb-right{display:flex;gap:18px;flex-wrap:wrap}
+
+/* header */
+header.site{background:var(--surface);position:sticky;top:env(safe-area-inset-top,0px);z-index:50}
+.hd{display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:center;padding-block:14px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand svg,.brand img{width:46px;height:46px;flex:none}
+.brand strong{display:block;font-size:20px;font-weight:800;color:var(--brand);letter-spacing:-.01em;line-height:1.05}
+.brand small{display:block;font-size:12px;color:var(--ink-2)}
+.search{position:relative}
+.search input{width:100%;height:46px;border:2px solid var(--brand);border-radius:var(--r);padding:0 56px 0 16px;font:inherit;font-size:15px;background:var(--surface);color:var(--ink)}
+.search input::placeholder{color:var(--ink-2)}
+.search .go{position:absolute;right:0;top:0;height:46px;width:52px;border:0;border-radius:0 var(--r) var(--r) 0;background:var(--brand);color:#fff;display:grid;place-items:center}
+.search .go svg{width:20px;height:20px}
+.results{position:absolute;left:0;right:0;top:52px;background:var(--surface);border-radius:var(--r);box-shadow:0 12px 32px rgba(0,0,0,.18);padding:6px;z-index:70;max-height:60vh;overflow:auto}
+.results a{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:8px;border-radius:4px}
+.results a:hover,.results a:focus-visible{background:var(--sunk)}
+.results .ri{width:44px;height:44px;background:var(--sunk);border-radius:4px;display:grid;place-items:center}
+.results .ri svg{width:36px;height:36px}
+.results .rp{font-weight:700;color:var(--danger)}
+.results .empty{padding:14px;color:var(--ink-2)}
+.results .hint{padding:6px 8px 2px;font-size:12px;color:var(--ink-2)}
+.actions{display:flex;gap:6px}
+.act{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r);background:none;border:0;font-size:14px;font-weight:500}
+.act:hover{background:var(--sunk)}
+.act svg{width:24px;height:24px;color:var(--brand)}
+.cart-n{min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--gold);color:var(--gold-ink);font-size:12px;font-weight:700;display:inline-grid;place-items:center}
+.burger{display:none}
+
+/* hàng hero */
+.hero{display:grid;grid-template-columns:268px 1fr 280px;gap:16px;padding-block:16px 8px;position:relative}
+.catmenu{background:var(--surface);border-radius:var(--r);padding:6px 0;align-self:start}
+.catmenu h2{font-size:15px;font-weight:700;padding:8px 16px 8px;color:var(--brand)}
+.catmenu ul{list-style:none;margin:0;padding:0}
+.catmenu li>a{display:flex;align-items:center;gap:12px;padding:9px 16px;font-size:14.5px;font-weight:500}
+.catmenu li>a svg.ic{width:22px;height:22px;color:var(--brand);flex:none}
+.catmenu li>a .chev{margin-left:auto;width:14px;height:14px;color:var(--ink-2)}
+.catmenu li>a .cnt{margin-left:auto;font-size:12px;color:var(--ink-2)}
+.catmenu li.on>a,.catmenu li>a:hover{background:var(--brand-tint);color:var(--brand)}
+.flyout{position:absolute;left:284px;right:0;top:16px;min-height:calc(100% - 24px);background:var(--surface);border-radius:var(--r);box-shadow:0 16px 40px rgba(0,0,0,.16);padding:24px 28px;z-index:40;display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:28px}
+.flyout h3{font-size:15px;font-weight:700;margin-bottom:12px}
+.flyout .chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;background:var(--sunk);font-size:13.5px;font-weight:500;border:0}
+.chip:hover{background:var(--brand-tint);color:var(--brand)}
+.chip.on{background:var(--brand);color:#fff}
+.flyout .note{grid-column:1/-1;font-size:13px;color:var(--ink-2)}
+
+.banner{background:var(--brand-tint);color:var(--ink);border-radius:var(--r);display:grid;grid-template-columns:1.5fr 1fr;align-items:center;overflow:hidden;min-height:360px}
+.banner .copy{padding:32px 8px 32px 32px;display:flex;flex-direction:column;gap:16px}
+.banner h1{color:var(--brand-deep);font-size:clamp(28px,2.7vw,40px);font-weight:800;letter-spacing:-.025em}
+.banner p{margin:0;font-size:17px;color:var(--ink-2);max-width:34ch}
+.banner .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:4px}
+.btn{display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 20px;border-radius:var(--r);border:0;font-weight:700;font-size:15px;transition:transform .12s ease,background-color .12s ease}
+.btn:active{transform:translateY(1px)}
+.btn-gold{background:var(--gold);color:var(--gold-ink)}
+.btn-gold:hover{background:#FFC928}
+.btn-ghost{background:var(--surface);color:var(--brand)}
+.btn-ghost:hover{background:#fff;box-shadow:inset 0 0 0 2px var(--brand)}
+.banner .art{height:100%;display:grid;place-items:center;padding:20px;background:var(--surface)}
+.banner .art svg{width:min(100%,320px);height:auto}
+.banner .tag{font-size:12px;color:var(--ink-2)}
+.side{display:grid;gap:16px;align-content:start}
+.tile{background:var(--surface);border-radius:var(--r);padding:18px;display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:start}
+.tile svg{width:44px;height:44px;color:var(--brand)}
+.tile h3{font-size:15.5px;font-weight:700;margin-bottom:4px}
+.tile p{margin:0;font-size:13.5px;color:var(--ink-2)}
+.tile.gold{background:var(--gold-tint)}
+.tile.gold svg{color:var(--gold-ink)}
+
+/* section */
+section.blk{padding-block:40px 8px}
+.blk-hd{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+.blk-hd p{margin:6px 0 0;color:var(--ink-2)}
+.more{font-weight:600;color:var(--brand);white-space:nowrap}
+.more:hover{text-decoration:underline}
+
+/* lưới danh mục */
+.cats{display:grid;grid-template-columns:repeat(8,1fr);gap:12px}
+.cat{background:var(--surface);border-radius:var(--r);padding:18px 10px 14px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;transition:background-color .15s}
+.cat:hover{background:var(--brand-tint)}
+.cat .disc{width:76px;height:76px;border-radius:50%;background:var(--sunk);display:grid;place-items:center;transition:transform .2s ease}
+.cat:hover .disc{transform:scale(1.06)}
+.cat .disc svg{width:58px;height:58px}
+.cat b{font-size:14px;font-weight:600;line-height:1.25}
+.cat span{font-size:12px;color:var(--ink-2)}
+
+/* nhu cầu */
+.needs{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.need{border-radius:var(--r);padding:20px;min-height:170px;display:grid;grid-template-rows:1fr auto;gap:12px;background:var(--surface);position:relative;overflow:hidden}
+.need:nth-child(1){background:var(--brand-tint);color:var(--brand-deep)}
+.need:nth-child(4){background:var(--gold-tint);color:var(--gold-ink)}
+.need:nth-child(2),.need:nth-child(3){background:var(--surface)}
+.need h3{font-size:19px;font-weight:800}
+.need p{margin:4px 0 0;font-size:13.5px;opacity:.85;max-width:22ch}
+.need .go{font-weight:700;font-size:14px}
+.need svg{position:absolute;right:-6px;bottom:-6px;width:118px;height:118px;opacity:.95}
+.need:hover .go{text-decoration:underline}
+
+/* sản phẩm */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.card{background:var(--surface);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card .pic{aspect-ratio:1;background:var(--sunk);border-radius:4px;display:grid;place-items:center;position:relative}
+.card .pic svg{width:72%;height:72%;transition:transform .25s ease}
+.card:hover .pic svg{transform:scale(1.05)}
+.card .ill{position:absolute;left:8px;top:8px;font-size:11px;padding:2px 7px;border-radius:3px;background:var(--surface);color:var(--ink-2)}
+.card .brandn{font-size:12.5px;font-weight:700;color:var(--brand)}
+.card h3{font-size:14px;font-weight:500;line-height:1.35;letter-spacing:0;min-height:2.7em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card .spec{font-size:12.5px;color:var(--ink-2)}
+.card .price{font-size:18px;font-weight:800;color:var(--danger)}
+.card .unit{font-size:12.5px;font-weight:500;color:var(--ink-2)}
+.stock{font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:6px}
+.stock::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.stock.in{color:var(--ok)}
+.stock.ask{color:#B7791F}
+.add{margin-top:auto;height:40px;border:0;border-radius:var(--r);background:var(--brand);color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;transition:background-color .12s,transform .12s}
+.add:hover{background:var(--brand-deep)}
+.add:active{transform:translateY(1px)}
+.add.ask{background:var(--gold);color:var(--gold-ink)}
+.add svg{width:18px;height:18px}
+
+/* hàng trượt ngang (thương hiệu, giảm giá) */
+.rail{display:grid;grid-auto-flow:column;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.rail::-webkit-scrollbar{display:none}
+.rail>*{scroll-snap-align:start}
+.rail-nav{display:flex;gap:8px}
+.navbtn{width:40px;height:40px;border-radius:50%;border:0;background:var(--surface);color:var(--brand);display:grid;place-items:center;transition:background-color .12s,opacity .12s}
+.navbtn:hover{background:var(--brand-tint)}
+.navbtn:disabled{opacity:.35;cursor:default;background:var(--surface)}
+.navbtn svg{width:20px;height:20px}
+.brands{grid-auto-columns:max-content}
+.brands a{padding:12px 18px;background:var(--surface);border-radius:var(--r);font-weight:700;font-size:15px;white-space:nowrap}
+.sale-rail{grid-auto-columns:calc((100% - 48px)/5)}
+.old{font-size:13px;color:var(--ink-2);text-decoration:line-through;margin-left:6px;font-weight:500}
+.off{position:absolute;right:8px;top:8px;font-size:12px;font-weight:800;padding:2px 7px;border-radius:3px;background:var(--danger);color:#fff}
+
+/* tất cả sản phẩm + bộ lọc */
+.shop{display:grid;grid-template-columns:250px 1fr;gap:16px;align-items:start}
+.filters{background:var(--surface);border-radius:var(--r);padding:16px;position:sticky;top:calc(84px + env(safe-area-inset-top,0px));max-height:calc(100vh - 100px);overflow:auto}
+.f-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.f-head h3{font-size:16px;font-weight:800;margin-right:auto}
+.linkbtn{background:none;border:0;color:var(--brand);font-weight:600;font-size:13.5px;padding:4px}
+.linkbtn:hover{text-decoration:underline}
+.f-x,.f-apply{display:none}
+.fscrim{display:none}
+.facet{padding-block:12px;border-top:1px solid var(--sunk)}
+.facet:first-child{border-top:0}
+.facet h4{margin:0 0 8px;font-size:14px;font-weight:700}
+.opt{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:14px;cursor:pointer}
+.opt input{width:18px;height:18px;accent-color:var(--brand);margin:0;flex:none}
+.opt .c{margin-left:auto;font-size:12.5px;color:var(--ink-2)}
+.opt.zero{opacity:.45}
+.facet .hint{font-size:12.5px;color:var(--ink-2);margin:0 0 6px}
+.showmore{background:none;border:0;color:var(--brand);font-weight:600;font-size:13px;padding:4px 0}
+.results-col{min-width:0;display:flex;flex-direction:column;gap:12px}
+.toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border-radius:var(--r);padding:10px 12px}
+.found{color:var(--ink-2);font-size:14px}
+.found b{color:var(--ink)}
+.sort{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2)}
+.sort select{height:38px;border-radius:var(--r);border:1px solid var(--sunk);background:var(--ground);color:var(--ink);font:inherit;padding:0 10px}
+.btn-filter{display:none;align-items:center;gap:8px;height:38px;padding:0 12px;border-radius:var(--r);border:0;background:var(--brand);color:#fff;font-weight:700}
+.btn-filter svg{width:18px;height:18px}
+.active{display:flex;gap:8px;flex-wrap:wrap}
+.active:empty{display:none}
+.active .chip{background:var(--brand-tint);color:var(--brand)}
+.grid.g4{grid-template-columns:repeat(4,1fr)}
+.more-row{display:flex;justify-content:center;padding-top:4px}
+.btn-outline{background:var(--surface);color:var(--brand);box-shadow:inset 0 0 0 2px var(--brand)}
+.btn-outline:hover{background:var(--brand-tint)}
+.btn-brand{background:var(--brand);color:#fff;width:100%;justify-content:center}
+.noresult{grid-column:1/-1;background:var(--surface);border-radius:var(--r);padding:28px;text-align:center;color:var(--ink-2)}
+.brands a:hover{background:var(--brand-tint);color:var(--brand)}
+.brands a span{font-weight:500;color:var(--ink-2);font-size:13px;margin-left:6px}
+
+/* cách mua */
+.howbuy{display:grid;grid-template-columns:1.3fr 1fr;gap:16px}
+.panel{background:var(--surface);border-radius:var(--r);padding:24px}
+.panel h3{font-size:18px;font-weight:800;margin-bottom:14px}
+.ways{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.way{background:var(--sunk);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:8px}
+.way svg{width:36px;height:36px;color:var(--brand)}
+.way b{font-size:15px}
+.way p{margin:0;font-size:13.5px;color:var(--ink-2)}
+.pay{display:grid;gap:12px}
+.pay .way{flex-direction:row;align-items:center;gap:14px}
+.qr{width:64px;height:64px;flex:none;background:var(--surface);border-radius:4px;padding:6px}
+
+/* cửa hàng */
+.store{display:grid;grid-template-columns:1fr 1.15fr;gap:0;background:var(--surface);color:var(--ink);border-radius:var(--r);overflow:hidden}
+.store img{width:100%;height:100%;object-fit:cover;min-height:320px;display:block}
+.store .copy{padding:36px 40px;display:flex;flex-direction:column;gap:14px;justify-content:center}
+.store h2{color:var(--brand-deep)}
+.store p{margin:0;color:var(--ink-2);max-width:46ch}
+.store dl{display:grid;grid-template-columns:auto 1fr;gap:8px 18px;margin:6px 0 0}
+.store dt{color:var(--ink-2);font-size:13.5px}
+.store dd{margin:0;font-weight:600}
+.todo{display:inline-block;background:var(--gold);color:var(--gold-ink);font-size:11.5px;font-weight:700;padding:1px 6px;border-radius:3px;margin-left:6px;vertical-align:middle}
+
+/* footer */
+footer{margin-top:48px;background:var(--surface)}
+footer .wrap{padding-block:36px 24px;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:28px}
+footer h3{font-size:15px;font-weight:700;margin-bottom:10px}
+footer ul{list-style:none;margin:0;padding:0;display:grid;gap:7px;font-size:14px;color:var(--ink-2)}
+footer a:hover{color:var(--brand)}
+footer .slogan{margin:10px 0 0;color:var(--ink-2);font-size:14px;max-width:36ch}
+.legal{background:var(--sunk);font-size:12.5px;color:var(--ink-2)}
+.legal .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:12px}
+
+/* toast + nav đáy mobile + ngăn kéo */
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--ground);padding:10px 16px;border-radius:var(--r);font-weight:600;font-size:14px;z-index:90}
+.bnav{display:none}
+.drawer{position:fixed;inset:0;z-index:95;display:flex}
+.drawer .scrim{position:absolute;inset:0;background:rgba(0,0,0,.45)}
+.drawer .sheet{position:relative;width:min(86vw,360px);height:100%;background:var(--surface);overflow:auto;padding:calc(16px + env(safe-area-inset-top,0px)) 0 calc(24px + env(safe-area-inset-bottom,0px)) env(safe-area-inset-left,0px)}
+.drawer .sheet h2{font-size:18px;padding:0 16px 10px}
+.drawer details{border-top:1px solid var(--sunk)}
+.drawer summary{list-style:none;display:flex;align-items:center;gap:12px;padding:13px 16px;font-weight:600}
+.drawer summary::-webkit-details-marker{display:none}
+.drawer summary svg{width:22px;height:22px;color:var(--brand)}
+.drawer .chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 14px 50px}
+.drawer .close{position:absolute;right:8px;top:calc(8px + env(safe-area-inset-top,0px));width:40px;height:40px;border:0;background:var(--sunk);border-radius:50%;font-size:20px}
+
+@media (max-width:1180px){
+  .hero{grid-template-columns:240px 1fr}
+  .side{grid-column:1/-1;grid-template-columns:repeat(3,1fr)}
+  .flyout{left:256px}
+  .cats{grid-template-columns:repeat(4,1fr)}
+  .grid{grid-template-columns:repeat(4,1fr)}
+  .grid.g4{grid-template-columns:repeat(3,1fr)}
+  .sale-rail{grid-auto-columns:calc((100% - 36px)/4)}
+}
+@media (max-width:860px){
+  body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+  .topbar .tb-right{display:none}
+  .hd{grid-template-columns:auto 1fr auto;gap:12px;padding-block:10px}
+  .hd .search{grid-column:1/-1;order:3}
+  .burger{display:grid;place-items:center;width:42px;height:42px;border:0;background:var(--sunk);border-radius:var(--r)}
+  .burger svg{width:22px;height:22px}
+  .brand svg,.brand img{width:38px;height:38px}
+  .brand strong{font-size:17px}
+  .act .lbl{display:none}
+  .act.track{display:none}
+  .hero{grid-template-columns:1fr;padding-block:12px 0}
+  .catmenu,.flyout{display:none}
+  .banner{grid-template-columns:1fr;min-height:0}
+  .banner .copy{padding:24px 20px 8px}
+  .banner .art{display:none}
+  .banner .copy{padding-bottom:24px}
+  .brand small{display:none}
+  .side{display:none}
+  .cats{grid-template-columns:repeat(4,1fr);gap:8px}
+  .cat{padding:12px 4px 10px}
+  .cat .disc{width:58px;height:58px}
+  .cat .disc svg{width:44px;height:44px}
+  .cat b{font-size:12.5px}
+  .needs{grid-template-columns:1fr 1fr}
+  .need{min-height:140px;padding:16px}
+  .need svg{width:84px;height:84px}
+  .grid,.grid.g4{grid-template-columns:1fr 1fr;gap:8px}
+  .sale-rail{grid-auto-columns:46%;gap:8px}
+  .shop{grid-template-columns:1fr}
+  .btn-filter{display:inline-flex}
+  .sort span{display:none}
+  .found{order:3;width:100%}
+  .filters{display:none;position:fixed;inset:auto 0 0 0;top:auto;z-index:96;max-height:82vh;border-radius:14px 14px 0 0;padding:16px max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));box-shadow:0 -12px 40px rgba(0,0,0,.25)}
+  .filters.open{display:block}
+  .f-x{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;border:0;background:var(--sunk);font-size:20px}
+  .f-apply{display:block;position:sticky;bottom:0;background:var(--surface);padding:12px 0 calc(12px + env(safe-area-inset-bottom,0px))}
+  .fscrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:95}
+  .howbuy{grid-template-columns:1fr}
+  .ways{grid-template-columns:1fr}
+  .store{grid-template-columns:1fr}
+  .store img{min-height:220px;max-height:300px}
+  .store .copy{padding:24px 20px}
+  footer .wrap{grid-template-columns:1fr 1fr}
+  footer .wrap>div:first-child{grid-column:1/-1}
+  .bnav{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:0;right:0;bottom:0;z-index:80;background:var(--surface);padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px));box-shadow:0 -1px 0 var(--sunk)}
+  .bnav a,.bnav button{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11.5px;font-weight:500;color:var(--ink-2);background:none;border:0;padding:4px}
+  .bnav .on{color:var(--brand)}
+  .bnav svg{width:24px;height:24px}
+}
+@media (max-width:420px){
+  .cat b{font-size:11.5px}
+  .cat span{font-size:11px}
+  .cat .disc{width:50px;height:50px}
+  .cat .disc svg{width:38px;height:38px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+</style>
+
+<div class="topbar"><div class="wrap">
+  <span>Cửa hàng tại <b>phường Bắc Nha Trang, Khánh Hòa</b> · Đặt online, lấy tại cửa hàng</span>
+  <span class="tb-right"><span>Mở cửa: 7:45 – 20:30</span><span>Hotline/Zalo: <a href="tel:0948732064">0948 732 064</a></span></span>
+</div></div>
+
+<header class="site"><div class="wrap hd">
+  <a class="brand" href="#" aria-label="Tân Trường Tín, trang chủ">
+    <img src="logo-512.png" alt="" width="46" height="46">
+    <span><strong>TÂN TRƯỜNG TÍN</strong><small>Điện nước · Gia dụng · Dụng cụ</small></span>
+  </a>
+  <form class="search" role="search" id="searchForm">
+    <label class="sr" for="q">Tìm sản phẩm</label>
+    <input id="q" type="search" autocomplete="off" placeholder="Tìm quạt, ổ cắm, ống nước, máy khoan…">
+    <button class="go" type="submit" aria-label="Tìm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
+    <div class="results" id="results" hidden></div>
+  </form>
+  <div class="actions">
+    <a class="act track" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></svg><span class="lbl">Tra cứu đơn</span></a>
+    <button class="act" type="button" id="cartBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.2 10.5h10.6L20 7H6.2"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg><span class="lbl">Giỏ hàng</span><span class="cart-n num" id="cartN">0</span></button>
+    <button class="burger" type="button" id="burger" aria-label="Mở danh mục"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  </div>
+</div></header>
+
+<main>
+<div class="wrap hero" id="hero">
+  <nav class="catmenu" aria-label="Danh mục sản phẩm">
+    <h2>Danh mục sản phẩm</h2>
+    <ul id="catmenu"></ul>
+  </nav>
+  <div class="flyout" id="flyout" hidden></div>
+
+  <div class="banner">
+    <div class="copy">
+      <h1>Điện nước &amp; gia dụng cho mọi nhà</h1>
+      <p>Hơn 3.500 mặt hàng có sẵn tại cửa hàng Bắc Nha Trang. Đặt trên web, giao trong nội thành hoặc ghé lấy.</p>
+      <div class="row">
+        <a class="btn btn-gold" href="#tat-ca">Xem tất cả sản phẩm</a>
+        <a class="btn btn-ghost" href="#cach-mua">Cách đặt hàng</a>
+      </div>
+      <span class="tag">Hình trên trang là ảnh minh họa theo danh mục.</span>
+    </div>
+    <div class="art" id="heroArt"></div>
+  </div>
+
+  <aside class="side">
+    <div class="tile gold">
+      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M8 20 24 8l16 12v20H8z"/><path d="M19 40V28h10v12"/></svg>
+      <div><h3>Đặt online, lấy tại cửa hàng</h3><p>Nhân viên gọi xác nhận, chuẩn bị sẵn hàng. Không mất phí ship.</p></div>
+    </div>
+    <div class="tile">
+      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M4 14h24v18H4zM28 20h8l6 6v6H28z"/><circle cx="12" cy="35" r="3.5"/><circle cx="34" cy="35" r="3.5"/></svg>
+      <div><h3>Giao nội thành Nha Trang</h3><p>Shop tự giao hoặc gọi Grab. Đi tỉnh qua SPX Express, GHTK.</p></div>
+    </div>
+    <div class="tile">
+      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><rect x="8" y="8" width="32" height="32" rx="2"/><path d="M14 14h8v8h-8zM26 14h8v8h-8zM14 26h8v8h-8zM28 28h2M32 32h2M28 34h2"/></svg>
+      <div><h3>Trả tiền khi nhận hoặc quét QR</h3><p>COD, hoặc chuyển khoản VietQR có sẵn số tiền và mã đơn.</p></div>
+    </div>
+  </aside>
+</div>
+
+<section class="blk"><div class="wrap">
+  <div class="blk-hd"><div><h2>Danh mục hàng hóa</h2><p>Số mặt hàng theo sổ hàng hiện tại của cửa hàng.</p></div><a class="more" href="#">Xem tất cả</a></div>
+  <div class="cats" id="cats"></div>
+</div></section>
+
+<section class="blk"><div class="wrap">
+  <div class="blk-hd"><div><h2>Mua theo nhu cầu</h2><p>Chọn việc bạn cần làm, cửa hàng gợi ý đủ món.</p></div></div>
+  <div class="needs" id="needs"></div>
+</div></section>
+
+<section class="blk" id="giam-gia"><div class="wrap">
+  <div class="blk-hd"><div><h2>Sản phẩm đang giảm giá</h2><p>Giá đã gồm VAT. Mức giảm trên trang là số mẫu, chủ shop đặt trong trang quản trị.</p></div>
+    <div class="rail-nav"><button class="navbtn" type="button" data-rail="saleRail" data-dir="-1" aria-label="Xem sản phẩm trước"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 6-6 6 6 6"/></svg></button><button class="navbtn" type="button" data-rail="saleRail" data-dir="1" aria-label="Xem sản phẩm tiếp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 6 6 6-6 6"/></svg></button></div></div>
+  <div class="rail sale-rail" id="saleRail" tabindex="0" aria-label="Sản phẩm đang giảm giá"></div>
+</div></section>
+
+<section class="blk" id="tat-ca"><div class="wrap">
+  <div class="blk-hd"><div><h2>Tất cả sản phẩm</h2><p>Lọc theo danh mục, thương hiệu, giá và thông số. Món tạm hết vẫn đặt được, nhân viên gọi báo ngày có hàng.</p></div></div>
+  <div class="shop">
+    <div class="fscrim" id="fScrim" hidden></div>
+    <aside class="filters" id="filters" aria-label="Bộ lọc sản phẩm">
+      <div class="f-head"><h3>Bộ lọc</h3><button class="linkbtn" type="button" id="fClear">Xóa tất cả</button><button class="f-x" type="button" id="fClose" aria-label="Đóng bộ lọc">×</button></div>
+      <div id="facets"></div>
+      <div class="f-apply"><button class="btn btn-brand" type="button" id="fApply">Xem <span class="num" id="fApplyN">0</span> sản phẩm</button></div>
+    </aside>
+    <div class="results-col">
+      <div class="toolbar">
+        <button class="btn-filter" type="button" id="fOpen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Bộ lọc <span class="cart-n num" id="fCount" hidden>0</span></button>
+        <span class="found">Tìm thấy <b class="num" id="foundN">0</b> sản phẩm</span>
+        <label class="sort" for="sort"><span>Sắp xếp</span><select id="sort"><option value="pop">Phổ biến</option><option value="asc">Giá thấp đến cao</option><option value="desc">Giá cao đến thấp</option><option value="sale">Giảm nhiều nhất</option><option value="name">Tên A–Z</option></select></label>
+      </div>
+      <div class="active" id="activeChips"></div>
+      <div class="grid g4" id="allGrid"></div>
+      <div class="more-row"><button class="btn btn-outline" type="button" id="moreBtn">Xem thêm sản phẩm</button></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="blk"><div class="wrap">
+  <div class="blk-hd"><div><h2>Thương hiệu có tại cửa hàng</h2></div>
+    <div class="rail-nav"><button class="navbtn" type="button" data-rail="brands" data-dir="-1" aria-label="Thương hiệu trước"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 6-6 6 6 6"/></svg></button><button class="navbtn" type="button" data-rail="brands" data-dir="1" aria-label="Thương hiệu tiếp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 6 6 6-6 6"/></svg></button></div></div>
+  <div class="rail brands" id="brands" tabindex="0" aria-label="Thương hiệu"></div>
+</div></section>
+
+<section class="blk" id="cach-mua"><div class="wrap howbuy">
+  <div class="panel">
+    <h3>Nhận hàng theo 3 cách</h3>
+    <div class="ways">
+      <div class="way"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M8 20 24 8l16 12v20H8z"/><path d="M19 40V28h10v12"/></svg><b>Lấy tại cửa hàng</b><p>Miễn phí. Hàng được chuẩn bị sẵn sau khi nhân viên xác nhận.</p></div>
+      <div class="way"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="34" r="6"/><circle cx="36" cy="34" r="6"/><path d="M12 34l8-14h10l6 14M20 20l-3-6h-5M30 20l4-8h4"/></svg><b>Giao nội thành</b><p>Shop tự giao hoặc gọi Grab trong khu vực Nha Trang.</p></div>
+      <div class="way"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M6 16 24 7l18 9v18l-18 9-18-9z"/><path d="M6 16l18 9 18-9M24 25v18"/></svg><b>Gửi đi tỉnh</b><p>SPX Express hoặc Giao Hàng Tiết Kiệm. Phí theo cân nặng.</p></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Thanh toán</h3>
+    <div class="pay">
+      <div class="way"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><rect x="5" y="12" width="38" height="24" rx="2"/><circle cx="24" cy="24" r="5"/></svg><div><b>Tiền mặt khi nhận hàng</b><p>Kiểm tra hàng rồi mới trả tiền.</p></div></div>
+      <div class="way"><svg class="qr" viewBox="0 0 21 21" shape-rendering="crispEdges" id="qr"></svg><div><b>Chuyển khoản VietQR</b><p>Mã QR hiện sau khi đặt, đã điền sẵn số tiền và nội dung là mã đơn.</p></div></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="blk"><div class="wrap">
+  <div class="store">
+    <img src="cua-hang.webp" alt="Mặt tiền cửa hàng Tân Trường Tín, biển hiệu nền đen chữ vàng" width="765" height="1020" loading="lazy">
+    <div class="copy">
+      <h2>Ghé cửa hàng xem hàng tận tay</h2>
+      <p>Không chắc món nào hợp? Mang theo đồ cũ hoặc ảnh chụp, nhân viên tìm đúng loại cho bạn. Hàng bảo hành được nhận lại ngay tại quầy.</p>
+      <dl>
+        <dt>Địa chỉ</dt><dd>379 đường 2/4, phường Bắc Nha Trang, Khánh Hòa</dd>
+        <dt>Giờ mở cửa</dt><dd>7:45 – 20:30 hằng ngày</dd>
+        <dt>Điện thoại</dt><dd><a href="tel:0948732064">0948 732 064</a> · <a href="tel:0793783379">0793 783 379</a> (Zalo)</dd>
+      </dl>
+    </div>
+  </div>
+</div></section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <a class="brand" href="#" aria-label="Tân Trường Tín"><img src="logo-512.png" alt="" width="46" height="46"><span><strong>TÂN TRƯỜNG TÍN</strong><small>Điện nước · Gia dụng · Dụng cụ</small></span></a>
+      <p class="slogan">Chất lượng tạo niềm tin, dịch vụ tạo khác biệt.</p>
+    </div>
+    <div><h3>Mua hàng</h3><ul><li><a href="#">Tra cứu đơn hàng</a></li><li><a href="#cach-mua">Cách đặt hàng</a></li><li><a href="#">Phí giao hàng</a></li></ul></div>
+    <div><h3>Chính sách</h3><ul><li><a href="#">Đổi trả</a></li><li><a href="#">Bảo hành</a></li><li><a href="#">Vận chuyển</a></li><li><a href="#">Thanh toán</a></li><li><a href="#">Bảo mật thông tin</a></li></ul></div>
+    <div><h3>Liên hệ</h3><ul><li>379 đường 2/4, phường Bắc Nha Trang, Khánh Hòa</li><li>Hotline/Zalo: <a href="tel:0948732064">0948 732 064</a></li><li>Số phụ: <a href="tel:0793783379">0793 783 379</a></li><li>Mở cửa 7:45 – 20:30</li><li><a href="#">Giới thiệu cửa hàng</a></li></ul></div>
+  </div>
+  <div class="legal"><div class="wrap"><span>© 2026 Tân Trường Tín</span><span>Bản mẫu giao diện. Giá và tên hàng lấy từ file kho quạt; địa chỉ, số điện thoại, giờ mở cửa là thông tin thật.</span></div></div>
+</footer>
+
+<nav class="bnav" aria-label="Điều hướng nhanh">
+  <a class="on" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/></svg>Trang chủ</a>
+  <button type="button" id="bnavCat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>Danh mục</button>
+  <button type="button" id="bnavCart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.2 10.5h10.6L20 7H6.2"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg><span style="position:relative">Giỏ hàng<span class="cart-n num" id="cartN2" style="position:absolute;top:-30px;right:-14px;transform:scale(.85)">0</span></span></button>
+  <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></svg>Tra cứu đơn</a>
+</nav>
+
+<div class="drawer" id="drawer" hidden>
+  <div class="scrim" data-close></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Danh mục sản phẩm">
+    <button class="close" type="button" data-close aria-label="Đóng">×</button>
+    <h2>Danh mục sản phẩm</h2>
+    <div id="drawerList"></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+/* ===== Ảnh minh họa vẽ bằng code (theo danh mục) ===== */
+const A='var(--ill-a)',B='var(--ill-b)',C='var(--ill-c)',D='var(--ill-d)',E='var(--ill-e)';
+const fanHead=(cx,cy,r)=>`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${C}" stroke="${E}" stroke-width="3"/>`+
+  [0,120,240].map(a=>`<ellipse cx="${cx}" cy="${cy-r*.45}" rx="${r*.24}" ry="${r*.46}" fill="${B}" transform="rotate(${a} ${cx} ${cy})"/>`).join('')+
+  `<circle cx="${cx}" cy="${cy}" r="${r*.16}" fill="${A}"/>`+
+  [0,30,60,90,120,150].map(a=>`<line x1="${cx}" y1="${cy-r}" x2="${cx}" y2="${cy+r}" stroke="${E}" stroke-width="1" opacity=".35" transform="rotate(${a} ${cx} ${cy})"/>`).join('');
+const ILL={
+  'treo':`<rect x="48" y="6" width="24" height="12" rx="3" fill="${E}"/><rect x="57" y="16" width="6" height="16" fill="${E}"/>${fanHead(60,62,36)}<line x1="48" y1="98" x2="48" y2="114" stroke="${E}" stroke-width="2"/><line x1="72" y1="98" x2="72" y2="110" stroke="${E}" stroke-width="2"/><circle cx="48" cy="115" r="2.5" fill="${D}"/><circle cx="72" cy="111" r="2.5" fill="${D}"/>`,
+  'dung':`${fanHead(60,40,32)}<rect x="56" y="70" width="8" height="38" fill="${E}"/><ellipse cx="60" cy="110" rx="28" ry="6" fill="${A}"/>`,
+  'lung':`${fanHead(60,44,32)}<rect x="56" y="74" width="8" height="28" fill="${E}"/><ellipse cx="60" cy="106" rx="30" ry="7" fill="${A}"/>`,
+  'san':`${fanHead(60,54,40)}<path d="M28 108h64l-10-16H38z" fill="${A}"/>`,
+  'ban':`${fanHead(60,46,30)}<rect x="56" y="74" width="8" height="18" fill="${E}"/><rect x="34" y="92" width="52" height="14" rx="5" fill="${A}"/><circle cx="46" cy="99" r="2.5" fill="${D}"/><circle cx="56" cy="99" r="2.5" fill="${C}"/>`,
+  'tran':`<rect x="56" y="4" width="8" height="30" fill="${E}"/><ellipse cx="60" cy="40" rx="14" ry="9" fill="${A}"/><path d="M60 40 8 54l4 6 48-14z M60 40l52 14-4 6-48-14z" fill="${B}"/><path d="M60 40v34l-6 2V44z" fill="${B}"/>`,
+  'hop':`<rect x="20" y="20" width="80" height="82" rx="8" fill="${A}"/>${fanHead(60,60,30)}<rect x="28" y="90" width="64" height="6" rx="3" fill="${E}" opacity=".5"/>`,
+  'hut':`<rect x="18" y="18" width="84" height="84" rx="4" fill="${E}"/><rect x="26" y="26" width="68" height="68" fill="${C}"/>`+[0,1,2,3,4,5].map(i=>`<rect x="30" y="${32+i*10}" width="60" height="5" fill="${B}"/>`).join(''),
+  'den':`<path d="M60 10a34 34 0 0 0-20 61c5 4 7 9 7 14h26c0-5 2-10 7-14a34 34 0 0 0-20-61z" fill="${D}"/><path d="M52 52l8 10 8-10" fill="none" stroke="${E}" stroke-width="3"/><rect x="46" y="88" width="28" height="8" fill="${B}"/><rect x="46" y="98" width="28" height="8" fill="${B}"/><rect x="52" y="108" width="16" height="6" rx="2" fill="${E}"/>`,
+  'dien':`<rect x="22" y="22" width="76" height="76" rx="10" fill="${C}" stroke="${E}" stroke-width="3"/><rect x="34" y="34" width="52" height="52" rx="6" fill="#fff" opacity=".85"/><rect x="44" y="48" width="8" height="18" rx="3" fill="${E}"/><rect x="68" y="48" width="8" height="18" rx="3" fill="${E}"/><circle cx="60" cy="74" r="5" fill="${A}"/>`,
+  'nuoc':`<rect x="10" y="48" width="64" height="24" fill="${B}"/><rect x="66" y="40" width="20" height="40" rx="3" fill="${A}"/><rect x="74" y="80" width="24" height="30" fill="${B}" transform="rotate(0)"/><rect x="66" y="40" width="20" height="40" rx="3" fill="${A}"/><path d="M40 20h14v14H40z" fill="${E}"/><rect x="45" y="30" width="4" height="18" fill="${E}"/><path d="M30 18h34" stroke="${D}" stroke-width="6" stroke-linecap="round"/>`,
+  'dungcu':`<path d="M30 96 72 32" stroke="${E}" stroke-width="10" stroke-linecap="round"/><path d="M64 18l24 14-10 16-24-14z" fill="${A}"/><path d="M84 92 40 40" stroke="${B}" stroke-width="10" stroke-linecap="round"/><rect x="78" y="80" width="18" height="28" rx="4" fill="${D}" transform="rotate(-40 87 94)"/>`,
+  'kimkhi':`<path d="M60 14l8 10h-16z" fill="${E}"/><rect x="54" y="24" width="12" height="70" fill="${B}"/>`+[0,1,2,3,4,5,6].map(i=>`<line x1="54" y1="${32+i*9}" x2="66" y2="${36+i*9}" stroke="${E}" stroke-width="2"/>`).join('')+`<path d="M44 94h32l-6 14H50z" fill="${A}"/><circle cx="32" cy="40" r="12" fill="none" stroke="${D}" stroke-width="7"/><path d="M84 40h18M93 31v18" stroke="${A}" stroke-width="7" stroke-linecap="round"/>`,
+  'giadung':`<rect x="22" y="40" width="76" height="62" rx="16" fill="${C}" stroke="${E}" stroke-width="3"/><path d="M22 58h76" stroke="${E}" stroke-width="3"/><path d="M40 40c0-14 40-14 40 0" fill="${B}"/><rect x="54" y="26" width="12" height="6" rx="3" fill="${E}"/><rect x="48" y="72" width="24" height="12" rx="3" fill="${A}"/><circle cx="54" cy="78" r="2" fill="${D}"/>`,
+  'son':`<rect x="24" y="36" width="56" height="70" rx="4" fill="${A}"/><ellipse cx="52" cy="36" rx="28" ry="8" fill="${B}"/><path d="M24 36c0-22 56-22 56 0" fill="none" stroke="${E}" stroke-width="3"/><rect x="34" y="58" width="36" height="24" fill="${C}"/><rect x="82" y="20" width="12" height="56" rx="3" fill="${E}"/><rect x="78" y="76" width="20" height="30" rx="2" fill="${D}"/>`,
+  'congnghe':`<rect x="38" y="14" width="44" height="86" rx="8" fill="${E}"/><rect x="43" y="22" width="34" height="66" rx="3" fill="${C}"/><path d="M60 100v8a8 8 0 0 0 8 8h18" stroke="${A}" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M58 40l-8 16h8l-4 14 12-18h-8l4-12z" fill="${D}"/>`,
+  'noicom':`<rect x="24" y="44" width="72" height="60" rx="18" fill="${C}" stroke="${E}" stroke-width="3"/><path d="M28 52c8-18 56-18 64 0z" fill="${B}"/><rect x="50" y="30" width="20" height="8" rx="4" fill="${E}"/><rect x="48" y="72" width="24" height="12" rx="3" fill="${A}"/>`,
+  'am':`<path d="M34 104h52l-6-64H40z" fill="${C}" stroke="${E}" stroke-width="3"/><path d="M40 40h40" stroke="${E}" stroke-width="4"/><path d="M80 52c18 0 18 34 0 34" fill="none" stroke="${A}" stroke-width="8"/><ellipse cx="60" cy="110" rx="32" ry="6" fill="${A}"/><path d="M40 52 26 40" stroke="${E}" stroke-width="5" stroke-linecap="round"/>`,
+  'xay':`<path d="M38 14h44l-6 58H44z" fill="${C}" stroke="${E}" stroke-width="3"/><path d="M50 50l20-10M50 40l20 10" stroke="${B}" stroke-width="4"/><rect x="34" y="72" width="52" height="36" rx="6" fill="${A}"/><circle cx="60" cy="90" r="6" fill="${D}"/>`,
+  'ong':`<rect x="8" y="50" width="104" height="22" rx="3" fill="${B}"/><rect x="8" y="50" width="104" height="6" fill="${C}"/><ellipse cx="112" cy="61" rx="5" ry="11" fill="${E}"/><rect x="30" y="80" width="60" height="18" rx="3" fill="${A}"/>`,
+  'cb':`<rect x="34" y="14" width="52" height="92" rx="6" fill="${C}" stroke="${E}" stroke-width="3"/><rect x="48" y="40" width="24" height="34" rx="3" fill="${E}"/><rect x="52" y="44" width="16" height="14" rx="2" fill="${D}"/><rect x="44" y="84" width="32" height="10" fill="${A}"/>`,
+  'kem':`<path d="M40 104 58 56M80 104 62 56" stroke="${A}" stroke-width="12" stroke-linecap="round"/><path d="M58 56 50 18M62 56 70 18" stroke="${E}" stroke-width="10" stroke-linecap="round"/><circle cx="60" cy="56" r="7" fill="${D}"/>`,
+  'denpin':`<path d="M20 50h50v20H20z" fill="${A}"/><path d="M70 44l20-10v52l-20-10z" fill="${E}"/><path d="M92 40l20-10M92 60h22M92 80l20 10" stroke="${D}" stroke-width="4" stroke-linecap="round"/><rect x="34" y="54" width="10" height="12" rx="2" fill="${D}"/>`,
+  'khoan':`<path d="M18 40h62v24H18z" fill="${A}"/><path d="M80 46h26v12H80z" fill="${E}"/><path d="M106 52h12" stroke="${E}" stroke-width="3"/><path d="M36 64h20l6 44H40z" fill="${E}"/><rect x="38" y="96" width="26" height="12" rx="2" fill="${D}"/>`,
+};
+const svg=(k,label)=>`<svg viewBox="0 0 120 120" role="img" aria-label="${label||'Ảnh minh họa'}">${ILL[k]||ILL.giadung}</svg>`;
+const ICON={ // icon nét cho menu dọc
+  quat:'<circle cx="12" cy="10" r="7"/><path d="M12 10v-5M12 10l4 3M12 10l-4 3M12 17v4M8 21h8"/>',
+  den:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.9.7 1.5 1.8 1.5 3.1h4c0-1.3.6-2.4 1.5-3.1A6 6 0 0 0 12 3z"/>',
+  nuoc:'<path d="M3 10h9v4H3zM12 8h4v8h-4zM16 11h5"/><path d="M8 4h4M10 4v6"/>',
+  dungcu:'<path d="m14 7 3-3 3 3-3 3M17 10 7 20l-3-3L14 7"/>',
+  kimkhi:'<path d="M12 3v18M9 6l6 2M9 10l6 2M9 14l6 2"/>',
+  giadung:'<rect x="4" y="9" width="16" height="11" rx="4"/><path d="M8 9a4 4 0 0 1 8 0M10 15h4"/>',
+  son:'<rect x="4" y="8" width="12" height="13" rx="1"/><path d="M4 8c0-4 12-4 12 0M18 4v9"/>',
+  congnghe:'<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
+};
+const chev='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 6 6 6-6 6"/></svg>';
+
+/* ===== Dữ liệu (số đếm từ sheet DMHH, quạt từ file kho quạt) ===== */
+const CATS=[
+ {id:'quat',name:'Quạt & điện máy',n:344,ill:'dung',subs:['Quạt treo tường','Quạt đứng','Quạt lửng','Quạt sàn','Quạt bàn','Quạt trần','Quạt hộp','Quạt hút, thông gió','Máy nước nóng','Đèn sưởi'],brands:['Senko','Asia','Hali','Lifan','ChingHai','Kim Cương','Airport','Minata']},
+ {id:'den',name:'Điện & chiếu sáng',n:705,ill:'den',subs:['Bóng đèn LED','Đèn bàn','Đèn pin','Ổ cắm, ổ dây','Công tắc, mặt','CB, cầu dao','Dây điện','Tủ điện'],brands:['Rạng Đông','Panasonic','LS','Hinoki','Vinaka']},
+ {id:'nuoc',name:'Ống nước & van',n:671,ill:'ong',subs:['Ống PVC','Ống PPR','Co, tê, nối','Van, vòi','Lõi lọc nước','Dây cấp nước','Phao, bơm'],brands:['Bình Minh']},
+ {id:'dungcu',name:'Dụng cụ & máy',n:472,ill:'khoan',subs:['Máy khoan','Mũi khoan','Kềm, kéo','Thước, dao','Máy khò, máy cắt','Bộ taro, lục giác','Thang'],brands:['Senka','Tolsen','Bogo-Shin','Boshun']},
+ {id:'kimkhi',name:'Kim khí & vật tư',n:305,ill:'kimkhi',subs:['Đinh, vít, tắc kê','Bản lề, tay nắm','Khóa','Bánh xe','Tăng đơ, cùm','Long đền, bu lông'],brands:['Topten']},
+ {id:'giadung',name:'Gia dụng bếp',n:293,ill:'noicom',subs:['Nồi cơm điện','Nồi chiên','Bếp điện từ','Ấm siêu tốc','Máy xay, máy ép'],brands:['Sunhouse','Midea','Sharp','Toshiba','Philips','Elmich','Osaka','Fujika']},
+ {id:'son',name:'Sơn, keo, băng keo',n:102,ill:'son',subs:['Keo silicon, keo AB','Băng keo','Cọ sơn, rulo','Chống thấm'],brands:['Minh Thuận','WIN']},
+ {id:'congnghe',name:'Phụ kiện công nghệ',n:46,ill:'congnghe',subs:['Sạc, cáp','Pin','Remote, điều khiển'],brands:[]},
+];
+const NEEDS=[
+ {t:'Đồ phòng trọ',d:'Quạt, ổ cắm, đèn bàn, nồi cơm nhỏ',ill:'ban'},
+ {t:'Sửa chữa trong nhà',d:'Ống nước, dây điện, khoan, keo',ill:'khoan'},
+ {t:'Bếp & gia đình',d:'Nồi cơm, ấm đun, máy xay, bếp từ',ill:'noicom'},
+ {t:'Công trình, thợ',d:'Vật tư số lượng lớn, giá theo lô',ill:'kimkhi'},
+];
+const FANS=[
+ ['Quạt treo tường Senko TC1626 47W - 2 dây giật','Senko','treo',350000,'Sải 39 cm · 47W',1],
+ ['Quạt treo tường Hali TR2','Hali','treo',480000,'Sải 40 cm · 47W · nút kéo',1],
+ ['Quạt treo 2 dây + Remote Airport','Airport','treo',490000,'Sải 40 cm · remote',1],
+ ['Quạt treo 2 dây Asia','Asia','treo',705000,'Sải 40 cm · 45W',0],
+ ['Quạt treo 10in ChingHai W910','ChingHai','treo',650000,'Sải 23 cm · 38W · núm vặn',1],
+ ['Quạt đứng Senko DD1602 47W - Nút nhấn','Senko','dung',570000,'Sải 39 cm · 47W',1],
+ ['Quạt đứng công nghiệp Hali DC199','Hali','dung',690000,'Sải 45 cm · 72W',1],
+ ['Quạt đứng 16in Remote ChingHai HS916A','ChingHai','dung',1500000,'Sải 40 cm · 50W · remote',0],
+ ['Quạt đứng Tubor X Asia','Asia','dung',790000,'Sải 40 cm',1],
+ ['Quạt đứng 16 5 lá Kim Cương','Kim Cương','dung',470000,'Sải 40 cm · 5 lá',1],
+ ['Quạt lửng Senko L1638 47W - Thân nhựa','Senko','lung',360000,'Sải 39 cm · 47W',1],
+ ['Quạt lửng Hali LU168','Hali','lung',490000,'Sải 40 cm · 47W',1],
+ ['Quạt lửng 14in ChingHai HS802','ChingHai','lung',570000,'Sải 35 cm · 49W',1],
+ ['Quạt lỡ nhựa Asia','Asia','lung',790000,'Sải 40 cm',0],
+ ['Quạt lỡ nhựa Minata','Minata','lung',490000,'Sải 40 cm',1],
+ ['Quạt sàn công nghiệp Hali SN199','Hali','san',730000,'Sải 45 cm · 72W',1],
+ ['Quạt sàn 18 Lifan S-18CN','Lifan','san',690000,'Sải 45 cm · 65W',1],
+ ['Quạt sàn lồng sắt Asia','Asia','san',850000,'Sải 45 cm',1],
+ ['Quạt sàn 10in ChingHai FF910','ChingHai','san',650000,'Sải 23 cm · 38W',0],
+ ['Quạt sàn lùn Eariss S1801','Eariss','san',720000,'Sải 45 cm',1],
+ ['Quạt Bàn Hali B3','Hali','ban',405000,'Sải 30 cm · 38W',1],
+ ['Quạt bàn B2 Senko B102','Senko','ban',245000,'Sải 20 cm · 28W',1],
+ ['Quạt bàn B3 Airport APQ B329','Airport','ban',260000,'Sải 30 cm · 43W',1],
+ ['Quạt bàn Lifan B-106','Lifan','ban',230000,'Sải 15 cm · 15W',1],
+ ['Quạt bàn B2 ChingHai HD601','ChingHai','ban',370000,'Sải 23 cm · 24W',0],
+ ['Quạt trần đảo 16 Lifan TĐ-16','Lifan','tran',595000,'Sải 40 cm · 45W',1],
+ ['Quạt trần 3 cánh ChingHai 64W','ChingHai','tran',1100000,'Sải 45 cm · 64W · hộp số',1],
+ ['Quạt trần đảo Asia','Asia','tran',805000,'Sải 40 cm · hộp số',0],
+ ['Quạt hộp mini Lifan HO-MI','Lifan','hop',210000,'10 cm · 15W',1],
+ ['Quạt hộp B3 ChingHai BF1688','ChingHai','hop',650000,'25 cm · 38W',1],
+ ['Quạt hút tường HD-15','Lifan','hut',390000,'15 cm · 20W',1],
+].map(([n,b,k,p,s,i])=>({n,b,k,p,s,in:!!i}));
+const HOME=[
+ ['Nồi cơm điện 2.2L Sunhouse SHD8670','Sunhouse','noicom',510000,'cái',1],
+ ['Bình đun siêu tốc Midea MK-1523DD','Midea','am',458000,'cái',1],
+ ['Máy xay sinh tố đa năng Sunhouse SHD5316','Sunhouse','xay',685000,'cái',1],
+ ['Ổ cắm Vinaka 6 lỗ dây 4,5m','Vinaka','dien',105000,'cái',1],
+ ['Bóng đèn bulb Rạng Đông 3W','Rạng Đông','den',20000,'cái',1],
+ ['CB chống giật, chống rò LS50LE','LS','cb',188000,'cái',1],
+ ['Ống nhựa PVC phi 60 Bình Minh','Bình Minh','ong',31000,'mét',1],
+ ['Kềm cắt ống nước','','kem',70000,'cái',1],
+ ['Máy khò nhiệt','','khoan',390000,'cái',0],
+ ['Đèn pin WD-331','','denpin',46000,'cái',1],
+].map(([n,b,k,p,u,i])=>({n,b,k,p,u,in:!!i}));
+const ALL=[...FANS.map(f=>({...f,u:'cái'})),...HOME];
+
+/* ===== tiện ích ===== */
+const $=s=>document.querySelector(s);
+const vnd=n=>new Intl.NumberFormat('vi-VN').format(n)+'₫';
+const plain=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase();
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ===== menu dọc + bảng con ===== */
+const menu=$('#catmenu'),fly=$('#flyout');
+menu.innerHTML=CATS.map((c,i)=>`<li data-i="${i}"><a href="#" aria-haspopup="true"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICON[c.id]}</svg>${c.name}${chev}</a></li>`).join('');
+let flyTimer;
+function openFly(i){
+  const c=CATS[i];clearTimeout(flyTimer);
+  menu.querySelectorAll('li').forEach(li=>li.classList.toggle('on',+li.dataset.i===i));
+  const go=(k,v)=>`data-go="1" data-cat="${c.id}" data-${k}="${esc(v)}"`;
+  fly.innerHTML=`<div><h3>${c.name}</h3><div class="chips">${c.subs.map(s=>`<a class="chip" href="#tat-ca" ${go('sub',s)}>${s}</a>`).join('')}</div></div>
+   <div><h3>Thương hiệu</h3><div class="chips">${c.brands.length?c.brands.map(b=>`<a class="chip" href="#tat-ca" ${go('brand',b)}>${b}</a>`).join(''):'<span class="chip">Đang cập nhật</span>'}</div></div>
+   <div><h3>Khoảng giá</h3><div class="chips">${PRICE.map(([k,l])=>`<a class="chip" href="#tat-ca" ${go('price',k)}>${l}</a>`).join('')}</div></div>
+   <p class="note">${c.n.toLocaleString('vi-VN')} mặt hàng trong nhóm này. <a class="more" href="#tat-ca" data-cat="${c.id}">Xem tất cả ${c.name.toLowerCase()}</a></p>`;
+  fly.hidden=false;
+}
+function closeFly(){flyTimer=setTimeout(()=>{fly.hidden=true;menu.querySelectorAll('li').forEach(li=>li.classList.remove('on'))},140)}
+menu.querySelectorAll('li').forEach(li=>{
+  li.addEventListener('mouseenter',()=>openFly(+li.dataset.i));
+  li.querySelector('a').addEventListener('focus',()=>openFly(+li.dataset.i));
+  li.querySelector('a').addEventListener('click',e=>{e.preventDefault();openFly(+li.dataset.i)});
+});
+$('.catmenu').addEventListener('mouseleave',closeFly);
+fly.addEventListener('mouseenter',()=>clearTimeout(flyTimer));
+fly.addEventListener('mouseleave',closeFly);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){fly.hidden=true;closeDrawer();if(typeof closeF==='function')closeF()}});
+
+/* ===== hero art ===== */
+$('#heroArt').innerHTML=svg('dung','Ảnh minh họa quạt đứng');
+
+/* ===== lưới danh mục ===== */
+$('#cats').innerHTML=CATS.map(c=>`<a class="cat" href="#tat-ca" data-cat="${c.id}"><span class="disc">${svg(c.ill,'')}</span><b>${c.name}</b><span class="num">${c.n.toLocaleString('vi-VN')} mặt hàng</span></a>`).join('');
+$('#needs').innerHTML=NEEDS.map(n=>`<a class="need" href="#"><div><h3>${n.t}</h3><p>${n.d}</p></div><span class="go">Xem gợi ý</span>${svg(n.ill,'')}</a>`).join('');
+
+/* ===== giảm giá (số mẫu) ===== */
+const SALE={'Quạt treo tường Hali TR2':430000,'Quạt đứng công nghiệp Hali DC199':620000,'Quạt lửng Senko L1638 47W - Thân nhựa':329000,'Quạt sàn lồng sắt Asia':765000,'Quạt trần 3 cánh ChingHai 64W':990000,'Nồi cơm điện 2.2L Sunhouse SHD8670':459000,'Máy xay sinh tố đa năng Sunhouse SHD5316':599000,'Bình đun siêu tốc Midea MK-1523DD':399000,'Ổ cắm Vinaka 6 lỗ dây 4,5m':95000,'Quạt bàn B3 Airport APQ B329':235000};
+const CATOF={noicom:'giadung',am:'giadung',xay:'giadung',dien:'den',den:'den',cb:'den',denpin:'den',ong:'nuoc',kem:'dungcu',khoan:'dungcu'};
+const KNAME={treo:'Quạt treo tường',dung:'Quạt đứng',lung:'Quạt lửng',san:'Quạt sàn',ban:'Quạt bàn',tran:'Quạt trần',hop:'Quạt hộp',hut:'Quạt hút, thông gió'};
+const SUBOF={noicom:'Nồi cơm điện',am:'Ấm siêu tốc',xay:'Máy xay, máy ép',dien:'Ổ cắm, ổ dây',den:'Bóng đèn LED',cb:'CB, cầu dao',denpin:'Đèn pin',ong:'Ống PVC',kem:'Kềm, kéo',khoan:'Máy khò, máy cắt'};
+const PRODUCTS=ALL.map((p,i)=>{
+  const sale=SALE[p.n];const cat=KNAME[p.k]?'quat':(CATOF[p.k]||'giadung');
+  const m=/Sải\s+(\d+)/.exec(p.s||'')||/^(\d+)\s*cm/.exec(p.s||'');const sw=m?+m[1]:null;
+  return {...p,id:i,cat,sub:cat==='quat'?KNAME[p.k]:SUBOF[p.k],sw,op:sale?p.p:null,p:sale||p.p,pct:sale?Math.round((1-sale/p.p)*100):0,pop:(i*37)%41};
+});
+const card=p=>`<article class="card">
+  <div class="pic">${svg(p.k,'Ảnh minh họa '+p.n)}<span class="ill">Ảnh minh họa</span>${p.pct?`<span class="off">-${p.pct}%</span>`:''}</div>
+  ${p.b?`<span class="brandn">${esc(p.b)}</span>`:'<span class="brandn">&nbsp;</span>'}
+  <h3>${esc(p.n)}</h3>
+  <span class="spec">${esc(p.s||'Đơn vị: '+(p.u||'cái'))}</span>
+  <div><span class="price num">${vnd(p.p)}</span>${p.op?`<span class="old num">${vnd(p.op)}</span>`:` <span class="unit">/ ${p.u||'cái'}</span>`}</div>
+  <span class="stock ${p.in?'in':'ask'}">${p.in?'Còn hàng':'Liên hệ'}</span>
+  <button class="add ${p.in?'':'ask'}" type="button" data-n="${esc(p.n)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.2 10.5h10.6L20 7H6.2"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>${p.in?'Thêm vào giỏ':'Đặt trước'}</button>
+</article>`;
+$('#saleRail').innerHTML=PRODUCTS.filter(p=>p.pct).sort((a,b)=>b.pct-a.pct).map(card).join('');
+
+/* ===== bộ lọc ===== */
+const PRICE=[['p1','Dưới 100.000₫',0,99999],['p2','100.000 – 300.000₫',100000,300000],['p3','300.000 – 500.000₫',300001,500000],['p4','500.000 – 800.000₫',500001,800000],['p5','Trên 800.000₫',800001,1e12]];
+const SW=[['s1','Dưới 25 cm',0,24],['s2','25 – 35 cm',25,35],['s3','39 – 40 cm',36,42],['s4','45 cm trở lên',43,999]];
+const F={cat:new Set(),sub:new Set(),brand:new Set(),price:new Set(),sw:new Set(),stock:new Set(),sale:false};
+let sortBy='pop',shown=12,brandAll=false;
+const pass=(p,skip)=>(skip==='cat'||!F.cat.size||F.cat.has(p.cat))
+ &&(skip==='sub'||!F.sub.size||F.sub.has(p.sub))
+ &&(skip==='brand'||!F.brand.size||F.brand.has(p.b||'Khác'))
+ &&(skip==='price'||!F.price.size||PRICE.some(([k,,lo,hi])=>F.price.has(k)&&p.p>=lo&&p.p<=hi))
+ &&(skip==='sw'||!F.sw.size||(p.sw!=null&&SW.some(([k,,lo,hi])=>F.sw.has(k)&&p.sw>=lo&&p.sw<=hi)))
+ &&(skip==='stock'||!F.stock.size||F.stock.has(p.in?'in':'ask'))
+ &&(skip==='sale'||!F.sale||p.pct>0);
+const count=(key,test)=>PRODUCTS.filter(p=>pass(p,key)&&test(p)).length;
+const opt=(key,val,label,n)=>`<label class="opt ${n?'':'zero'}"><input type="checkbox" data-f="${key}" value="${esc(val)}" ${F[key].has(val)?'checked':''}><span>${esc(label)}</span><span class="c num">${n}</span></label>`;
+function renderFacets(){
+  let h=`<div class="facet"><h4>Danh mục</h4>${CATS.map(c=>opt('cat',c.id,c.name,count('cat',p=>p.cat===c.id))).join('')}</div>`;
+  const selCats=CATS.filter(c=>F.cat.has(c.id)||c.subs.some(x=>F.sub.has(x)));
+  if(selCats.length){
+    h+=`<div class="facet"><h4>Danh mục con</h4>${selCats.map(c=>(selCats.length>1?`<p class="hint">${c.name}</p>`:'')+c.subs.map(x=>opt('sub',x,x,count('sub',p=>p.sub===x))).join('')).join('')}</div>`;
+  }else{
+    h+=`<div class="facet"><h4>Danh mục con</h4><p class="hint">Chọn một danh mục ở trên để thấy danh mục con.</p></div>`;
+  }
+  const brands=[...new Set(PRODUCTS.map(p=>p.b||'Khác'))].map(b=>[b,count('brand',p=>(p.b||'Khác')===b)]).sort((a,b)=>b[1]-a[1]);
+  const vis=brandAll?brands:brands.slice(0,6);
+  h+=`<div class="facet"><h4>Thương hiệu</h4>${vis.map(([b,n])=>opt('brand',b,b,n)).join('')}${brands.length>6?`<button class="showmore" type="button" id="brandMore">${brandAll?'Thu gọn':'Xem thêm '+(brands.length-6)+' thương hiệu'}</button>`:''}</div>`;
+  h+=`<div class="facet"><h4>Khoảng giá</h4>${PRICE.map(([k,l,lo,hi])=>opt('price',k,l,count('price',p=>p.p>=lo&&p.p<=hi))).join('')}</div>`;
+  if(F.cat.has('quat')||[...F.sub].some(x=>x.startsWith('Quạt'))||F.sw.size){
+    h+=`<div class="facet"><h4>Sải cánh</h4><p class="hint">Thông số riêng của nhóm Quạt.</p>${SW.map(([k,l,lo,hi])=>opt('sw',k,l,count('sw',p=>p.sw!=null&&p.sw>=lo&&p.sw<=hi))).join('')}</div>`;
+  }else{
+    h+=`<div class="facet"><h4>Thông số</h4><p class="hint">Chọn một danh mục (ví dụ Quạt) để lọc theo thông số riêng như sải cánh, công suất.</p></div>`;
+  }
+  h+=`<div class="facet"><h4>Tình trạng</h4>${opt('stock','in','Còn hàng',count('stock',p=>p.in))}${opt('stock','ask','Liên hệ (đặt trước)',count('stock',p=>!p.in))}<label class="opt"><input type="checkbox" id="fSale" ${F.sale?'checked':''}><span>Đang giảm giá</span><span class="c num">${count('sale',p=>p.pct>0)}</span></label></div>`;
+  $('#facets').innerHTML=h;
+}
+const LBL={cat:v=>CATS.find(c=>c.id===v).name,sub:v=>v,brand:v=>v,price:v=>PRICE.find(x=>x[0]===v)[1],sw:v=>'Sải cánh '+SW.find(x=>x[0]===v)[1],stock:v=>v==='in'?'Còn hàng':'Liên hệ'};
+function renderResults(){
+  let list=PRODUCTS.filter(p=>pass(p));
+  const S={pop:(a,b)=>a.pop-b.pop,asc:(a,b)=>a.p-b.p,desc:(a,b)=>b.p-a.p,sale:(a,b)=>b.pct-a.pct,name:(a,b)=>a.n.localeCompare(b.n,'vi')};
+  list.sort(S[sortBy]);
+  $('#foundN').textContent=list.length;$('#fApplyN').textContent=list.length;
+  $('#allGrid').innerHTML=list.length?list.slice(0,shown).map(card).join(''):`<div class="noresult">Không có sản phẩm khớp bộ lọc. Bỏ bớt một lựa chọn hoặc bấm "Xóa tất cả".</div>`;
+  $('#moreBtn').hidden=list.length<=shown;
+  $('#moreBtn').textContent=`Xem thêm ${Math.min(12,list.length-shown)} sản phẩm`;
+  let chips=[];for(const k of ['cat','sub','brand','price','sw','stock'])F[k].forEach(v=>chips.push(`<button class="chip" type="button" data-rm="${k}" data-v="${esc(v)}">${esc(LBL[k](v))} <b aria-hidden="true">×</b><span class="sr">Bỏ lọc</span></button>`));
+  if(F.sale)chips.push(`<button class="chip" type="button" data-rm="sale">Đang giảm giá <b aria-hidden="true">×</b></button>`);
+  $('#activeChips').innerHTML=chips.join('');
+  const n=chips.length;$('#fCount').textContent=n;$('#fCount').hidden=!n;
+}
+function refresh(){renderFacets();renderResults()}
+$('#facets').addEventListener('change',e=>{
+  const t=e.target;if(t.id==='fSale'){F.sale=t.checked}else if(t.dataset.f){const s=F[t.dataset.f];t.checked?s.add(t.value):s.delete(t.value);if(t.dataset.f==='cat'){const keep=new Set(CATS.filter(c=>F.cat.has(c.id)).flatMap(c=>c.subs));[...F.sub].forEach(x=>{if(!keep.has(x))F.sub.delete(x)});if(!F.cat.has('quat'))F.sw.clear()}}
+  shown=12;refresh();
+});
+$('#facets').addEventListener('click',e=>{if(e.target.id==='brandMore'){brandAll=!brandAll;renderFacets()}});
+$('#activeChips').addEventListener('click',e=>{const b=e.target.closest('[data-rm]');if(!b)return;if(b.dataset.rm==='sale')F.sale=false;else F[b.dataset.rm].delete(b.dataset.v);refresh()});
+$('#fClear').addEventListener('click',()=>{for(const k of ['cat','sub','brand','price','sw','stock'])F[k].clear();F.sale=false;refresh()});
+$('#sort').addEventListener('change',e=>{sortBy=e.target.value;renderResults()});
+$('#moreBtn').addEventListener('click',()=>{shown+=12;renderResults()});
+const fl=$('#filters'),fs=$('#fScrim');
+const openF=()=>{fl.classList.add('open');fs.hidden=false};
+const closeF=()=>{fl.classList.remove('open');fs.hidden=true};
+$('#fOpen').addEventListener('click',openF);$('#fClose').addEventListener('click',closeF);$('#fApply').addEventListener('click',()=>{closeF();$('#tat-ca').scrollIntoView({behavior:'smooth'})});fs.addEventListener('click',closeF);
+fs.hidden=true;
+refresh();
+/* menu danh mục / lưới danh mục -> lọc */
+function filterCat(id){for(const k of ['cat','sub','brand','price','sw','stock'])F[k].clear();F.sale=false;F.cat.add(id);shown=12;refresh();fly.hidden=true;closeDrawer();$('#tat-ca').scrollIntoView({behavior:'smooth'})}
+
+/* ===== thương hiệu (chữ, không dùng logo hãng) ===== */
+const bc={};FANS.forEach(f=>bc[f.b]=(bc[f.b]||0)+1);
+const BR=['Senko','Hali','Asia','Lifan','ChingHai','Kim Cương','Airport','Minata','Sunhouse','Midea','Rạng Đông','Panasonic','Bình Minh','LS','Senka','Tolsen'];
+$('#brands').innerHTML=BR.map(b=>`<a href="#tat-ca" data-brand="${b}">${b}${bc[b]?`<span class="num">${bc[b]} mẫu quạt</span>`:''}</a>`).join('');
+/* nút trái/phải cho hàng trượt */
+function railState(r){const navs=document.querySelectorAll(`[data-rail="${r.id}"]`);navs.forEach(b=>{b.disabled=+b.dataset.dir<0?r.scrollLeft<4:r.scrollLeft+r.clientWidth>=r.scrollWidth-4})}
+document.querySelectorAll('.rail').forEach(r=>{r.addEventListener('scroll',()=>railState(r),{passive:true});railState(r);addEventListener('resize',()=>railState(r))});
+document.addEventListener('click',e=>{const b=e.target.closest('.navbtn');if(!b)return;const r=document.getElementById(b.dataset.rail);r.scrollBy({left:+b.dataset.dir*r.clientWidth*.8,behavior:'smooth'})});
+
+/* ===== mã QR minh họa (không phải QR thật) ===== */
+(function(){let s='';const r=(x,y)=>s+=`<rect x="${x}" y="${y}" width="1" height="1"/>`;
+ const finder=(x,y)=>{for(let i=0;i<7;i++)for(let j=0;j<7;j++){const e=i===0||i===6||j===0||j===6,c=i>1&&i<5&&j>1&&j<5;if(e||c)r(x+i,y+j)}};
+ finder(0,0);finder(14,0);finder(0,14);let seed=7;
+ for(let x=0;x<21;x++)for(let y=0;y<21;y++){if((x<8&&y<8)||(x>12&&y<8)||(x<8&&y>12))continue;seed=(seed*9301+49297)%233280;if(seed/233280>.55)r(x,y)}
+ $('#qr').innerHTML=`<g fill="var(--ink)">${s}</g>`})();
+
+/* ===== giỏ hàng ===== */
+let cart=0;try{cart=+localStorage.getItem('ttt-cart')||0}catch(e){}
+const toast=$('#toast');let tt;
+function setCart(){$('#cartN').textContent=cart;$('#cartN2').textContent=cart;try{localStorage.setItem('ttt-cart',cart)}catch(e){}}
+setCart();
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.add');if(!b)return;
+  cart++;setCart();
+  toast.textContent=(b.classList.contains('ask')?'Đã thêm (đặt trước): ':'Đã thêm vào giỏ: ')+b.dataset.n;
+  toast.hidden=false;clearTimeout(tt);tt=setTimeout(()=>toast.hidden=true,2200);
+});
+
+/* ===== tìm kiếm không dấu ===== */
+const q=$('#q'),res=$('#results');
+function search(){
+  const v=plain(q.value.trim());
+  if(v.length<2){res.hidden=true;return}
+  const words=v.split(/\s+/);
+  const hits=ALL.filter(p=>{const h=plain(p.n+' '+p.b);return words.every(w=>h.includes(w))}).slice(0,8);
+  res.innerHTML=`<div class="hint">Gõ không dấu vẫn tìm được. Kết quả trong dữ liệu mẫu:</div>`+(hits.length?hits.map(p=>`<a href="#"><span class="ri">${svg(p.k,'')}</span><span>${esc(p.n)}</span><span class="rp num">${vnd(p.p)}</span></a>`).join(''):`<div class="empty">Chưa thấy "${esc(q.value)}". Thử "quat treo", "o cam", "noi com".</div>`);
+  res.hidden=false;
+}
+q.addEventListener('input',search);
+q.addEventListener('focus',search);
+$('#searchForm').addEventListener('submit',e=>{e.preventDefault();search()});
+document.addEventListener('click',e=>{if(!e.target.closest('.search'))res.hidden=true});
+
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]');
+  if(g){e.preventDefault();for(const k of ['cat','sub','brand','price','sw','stock'])F[k].clear();F.sale=false;F.cat.add(g.dataset.cat);
+    if(g.dataset.sub)F.sub.add(g.dataset.sub);if(g.dataset.brand)F.brand.add(g.dataset.brand);if(g.dataset.price)F.price.add(g.dataset.price);
+    shown=12;refresh();fly.hidden=true;closeDrawer();$('#tat-ca').scrollIntoView({behavior:'smooth'});return}
+  const c=e.target.closest('[data-cat]');if(c){e.preventDefault();filterCat(c.dataset.cat);return}
+  const b=e.target.closest('[data-brand]');if(b){e.preventDefault();for(const k of ['cat','sub','brand','price','sw','stock'])F[k].clear();F.sale=false;F.brand.add(b.dataset.brand);shown=12;refresh();$('#tat-ca').scrollIntoView({behavior:'smooth'})}
+});
+/* ===== ngăn kéo danh mục (điện thoại) ===== */
+const drawer=$('#drawer');
+$('#drawerList').innerHTML=CATS.map(c=>`<details><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICON[c.id]}</svg>${c.name}</summary><div class="chips"><a class="chip on" href="#tat-ca" data-cat="${c.id}">Xem tất cả</a>${c.subs.map(s=>`<a class="chip" href="#tat-ca" data-go="1" data-cat="${c.id}" data-sub="${esc(s)}">${s}</a>`).join('')}</div></details>`).join('');
+function openDrawer(){drawer.hidden=false;drawer.querySelector('.close').focus()}
+function closeDrawer(){drawer.hidden=true}
+$('#burger').addEventListener('click',openDrawer);
+$('#bnavCat').addEventListener('click',openDrawer);
+$('#bnavCart').addEventListener('click',()=>{toast.textContent='Giỏ hàng có '+cart+' món (bản mẫu)';toast.hidden=false;clearTimeout(tt);tt=setTimeout(()=>toast.hidden=true,2000)});
+drawer.addEventListener('click',e=>{if(e.target.closest('[data-close]'))closeDrawer()});
+</script>
