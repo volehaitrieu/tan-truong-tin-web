@@ -3,34 +3,29 @@ import { useState } from "react";
 import { Minus, Plus, X } from "lucide-react";
 import { Badge } from "@/components/admin/ui";
 import { formatVnd } from "@/lib/shop";
+import { adjustStock } from "@/app/admin/(shell)/ton-kho/actions";
+import type { MovementRow, StockRow } from "@/lib/admin/inventory";
 
-// Dữ liệu mẫu cho Tồn kho / Kiểm kho / Khuyến mãi — sẽ thay bằng Supabase.
-const STOCK = [
-  { sku: "QUA-HALI-TR2", name: "Quạt treo tường Hali TR2 (Ghi xám)", cat: "Quạt", unit: "cái", stock: 18, min: 4 },
-  { sku: "ONG-BM-21-4M", name: "Ống nhựa PVC Bình Minh Φ21 (cây 4m)", cat: "Ống nước & phụ kiện", unit: "cây", stock: 0, min: 12 },
-  { sku: "DAY-CAD-225-100", name: "Dây điện Cadivi 2x2.5 (cuộn 100m)", cat: "Dây & cáp điện", unit: "cuộn", stock: 6, min: 3 },
-  { sku: "BANG-TOMBO-10", name: "Băng tan Tombo 10m", cat: "Ống nước & phụ kiện", unit: "cuộn", stock: 1, min: 10 },
-  { sku: "DEN-RD-LED-9W", name: "Bóng LED Rạng Đông 9W", cat: "Đèn chiếu sáng", unit: "bóng", stock: 42, min: 10 },
-];
+// Tồn kho: dữ liệu thật truyền từ trang (server). Kiểm kho / Khuyến mãi: còn dữ liệu mẫu.
 const REASONS = ["Nhập hàng", "Hư hỏng", "Thất lạc", "Trả hàng", "Kiểm kho", "Khác"];
-const HISTORY = [
-  ["22/10 16:40", "Trần Thị Bình", "Bóng LED Rạng Đông 9W", +20, "Nhập hàng"],
-  ["22/10 11:05", "Chủ shop", "Băng tan Tombo 10m", -2, "Hư hỏng"],
-  ["21/10 09:12", "Trần Thị Bình", "Quạt treo tường Hali TR2 (Ghi xám)", +6, "Nhập hàng"],
-] as const;
 
 const btn = "inline-flex h-10 items-center justify-center gap-2 rounded px-4 text-sm font-semibold";
 const level = (s: number, m: number) =>
   s === 0 ? <Badge tone="danger">Hết hàng</Badge> : s <= m ? <Badge tone="warn">Sắp hết</Badge> : <Badge tone="ok">Đủ hàng</Badge>;
 
-export function StockScreen({ canAdjust = true }: { canAdjust?: boolean }) {
+export function StockScreen({ rows, history, canAdjust }: { rows: StockRow[]; history: MovementRow[]; canAdjust: boolean }) {
   const [tab, setTab] = useState<"ton" | "lich-su">("ton");
-  const [editing, setEditing] = useState<(typeof STOCK)[number] | null>(null);
+  const [editing, setEditing] = useState<StockRow | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [note, setNote] = useState("");
   const [delta, setDelta] = useState(0);
   const [reason, setReason] = useState(REASONS[0]);
-  const open = (row: (typeof STOCK)[number]) => {
+  const open = (row: StockRow) => {
     setEditing(row);
     setDelta(0);
+    setError("");
+    setNote("");
     setReason(REASONS[0]);
   };
 
@@ -52,7 +47,7 @@ export function StockScreen({ canAdjust = true }: { canAdjust?: boolean }) {
               <tr>{["Sản phẩm", "Danh mục", "Tồn hiện có", "Tồn tối thiểu", "Trạng thái", ""].map((x) => <th key={x} className="px-3 py-3 font-semibold">{x}</th>)}</tr>
             </thead>
             <tbody>
-              {STOCK.map((p) => (
+              {rows.map((p) => (
                 <tr key={p.sku} className="h-14 border-t border-line">
                   <td className="px-3"><b>{p.name}</b><small className="block text-ink-2">{p.sku}</small></td>
                   <td className="px-3">{p.cat}</td>
@@ -67,7 +62,7 @@ export function StockScreen({ canAdjust = true }: { canAdjust?: boolean }) {
             </tbody>
           </table>
           <ul className="divide-y divide-line md:hidden">
-            {STOCK.map((p) => (
+            {rows.map((p) => (
               <li key={p.sku} className="flex items-center gap-3 p-3">
                 <div className="min-w-0 flex-1">
                   <b className="block text-sm">{p.name}</b>
@@ -81,8 +76,8 @@ export function StockScreen({ canAdjust = true }: { canAdjust?: boolean }) {
         </div>
       ) : (
         <ul className="divide-y divide-line rounded-lg border border-line bg-white">
-          {HISTORY.map(([when, who, what, d, why]) => (
-            <li key={when + what} className="flex flex-wrap items-center gap-x-4 gap-y-1 p-3 text-sm">
+          {history.map(({ id, when, who, what, delta: d, why }) => (
+            <li key={id} className="flex flex-wrap items-center gap-x-4 gap-y-1 p-3 text-sm">
               <span className="num w-24 text-ink-2">{when}</span>
               <span className="min-w-0 flex-1 font-medium">{what}</span>
               <b className={`num ${d > 0 ? "text-ok" : "text-danger"}`}>{d > 0 ? `+${d}` : d}</b>
@@ -103,7 +98,7 @@ export function StockScreen({ canAdjust = true }: { canAdjust?: boolean }) {
             <p className="mt-4 text-sm">Hiện có: <b className="num">{editing.stock} {editing.unit}</b></p>
             <div className="mt-3 flex items-center gap-3">
               <button aria-label="Giảm" onClick={() => setDelta((d) => Math.max(-editing.stock, d - 1))} className="grid size-11 place-items-center rounded border border-line"><Minus className="size-4" /></button>
-              <span className={`num w-16 text-center text-xl font-bold ${delta < 0 ? "text-danger" : delta > 0 ? "text-ok" : ""}`}>{delta > 0 ? `+${delta}` : delta}</span>
+              <input aria-label="Số lượng điều chỉnh" inputMode="numeric" value={delta} onChange={(e) => { const n = parseInt(e.target.value.replace(/[^0-9-]/g, "")) || 0; setDelta(Math.max(-editing.stock, Math.min(100000, n))); }} className={`num h-11 w-20 rounded border border-line text-center text-xl font-bold ${delta < 0 ? "text-danger" : delta > 0 ? "text-ok" : ""}`} />
               <button aria-label="Tăng" onClick={() => setDelta((d) => d + 1)} className="grid size-11 place-items-center rounded border border-line"><Plus className="size-4" /></button>
             </div>
             <p className="mt-2 text-sm">Sau điều chỉnh: <b className="num">{editing.stock + delta} {editing.unit}</b></p>
@@ -113,9 +108,22 @@ export function StockScreen({ canAdjust = true }: { canAdjust?: boolean }) {
               </select>
             </label>
             <label className="mt-3 block text-sm font-medium">Ghi chú
-              <textarea rows={2} className="mt-1 w-full rounded border border-line p-3" placeholder="Ví dụ: nhập lô mới từ nhà phân phối" />
+              <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} className="mt-1 w-full rounded border border-line p-3" placeholder="Ví dụ: nhập lô mới từ nhà phân phối" />
             </label>
-            <button disabled={delta === 0} onClick={() => setEditing(null)} className={`${btn} mt-5 h-12 w-full bg-brand text-white hover:bg-brand-deep disabled:opacity-40`}>Lưu điều chỉnh</button>
+            {error && <p role="alert" className="mt-3 text-sm text-danger">{error}</p>}
+            <button
+              disabled={delta === 0 || saving}
+              onClick={async () => {
+                setSaving(true);
+                const r = await adjustStock(editing.id, delta, reason, note);
+                setSaving(false);
+                if (r.ok) setEditing(null);
+                else setError(r.error ?? "Không lưu được.");
+              }}
+              className={`${btn} mt-5 h-12 w-full bg-brand text-white hover:bg-brand-deep disabled:opacity-40`}
+            >
+              {saving ? "Đang lưu…" : "Lưu điều chỉnh"}
+            </button>
           </div>
         </div>
       )}
