@@ -5,7 +5,7 @@ import { CategoryIcon } from "@/components/storefront/CategoryIcon";
 import { ProductBrowser } from "@/components/storefront/ProductBrowser";
 import { ProductCard } from "@/components/storefront/ProductCard";
 import { Rail } from "@/components/storefront/Rail";
-import { BRANDS, CATEGORIES, PRODUCTS } from "@/lib/mock/store";
+import { getCategories, getProducts } from "@/lib/catalog";
 import { SHOP } from "@/lib/shop";
 
 const NEEDS = [
@@ -15,7 +15,12 @@ const NEEDS = [
   { icon: HardHat, title: "Công trình", body: "Dây cáp, ống, máy khoan", href: "/danh-muc/day-cap-dien" },
 ];
 
-export default function Home() {
+// Dữ liệu từ Supabase, làm mới mỗi 60 giây
+export const revalidate = 60;
+
+export default async function Home() {
+  const [CATEGORIES, PRODUCTS] = await Promise.all([getCategories(), getProducts()]);
+  const BRANDS = [...new Set(PRODUCTS.map((p) => p.brand).filter(Boolean))];
   const sale = PRODUCTS.filter((p) => p.old);
   return (
     <>
@@ -134,7 +139,7 @@ export default function Home() {
       {/* Tất cả sản phẩm */}
       <section id="tat-ca" className="mt-10 scroll-mt-32" aria-labelledby="h-tat-ca">
         <h2 id="h-tat-ca" className="mb-4 text-[22px] font-extrabold sm:text-[26px]">Tất cả sản phẩm</h2>
-        <ProductBrowser products={PRODUCTS} />
+        <ProductBrowser products={PRODUCTS} categories={CATEGORIES} />
       </section>
 
       {/* Thương hiệu */}

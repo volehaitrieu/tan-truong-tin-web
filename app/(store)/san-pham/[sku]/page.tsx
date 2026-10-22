@@ -6,25 +6,29 @@ import { Banknote, FileText, Store, Truck } from "lucide-react";
 import { Breadcrumb } from "@/components/storefront/Breadcrumb";
 import { BuyBox } from "@/components/storefront/CartControls";
 import { ProductCard, ProductImage, StockBadge } from "@/components/storefront/ProductCard";
-import { PRODUCTS, findCategory, findProduct } from "@/lib/mock/store";
+import { getCategories, getProduct, getProducts } from "@/lib/catalog";
+
+// Dữ liệu từ Supabase, làm mới mỗi 60 giây
+export const revalidate = 60;
 import { formatVnd } from "@/lib/shop";
 
-export function generateStaticParams() {
-  return PRODUCTS.map((p) => ({ sku: p.sku }));
+export async function generateStaticParams() {
+  return (await getProducts()).map((p) => ({ sku: p.sku }));
 }
 
 export async function generateMetadata({ params }: PageProps<"/san-pham/[sku]">): Promise<Metadata> {
   const { sku } = await params;
-  return { title: findProduct(sku)?.name ?? "Không tìm thấy sản phẩm" };
+  return { title: (await getProduct(sku))?.name ?? "Không tìm thấy sản phẩm" };
 }
 
 export default async function ProductPage({ params }: PageProps<"/san-pham/[sku]">) {
   const { sku } = await params;
-  const p = findProduct(sku);
+  const p = await getProduct(sku);
   if (!p) notFound();
-  const cat = findCategory(p.cat)!;
-  const related = PRODUCTS.filter((x) => x.cat === p.cat && x.sku !== p.sku).slice(0, 4);
-  const more = related.length ? related : PRODUCTS.filter((x) => x.sku !== p.sku).slice(0, 4);
+  const [categories, all] = await Promise.all([getCategories(), getProducts()]);
+  const cat = categories.find((c) => c.slug === p.cat) ?? { slug: p.cat, name: p.sub };
+  const related = all.filter((x) => x.cat === p.cat && x.sku !== p.sku).slice(0, 4);
+  const more = related.length ? related : all.filter((x) => x.sku !== p.sku).slice(0, 4);
 
   return (
     <>

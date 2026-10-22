@@ -1,0 +1,56 @@
+"use server";
+import { getProducts, searchCatalog } from "@/lib/catalog";
+import { createPublicClient } from "@/lib/supabase/public";
+import type { Product } from "@/lib/mock/store";
+
+// Hàm server cho trang bán hàng. Mọi kiểm tra tiền/số lượng nằm trong hàm Postgres (place_order…);
+// ở đây chỉ chặn dữ liệu quá khổ trước khi gửi đi.
+
+export async function suggest(q: string) {
+  if (typeof q !== "string" || !q.trim() || q.length > 100) return [];
+  return (await searchCatalog(q)).slice(0, 5).map((p) => ({ sku: p.sku, name: p.name, brand: p.brand }));
+}
+
+// Thông tin SP cho các món trong giỏ (giá luôn lấy từ DB, không tin giá lưu ở trình duyệt)
+export async function cartProducts(skus: string[]): Promise<Product[]> {
+  if (!Array.isArray(skus) || skus.length > 50) return [];
+  const want = new Set(skus.filter((s) => typeof s === "string").map((s) => s.toUpperCase()));
+  return (await getProducts()).filter((p) => want.has(p.sku));
+}
+
+export type PlaceOrderInput = {
+  name: string; phone: string; email?: string; delivery: "pickup" | "inner" | "province";
+  province?: string; ward?: string; street?: string; note?: string; items: { sku: string; qty: number }[];
+};
+export type PlaceOrderResult = { ok: true; code: string; subtotal: number; shippingFee: number | null } | { ok: false; error: string };
+
+const tooBig = (v: unknown) => JSON.stringify(v ?? "").length > 20000;
+
+export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResult> {
+  if (!input || tooBig(input)) return { ok: false, error: "Dữ liệu đơn hàng không hợp lệ." };
+  const { data, error } = await createPublicClient().rpc("place_order", { payload: input });
+  if (error) return { ok: false, error: friendly(error.message) };
+  return { ok: true, code: data.code, subtotal: data.subtotal, shippingFee: data.shipping_fee };
+}
+
+export type LookupResult = {
+  code: string; status: string; delivery: string; subtotal: number; shipping_fee: number | null;
+  tracking_code: string | null; items: { name: string; qty: number; unit_price: number }[];
+} | null;
+
+export async function lookupOrder(code: string, phone: string): Promise<LookupResult> {
+  if (typeof code !== "string" || typeof phone !== "string" || code.length > 20 || phone.length > 20) return null;
+  const { data } = await createPublicClient().rpc("lookup_order", { p_code: code, p_phone: phone });
+  return (data as LookupResult) ?? null;
+}
+
+export async function submitQuote(items: string, phone: string): Promise<{ ok: boolean; error?: string }> {
+  if (typeof items !== "string" || typeof phone !== "string" || items.length > 2000) return { ok: false, error: "Nội dung quá dài." };
+  const { error } = await createPublicClient().rpc("submit_quote", { p_items: items, p_phone: phone });
+  return error ? { ok: false, error: friendly(error.message) } : { ok: true };
+}
+
+// Chỉ đưa ra trình duyệt câu báo lỗi tiếng Việt do hàm DB tự viết; lỗi kỹ thuật thì báo chung chung
+function friendly(msg: string) {
+  return /[À-ỹ]/.test(msg) && msg.length < 200 ? msg : "Chưa gửi được. Vui lòng thử lại hoặc gọi shop 0948 732 064.";
+}

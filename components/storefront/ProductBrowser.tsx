@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Phone, SlidersHorizontal, X } from "lucide-react";
 import { ProductCard } from "@/components/storefront/ProductCard";
-import { CATEGORIES, discountPct, type Product } from "@/lib/mock/store";
+import { discountPct, type Category, type Product } from "@/lib/mock/store";
 
 const PAGE = 12;
 const PRICES = [
@@ -28,7 +28,7 @@ const SORTS = [
 type Group = { key: string; title: string; options: { id: string; label: string }[]; test: (p: Product, id: string) => boolean };
 type Picked = Record<string, string[]>;
 
-export function ProductBrowser({ products, fixedCat }: { products: Product[]; fixedCat?: string }) {
+export function ProductBrowser({ products, categories, fixedCat }: { products: Product[]; categories: Category[]; fixedCat?: string }) {
   const [picked, setPicked] = useState<Picked>({});
   const [sort, setSort] = useState<(typeof SORTS)[number][0]>("pho-bien");
   const [shown, setShown] = useState(PAGE);
@@ -39,8 +39,8 @@ export function ProductBrowser({ products, fixedCat }: { products: Product[]; fi
     const uniq = (xs: string[]) => [...new Set(xs)].map((x) => ({ id: x, label: x }));
     const g: Group[] = [];
     if (!fixedCat)
-      g.push({ key: "cat", title: "Danh mục", options: CATEGORIES.map((c) => ({ id: c.slug, label: c.name })), test: (p, id) => p.cat === id });
-    const subs = fixedCat ? CATEGORIES.find((c) => c.slug === fixedCat)?.subs ?? [] : [...new Set(products.map((p) => p.sub))];
+      g.push({ key: "cat", title: "Danh mục", options: categories.map((c) => ({ id: c.slug, label: c.name })), test: (p, id) => p.cat === id });
+    const subs = fixedCat ? categories.find((c) => c.slug === fixedCat)?.subs ?? [] : [...new Set(products.map((p) => p.sub))];
     g.push({ key: "sub", title: "Danh mục con", options: subs.map((s) => ({ id: s, label: s })), test: (p, id) => p.sub === id });
     g.push({ key: "brand", title: "Thương hiệu", options: uniq(products.map((p) => p.brand)), test: (p, id) => p.brand === id });
     g.push({ key: "price", title: "Khoảng giá", options: PRICES, test: (p, id) => PRICES.find((x) => x.id === id)!.test(p.price) });
@@ -57,7 +57,7 @@ export function ProductBrowser({ products, fixedCat }: { products: Product[]; fi
     }
     g.push({ key: "state", title: "Tình trạng", options: STATES, test: (p, id) => STATES.find((x) => x.id === id)!.test(p) });
     return g;
-  }, [products, fixedCat]);
+  }, [products, categories, fixedCat]);
 
   // Lọc theo mọi nhóm, trừ nhóm `skip` (để đếm số lượng cho từng lựa chọn)
   const filter = (skip?: string) =>
@@ -171,7 +171,7 @@ export function ProductBrowser({ products, fixedCat }: { products: Product[]; fi
             <h2 className="text-lg font-bold">Chưa có sản phẩm phù hợp</h2>
             <p className="mt-2 text-sm text-ink-2">Thử bỏ bớt bộ lọc, chọn danh mục khác hoặc gọi shop để hỏi hàng.</p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-              {CATEGORIES.map((c) => (
+              {categories.map((c) => (
                 <Link key={c.slug} href={`/danh-muc/${c.slug}`} className="flex min-h-10 items-center rounded-full bg-sunk px-3 text-[13px] font-medium hover:bg-brand-tint hover:text-brand">{c.name}</Link>
               ))}
             </div>

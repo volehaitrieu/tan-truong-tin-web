@@ -3,7 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Minus, Package, Plus, Trash2 } from "lucide-react";
-import { PRODUCTS } from "@/lib/mock/store";
+import { cartProducts } from "@/app/(store)/actions";
+import type { Product } from "@/lib/mock/store";
 import { formatVnd } from "@/lib/shop";
 
 // Giỏ hàng lưu trong trình duyệt (chưa có backend): [{ sku, quantity }]
@@ -56,11 +57,31 @@ function subscribe(cb: () => void) {
 export function useCart() {
   return useSyncExternalStore<CartRow[] | null>(subscribe, snapshot, () => null);
 }
-export function cartLines(rows: CartRow[]) {
-  return rows.flatMap((r) => {
-    const product = PRODUCTS.find((p) => p.sku === r.sku);
-    return product ? [{ ...r, product }] : [];
-  });
+export type CartLine = CartRow & { product: Product };
+
+// Giỏ + thông tin SP lấy từ server (giá thật trong DB). null = đang tải.
+export function useCartLines(): { rows: CartRow[]; lines: CartLine[] } | null {
+  const rows = useCart();
+  const [products, setProducts] = useState<{ key: string; list: Product[] } | null>(null);
+  const key = rows ? [...new Set(rows.map((r) => r.sku))].sort().join(",") : "";
+  useEffect(() => {
+    if (!key) return;
+    let alive = true;
+    cartProducts(key.split(",")).then((list) => alive && setProducts({ key, list }));
+    return () => {
+      alive = false;
+    };
+  }, [key]);
+  if (rows === null) return null;
+  if (rows.length === 0) return { rows, lines: [] };
+  if (products?.key !== key) return null;
+  return {
+    rows,
+    lines: rows.flatMap((r) => {
+      const product = products.list.find((p) => p.sku === r.sku);
+      return product ? [{ ...r, product }] : [];
+    }),
+  };
 }
 
 function Toast({ text }: { text: string | null }) {
@@ -153,9 +174,9 @@ export function CartCount() {
 }
 
 export function CartPanel() {
-  const rows = useCart();
-  if (rows === null) return <p className="mt-5 rounded-md bg-white p-5 text-sm text-ink-2">Đang tải giỏ hàng…</p>;
-  const lines = cartLines(rows);
+  const cart = useCartLines();
+  if (cart === null) return <p className="mt-5 rounded-md bg-white p-5 text-sm text-ink-2">Đang tải giỏ hàng…</p>;
+  const { rows, lines } = cart;
   const total = lines.reduce((s, l) => s + l.product.price * l.quantity, 0);
   const setQty = (sku: string, q: number) => write(q <= 0 ? rows.filter((r) => r.sku !== sku) : rows.map((r) => (r.sku === sku ? { ...r, quantity: q } : r)));
 

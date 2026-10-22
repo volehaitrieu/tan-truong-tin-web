@@ -3,7 +3,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { Banknote, MapPin, QrCode, Store, Truck } from "lucide-react";
-import { cartLines, clearCart, useCart } from "@/components/storefront/CartControls";
+import { clearCart, useCartLines } from "@/components/storefront/CartControls";
+import { placeOrder } from "@/app/(store)/actions";
 import { PROVINCES, isInner } from "@/lib/mock/address";
 import { formatVnd } from "@/lib/shop";
 
@@ -15,8 +16,6 @@ const METHODS: { id: Method; icon: typeof Store; title: string; note: string }[]
   { id: "inner", icon: Truck, title: "Giao nội thành", note: "Trong Nha Trang · phí báo khi xác nhận" },
   { id: "province", icon: MapPin, title: "Gửi đi tỉnh", note: "SPX, GHTK · phí báo sau" },
 ];
-// Mã đơn tạm (backend sẽ cấp mã thật)
-const newOrderCode = () => `TTT${String(Math.floor(Math.random() * 1e6)).padStart(6, "0")}`;
 const input = "mt-1 h-12 w-full rounded-md border bg-white px-3 text-[15px] outline-none focus:border-brand";
 
 function Field({ label, error, children }: { label: ReactNode; error?: string; children: ReactNode }) {
@@ -30,19 +29,21 @@ function Field({ label, error, children }: { label: ReactNode; error?: string; c
 }
 
 export function CheckoutForm() {
-  const rows = useCart();
+  const cart = useCartLines();
   const router = useRouter();
   const [method, setMethod] = useState<Method>("pickup");
   const [f, setF] = useState({ name: "", phone: "", email: "", province: "Khánh Hòa", ward: "", street: "", note: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [placed, setPlaced] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [serverError, setServerError] = useState("");
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => {
     setF((s) => ({ ...s, [k]: e.target.value, ...(k === "province" ? { ward: "" } : {}) }));
     setErrors((s) => ({ ...s, [k]: "" }));
   };
 
-  if (rows === null || placed) return <p className="mt-5 text-sm text-ink-2">{placed ? "Đang gửi đơn…" : "Đang tải giỏ hàng…"}</p>;
-  const lines = cartLines(rows);
+  if (cart === null || placed) return <p className="mt-5 text-sm text-ink-2">{placed ? "Đang gửi đơn…" : "Đang tải giỏ hàng…"}</p>;
+  const { lines } = cart;
   if (lines.length === 0)
     return (
       <div className="mt-5 rounded-md bg-white p-6 text-center">
@@ -66,17 +67,32 @@ export function CheckoutForm() {
     return e;
   }
 
-  function submit(ev: React.FormEvent) {
+  async function submit(ev: React.FormEvent) {
     ev.preventDefault();
+    if (sending) return;
     const e = validate();
     setErrors(e);
+    setServerError("");
     if (Object.values(e).some(Boolean)) {
       document.querySelector<HTMLElement>("[aria-invalid=true]")?.focus();
       return;
     }
+    setSending(true);
+    // Chỉ gửi mã hàng + số lượng; server tự tính tiền và phí ship
+    const res = await placeOrder({
+      name: f.name, phone: f.phone, email: f.email || undefined, delivery: method,
+      province: method === "pickup" ? undefined : f.province, ward: method === "pickup" ? undefined : f.ward,
+      street: method === "pickup" ? undefined : f.street, note: f.note || undefined,
+      items: lines.map((l) => ({ sku: l.sku, qty: l.quantity })),
+    });
+    setSending(false);
+    if (!res.ok) {
+      setServerError(res.error);
+      return;
+    }
     const order: PlacedOrder = {
-      code: newOrderCode(),
-      total,
+      code: res.code,
+      total: res.subtotal,
       method,
       lines: lines.map((l) => ({ name: l.product.name, quantity: l.quantity, price: l.product.price })),
     };
@@ -173,7 +189,8 @@ export function CheckoutForm() {
         <p className="mt-3 flex justify-between border-t border-line pt-3 text-sm">Tiền hàng <b className="num">{formatVnd(total)}</b></p>
         <p className="mt-1.5 flex justify-between text-sm">Phí ship <span className="text-ink-2">{method === "pickup" ? "0₫" : "Báo khi xác nhận đơn"}</span></p>
         <p className="mt-3 flex items-baseline justify-between text-base font-bold">Tạm tính <span className="num text-xl text-danger">{formatVnd(total)}</span></p>
-        <button type="submit" className="mt-4 h-12 w-full rounded-md bg-brand font-bold text-white hover:bg-brand-deep">Đặt hàng</button>
+        {serverError && <p role="alert" className="mt-3 rounded-md bg-[#fef2f2] p-3 text-sm text-danger">{serverError}</p>}
+        <button type="submit" disabled={sending} className="mt-4 h-12 w-full rounded-md bg-brand font-bold text-white hover:bg-brand-deep disabled:opacity-60">{sending ? "Đang gửi đơn…" : "Đặt hàng"}</button>
         <p className="mt-2 text-center text-xs text-ink-2">Shop sẽ gọi xác nhận đơn trước khi giao.</p>
       </aside>
     </form>

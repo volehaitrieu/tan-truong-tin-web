@@ -3,11 +3,11 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { ChevronRight, LayoutGrid, X } from "lucide-react";
-import { CATEGORIES } from "@/lib/mock/store";
+import type { Category } from "@/lib/mock/store";
 import { CategoryIcon } from "@/components/storefront/CategoryIcon";
 
 // Tab "Danh mục" trên thanh đáy điện thoại: mở ngăn kéo từ bên trái.
-export function CategoryDrawer() {
+export function CategoryDrawer({ categories }: { categories: Category[] }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const [lastPath, setLastPath] = useState(pathname);
@@ -40,7 +40,7 @@ export function CategoryDrawer() {
               <button type="button" onClick={() => setOpen(false)} aria-label="Đóng danh mục" className="grid size-11 place-items-center text-ink-2"><X className="size-5" /></button>
             </div>
             <ul className="flex-1 overflow-y-auto py-1 text-left text-[15px] text-ink">
-              {CATEGORIES.map((c) => (
+              {categories.map((c) => (
                 <li key={c.slug}>
                   <Link href={`/danh-muc/${c.slug}`} className="flex min-h-12 items-center gap-3 px-4 hover:bg-brand-tint">
                     <span className="grid size-9 place-items-center rounded-full bg-brand-tint text-brand"><CategoryIcon icon={c.icon} className="size-[18px]" /></span>

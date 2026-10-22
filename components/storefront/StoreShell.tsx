@@ -6,6 +6,7 @@ import { StoreSearch } from "@/components/storefront/StoreSearch";
 import { CartCount } from "@/components/storefront/CartControls";
 import { CategoryDrawer } from "@/components/storefront/CategoryDrawer";
 import { SHOP } from "@/lib/shop";
+import { getCategories } from "@/lib/catalog";
 
 export const POLICIES = [
   ["doi-tra", "Đổi trả"],
@@ -16,7 +17,8 @@ export const POLICIES = [
   ["gioi-thieu", "Giới thiệu"],
 ] as const;
 
-export function StoreShell({ children }: { children: ReactNode }) {
+export async function StoreShell({ children }: { children: ReactNode }) {
+  const categories = await getCategories();
   return (
     <div className="store flex min-h-screen flex-col pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0">
       <div className="bg-brand-tint text-[13px] text-ink-2">
@@ -96,7 +98,7 @@ export function StoreShell({ children }: { children: ReactNode }) {
       {/* Thanh đáy điện thoại */}
       <nav aria-label="Điều hướng nhanh" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] text-[11px] text-ink-2 md:hidden">
         <Link href="/" className="flex h-16 flex-col items-center justify-center gap-1 hover:text-brand"><House className="size-5" aria-hidden />Trang chủ</Link>
-        <CategoryDrawer />
+        <CategoryDrawer categories={categories} />
         <Link href="/gio-hang" className="flex h-16 flex-col items-center justify-center gap-1 hover:text-brand">
           <span className="relative"><ShoppingCart className="size-5" aria-hidden /><CartCount /></span>Giỏ hàng
         </Link>

@@ -9,7 +9,8 @@ const admin = createClient(URL, process.env.SUPABASE_SECRET_KEY, opts);
 
 let pass = 0, fail = 0;
 const check = (name, ok, extra = "") => {
-  ok ? pass++ : fail++;
+  if (ok) pass++;
+  else fail++;
   console.log(`${ok ? "✓" : "✗ LỖI"} ${name}${extra ? " — " + extra : ""}`);
 };
 async function signIn(key) {

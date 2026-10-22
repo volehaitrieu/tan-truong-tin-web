@@ -1,15 +1,23 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
-import { searchProducts } from "@/lib/mock/store";
+import { suggest } from "@/app/(store)/actions";
 
 // Ô tìm kiếm có gợi ý thả xuống; gõ không dấu vẫn ra.
 export function StoreSearch({ mobile = false, initial = "" }: { mobile?: boolean; initial?: string }) {
   const [query, setQuery] = useState(initial);
   const [open, setOpen] = useState(false);
   const router = useRouter();
-  const matches = query.trim() ? searchProducts(query).slice(0, 5) : [];
+  // Gợi ý từ server, chờ 200ms sau lần gõ cuối
+  const [found, setFound] = useState<{ q: string; list: Awaited<ReturnType<typeof suggest>> }>({ q: "", list: [] });
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) return;
+    const t = window.setTimeout(() => suggest(q).then((list) => setFound({ q, list })), 200);
+    return () => window.clearTimeout(t);
+  }, [query]);
+  const matches = query.trim() && found.q === query.trim() ? found.list : [];
   const go = (href: string) => {
     setOpen(false);
     router.push(href);

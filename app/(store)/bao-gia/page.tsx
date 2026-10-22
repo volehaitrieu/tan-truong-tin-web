@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { QuoteForm } from "@/components/storefront/QuoteForm";
-import { findProduct } from "@/lib/mock/store";
+import { getProduct } from "@/lib/catalog";
 
 export const metadata: Metadata = { title: "Báo giá số lượng lớn" };
 
 export default async function QuotePage({ searchParams }: PageProps<"/bao-gia">) {
   const { sku } = await searchParams;
-  const p = typeof sku === "string" ? findProduct(sku) : undefined;
+  const p = typeof sku === "string" ? await getProduct(sku) : undefined;
   return (
     <div className="mx-auto max-w-xl">
       <h1 className="text-[28px] font-extrabold">Báo giá số lượng lớn</h1>
