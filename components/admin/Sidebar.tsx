@@ -3,11 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ADMIN_NAV, isActive } from "@/lib/admin-nav";
+import { isActive, visibleNav } from "@/lib/admin-nav";
+import type { Permission } from "@/lib/permissions";
 import { SHOP } from "@/lib/shop";
 import { Logo } from "@/components/brand/Logo";
 
-export function Sidebar() {
+export function Sidebar({ perms }: { perms: Permission[] }) {
   const pathname = usePathname();
   return (
     <aside className="sticky top-0 hidden h-dvh w-[72px] shrink-0 flex-col bg-brand-deep text-white md:flex xl:w-60">
@@ -19,7 +20,7 @@ export function Sidebar() {
       </div>
       <nav aria-label="Menu quản trị" className="flex-1 overflow-y-auto px-2 py-2">
         <ul className="space-y-0.5">
-          {ADMIN_NAV.map(({ href, label, icon: Icon }) => {
+          {visibleNav(perms).map(({ href, label, icon: Icon }) => {
             const active = isActive(pathname, href);
             return (
               <li key={href}>

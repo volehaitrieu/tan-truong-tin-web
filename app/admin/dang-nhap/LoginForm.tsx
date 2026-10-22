@@ -1,33 +1,23 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { login, type LoginState } from "./actions";
 
-// Chỉ giao diện: chưa nối đăng nhập thật (Task 1.4). Mật khẩu "sai" để xem trạng thái lỗi.
+// Đăng nhập thật qua Supabase Auth (server action). Nhân viên gõ SĐT hoặc email.
 export function LoginForm() {
-  const router = useRouter();
   const [show, setShow] = useState(false);
-  const [error, setError] = useState("");
-
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const data = new FormData(e.currentTarget);
-    const id = String(data.get("id") ?? "").trim();
-    const pw = String(data.get("password") ?? "");
-    if (!id || !pw) return setError("Nhập số điện thoại/email và mật khẩu.");
-    if (pw === "sai") return setError("Sai số điện thoại/email hoặc mật khẩu.");
-    router.push("/admin");
-  }
+  const [state, action, pending] = useActionState<LoginState, FormData>(login, {});
+  const error = state.error ?? "";
 
   const field =
     "h-12 w-full rounded-[var(--radius-ctl)] border bg-surface px-3 text-[15px] placeholder:text-ink-2/60 focus:border-brand";
 
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-4">
+    <form action={action} noValidate className="space-y-4">
       <label className="block">
         <span className="mb-1.5 block text-sm font-medium">Số điện thoại hoặc email</span>
-        <input name="id" autoComplete="username" placeholder="0948 732 064" className={`${field} border-line`} />
+        <input name="id" autoComplete="username" placeholder="Số điện thoại của bạn" className={`${field} border-line`} />
       </label>
       <label className="block">
         <span className="mb-1.5 block text-sm font-medium">Mật khẩu</span>
@@ -55,11 +45,8 @@ export function LoginForm() {
           </span>
         )}
       </label>
-      <label className="flex min-h-11 items-center gap-2 text-sm">
-        <input type="checkbox" name="remember" className="size-4 accent-brand" defaultChecked /> Ghi nhớ đăng nhập
-      </label>
-      <button type="submit" className="h-12 w-full rounded-[var(--radius-ctl)] bg-brand text-[15px] font-semibold text-white transition-colors hover:bg-brand-deep">
-        Đăng nhập
+      <button type="submit" disabled={pending} className="h-12 w-full rounded-[var(--radius-ctl)] bg-brand text-[15px] font-semibold text-white transition-colors hover:bg-brand-deep disabled:opacity-60">
+        {pending ? "Đang đăng nhập…" : "Đăng nhập"}
       </button>
       <p className="text-center text-sm text-ink-2">Quên mật khẩu? Liên hệ chủ shop</p>
     </form>

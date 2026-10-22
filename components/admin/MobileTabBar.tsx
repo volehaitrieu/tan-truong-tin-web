@@ -4,14 +4,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { MoreHorizontal, X } from "lucide-react";
-import { ADMIN_NAV, MOBILE_TABS, isActive } from "@/lib/admin-nav";
+import { MOBILE_TABS, isActive, visibleNav } from "@/lib/admin-nav";
+import type { Permission } from "@/lib/permissions";
 
 // Thanh đáy điện thoại: 4 tab chính + "Thêm" mở danh sách các mục còn lại.
-export function MobileTabBar() {
+export function MobileTabBar({ perms }: { perms: Permission[] }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const tabs = ADMIN_NAV.filter((n) => MOBILE_TABS.includes(n.href));
-  const more = ADMIN_NAV.filter((n) => !MOBILE_TABS.includes(n.href));
+  const nav = visibleNav(perms);
+  const tabs = nav.filter((n) => MOBILE_TABS.includes(n.href));
+  const more = nav.filter((n) => !MOBILE_TABS.includes(n.href));
   const moreActive = more.some((n) => isActive(pathname, n.href));
 
   return (
