@@ -45,9 +45,9 @@ export default async function AuditPage() {
         <ul className="divide-y divide-line rounded-lg border border-line bg-white">
           {rows.map((r) => (
             <li key={r.id} className="flex flex-wrap gap-x-4 gap-y-1 p-3 text-sm">
-              <span className="num w-36 shrink-0 text-ink-2">{fmt.format(new Date(r.created_at))}</span>
-              <span className="w-32 shrink-0 font-medium">{(r.actor && who.get(r.actor)) || "Nhân viên"}</span>
-              <span className="min-w-0 flex-1">
+              <span className="num shrink-0 text-ink-2 sm:w-36">{fmt.format(new Date(r.created_at))}</span>
+              <span className="shrink-0 font-medium sm:w-32">{(r.actor && who.get(r.actor)) || "Nhân viên"}</span>
+              <span className="min-w-0 flex-1 basis-full [overflow-wrap:anywhere] sm:basis-auto">
                 {ACTION[r.action] ?? r.action}{r.target ? <span className="num text-ink-2"> · {r.target}</span> : null}
                 {changes(r.details) && <small className="block text-ink-2">{changes(r.details)}</small>}
               </span>
