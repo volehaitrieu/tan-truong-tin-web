@@ -6,7 +6,7 @@ import { formatVnd } from "@/lib/shop";
 import { adjustStock } from "@/app/admin/(shell)/ton-kho/actions";
 import type { MovementRow, StockRow } from "@/lib/admin/inventory";
 
-// Tồn kho: dữ liệu thật truyền từ trang (server). Kiểm kho / Khuyến mãi: còn dữ liệu mẫu.
+// Tồn kho: dữ liệu thật truyền từ trang (server). Khuyến mãi: còn dữ liệu mẫu.
 const REASONS = ["Nhập hàng", "Hư hỏng", "Thất lạc", "Trả hàng", "Kiểm kho", "Khác"];
 
 const btn = "inline-flex h-10 items-center justify-center gap-2 rounded px-4 text-sm font-semibold";
@@ -127,63 +127,6 @@ export function StockScreen({ rows, history, canAdjust }: { rows: StockRow[]; hi
           </div>
         </div>
       )}
-    </>
-  );
-}
-
-// Kiểm kho: bảng chênh lệch của đợt đang đếm
-const COUNT = [
-  { sku: "QUA-HALI-TR2", name: "Quạt treo tường Hali TR2 (Ghi xám)", system: 18, counted: 17, by: "Trần Thị Bình" },
-  { sku: "QUA-SENKO-DH1600", name: "Quạt đứng Senko DH1600", system: 9, counted: 9, by: "Trần Thị Bình" },
-  { sku: "QUA-ASIA-L16", name: "Quạt lửng Asia L16", system: 5, counted: 6, by: "Trần Thị Bình" },
-  { sku: "QUA-PANA-F409", name: "Quạt trần Panasonic F-409", system: 2, counted: null, by: "" },
-];
-export function CountTable() {
-  const [filter, setFilter] = useState<"all" | "diff" | "todo">("all");
-  const rows = COUNT.filter((r) => (filter === "diff" ? r.counted !== null && r.counted !== r.system : filter === "todo" ? r.counted === null : true));
-  const diff = (r: (typeof COUNT)[number]) => {
-    if (r.counted === null) return <span className="text-ink-2">Chưa đếm</span>;
-    const d = r.counted - r.system;
-    return <b className={`num ${d < 0 ? "text-danger" : d > 0 ? "text-ok" : "text-ink-2"}`}>{d > 0 ? `+${d}` : d === 0 ? "Khớp" : d}</b>;
-  };
-  return (
-    <>
-      <div className="mt-4 flex gap-2">
-        {([["all", "Tất cả"], ["diff", "Lệch"], ["todo", "Chưa đếm"]] as const).map(([id, label]) => (
-          <button key={id} onClick={() => setFilter(id)} className={`${btn} min-h-11 border ${filter === id ? "border-brand bg-brand-tint text-brand" : "border-line bg-white"}`}>{label}</button>
-        ))}
-      </div>
-      <div className="mt-4 overflow-hidden rounded-lg border border-line">
-        <table className="hidden w-full text-sm md:table">
-          <thead className="bg-ground text-left text-xs text-ink-2">
-            <tr>{["Sản phẩm", "Số hệ thống", "Số đếm", "Chênh lệch", "Người đếm"].map((x) => <th key={x} className="px-3 py-3 font-semibold">{x}</th>)}</tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.sku} className="h-14 border-t border-line">
-                <td className="px-3"><b>{r.name}</b><small className="block text-ink-2">{r.sku}</small></td>
-                <td className="num px-3">{r.system}</td>
-                <td className="num px-3">{r.counted ?? "—"}</td>
-                <td className="px-3">{diff(r)}</td>
-                <td className="px-3 text-ink-2">{r.by || "—"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <ul className="divide-y divide-line md:hidden">
-          {rows.map((r) => (
-            <li key={r.sku} className="p-3 text-sm">
-              <b className="block">{r.name}</b>
-              <div className="mt-1 flex flex-wrap items-center gap-x-4 text-ink-2">
-                <span>Hệ thống <b className="num text-ink">{r.system}</b></span>
-                <span>Đếm <b className="num text-ink">{r.counted ?? "—"}</b></span>
-                <span>{diff(r)}</span>
-              </div>
-            </li>
-          ))}
-        </ul>
-        {rows.length === 0 && <p className="p-4 text-sm text-ink-2">Không có sản phẩm nào trong mục này.</p>}
-      </div>
     </>
   );
 }
