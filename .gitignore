@@ -48,3 +48,6 @@ next-env.d.ts
 
 # dữ liệu trích từ Excel của chủ shop (có giá nhập) — không đưa lên GitHub
 /scripts/du-lieu-thu.json
+
+.vercel
+.env*
