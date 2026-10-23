@@ -154,6 +154,26 @@ let orderId;
   check("Sửa giá được ghi vào nhật ký thao tác", audit?.[0]?.action === "update:products" && audit[0].target === "QUA-HALI-TR2");
 }
 
+// ---- Bán tại quầy ----
+{
+  const van = await stockOf("VAN-MIHA-21");
+  const { error: a1 } = await anon.rpc("pos_create_order", { p_items: [{ product_id: van.id, qty: 1 }] });
+  check("Khách KHÔNG tạo được đơn tại quầy", !!a1);
+  const { error: a2 } = await stockStaff.rpc("pos_create_order", { p_items: [{ product_id: van.id, qty: 1 }] });
+  check("NV kho KHÔNG bán tại quầy", !!a2, a2?.message);
+  const { data: sale, error: a3 } = await orderStaff.rpc("pos_create_order", { p_items: [{ product_id: van.id, qty: 2 }] });
+  const after = await stockOf("VAN-MIHA-21");
+  check("NV đơn bán tại quầy: trừ tồn ngay", !a3 && van.qty - after.qty === Math.min(2, van.qty), a3?.message);
+  const { data: leak } = await anon.rpc("lookup_order", { p_code: sale?.code ?? "", p_phone: "0000000000" });
+  check("Không tra cứu được đơn khách vãng lai bằng SĐT 0000000000", leak === null);
+  const { data: o } = await admin.from("orders").select("id").eq("code", sale.code).single();
+  await owner.rpc("order_set_status", { p_order_id: o.id, p_status: "cancelled" }).then(() => {});
+  // đơn đã hoàn thành không hủy được → hoàn tồn bằng tay rồi xóa
+  await admin.from("inventory").update({ qty: van.qty }).eq("product_id", van.id);
+  await admin.from("inventory_movements").delete().eq("order_id", o.id);
+  await admin.from("orders").delete().eq("id", o.id);
+}
+
 // Dọn đơn kiểm thử
 await admin.from("inventory_movements").delete().eq("order_id", orderId);
 await admin.from("orders").delete().eq("phone", "0977000111");
