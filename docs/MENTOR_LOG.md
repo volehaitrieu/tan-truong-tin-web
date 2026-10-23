@@ -287,3 +287,4 @@
 - [23/10 ~13:25] Admin Báo cáo nối DB + xuất Excel (CSV có BOM, chặn công thức). Lãi gộp kiểm tay khớp (151.000₫). Đường dẫn xuất: không đăng nhập → 307, thiếu quyền → 403.
 - [23/10 ~13:50] Admin Khuyến mãi nối DB (đặt/tắt KM, hiện ngay ở trang chủ). Sửa lỗi UX: 4 form bị React xóa trắng sau khi gửi lỗi. Kế: Danh mục & thương hiệu, Nhập Excel.
 - [23/10 ~14:05] Admin Danh mục & thương hiệu nối DB. Còn: Nhập Excel (đọc xlsx trong trình duyệt), Ảnh thông tin SP, Duyệt AI (đã bỏ khỏi kế hoạch → để nhãn), rồi thử vai khách + tấn công + báo cáo.
+- [23/10 ~14:35] Admin Nhập Excel nối DB (đọc xlsx bằng DecompressionStream, không cài thư viện). Xem trước file thật: DMHH 3.575 dòng → 1.374 xếp được danh mục, 12 lỗi, 2.189 chưa rõ danh mục (cần chủ shop/AI phân loại thêm); file quạt 99 hợp lệ, 93 thiếu SKU. Chỉ ghi thử 1 SP rồi xóa.
