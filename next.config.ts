@@ -28,6 +28,8 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   devIndicators: false,
   poweredByHeader: false,
+  // Cho phép mở bản chạy thử từ điện thoại cùng mạng Wi-Fi
+  allowedDevOrigins: ["192.168.5.122"],
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
