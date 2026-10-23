@@ -9,13 +9,21 @@ import { normalize, type Category, type Product } from "@/lib/mock/store";
 type Row = {
   sku: string; name: string; unit: string; price: number; sale_price: number | null; sale_from: string | null; sale_to: string | null;
   spec_line: string | null; attributes: Record<string, string | number>; warranty: string | null; in_stock: boolean;
+  category_id: number | null;
   brand: { name: string } | null;
-  category: { name: string; slug: string; parent: { slug: string } | null } | null;
   images: { url: string; sort: number }[];
 };
 const SELECT =
   "sku, name, unit, price, sale_price, sale_from, sale_to, spec_line, attributes, warranty, in_stock, " +
-  "brand:brands(name), category:categories(name, slug, parent:categories(slug)), images:product_images(url, sort)";
+  "category_id, brand:brands(name), images:product_images(url, sort)";
+
+// Bảng danh mục (id → tên, slug, danh mục cha) — tra trong bộ nhớ thay vì nhúng bảng tự tham chiếu
+type CatRow = { id: number; parent_id: number | null; name: string; slug: string; icon: string | null; sort: number };
+const getCategoryRows = cache(async (): Promise<CatRow[]> => {
+  const { data, error } = await createPublicClient().from("categories").select("id, parent_id, name, slug, icon, sort").order("sort");
+  if (error) throw error;
+  return data;
+});
 
 const today = () => new Date().toISOString().slice(0, 10);
 function saleActive(r: Row) {
@@ -23,21 +31,15 @@ function saleActive(r: Row) {
 }
 
 export const getCategories = cache(async (): Promise<Category[]> => {
-  const db = createPublicClient();
-  const { data, error } = await db.from("categories").select("id, parent_id, name, slug, icon, sort").order("sort");
-  if (error) throw error;
-  const { data: counts } = await db.from("products").select("category:categories(parent_id, slug)");
-  return data
+  const [rows, products] = await Promise.all([getCategoryRows(), getProducts()]);
+  return rows
     .filter((c) => c.parent_id === null)
     .map((c) => ({
       slug: c.slug,
       name: c.name,
       icon: (c.icon ?? "home") as Category["icon"],
-      subs: data.filter((s) => s.parent_id === c.id).map((s) => s.name),
-      count: (counts ?? []).filter((p) => {
-        const cat = p.category as unknown as { parent_id: number | null; slug: string } | null;
-        return cat?.parent_id === c.id || cat?.slug === c.slug;
-      }).length,
+      subs: rows.filter((s) => s.parent_id === c.id).map((s) => s.name),
+      count: products.filter((p) => p.cat === c.slug).length,
     }));
 });
 
@@ -48,14 +50,16 @@ async function attributeLabels() {
   return map;
 }
 
-function toProduct(r: Row, labels: Map<string, { label: string; unit?: string }>): Product {
+function toProduct(r: Row, labels: Map<string, { label: string; unit?: string }>, cats: CatRow[]): Product {
   const sale = saleActive(r);
+  const sub = cats.find((c) => c.id === r.category_id);
+  const top = sub?.parent_id ? cats.find((c) => c.id === sub.parent_id) : sub;
   return {
     sku: r.sku,
     name: r.name,
     brand: r.brand?.name ?? "",
-    cat: r.category?.parent?.slug ?? r.category?.slug ?? "",
-    sub: r.category?.name ?? "",
+    cat: top?.slug ?? "",
+    sub: sub?.name ?? "",
     price: sale ? r.sale_price! : r.price,
     old: sale ? r.price : undefined,
     unit: r.unit,
@@ -71,12 +75,13 @@ function toProduct(r: Row, labels: Map<string, { label: string; unit?: string }>
 }
 
 export const getProducts = cache(async (): Promise<Product[]> => {
-  const [{ data, error }, labels] = await Promise.all([
+  const [{ data, error }, labels, cats] = await Promise.all([
     createPublicClient().from("products").select(SELECT).order("name").limit(5000),
     attributeLabels(),
+    getCategoryRows(),
   ]);
   if (error) throw error;
-  return (data as unknown as Row[]).map((r) => toProduct(r, labels));
+  return (data as unknown as Row[]).map((r) => toProduct(r, labels, cats));
 });
 
 export async function getProduct(sku: string) {

@@ -6,6 +6,7 @@ import { ProductCard } from "@/components/storefront/ProductCard";
 import { discountPct, type Category, type Product } from "@/lib/mock/store";
 
 const PAGE = 12;
+const SPEC_PRIORITY = ["Loại quạt", "Sải cánh", "Công suất", "Điều khiển"];
 const PRICES = [
   { id: "duoi-100", label: "Dưới 100.000₫", test: (n: number) => n < 100000 },
   { id: "100-500", label: "100.000₫ – 500.000₫", test: (n: number) => n >= 100000 && n <= 500000 },
@@ -46,7 +47,9 @@ export function ProductBrowser({ products, categories, fixedCat }: { products: P
     g.push({ key: "price", title: "Khoảng giá", options: PRICES, test: (p, id) => PRICES.find((x) => x.id === id)!.test(p.price) });
     // Thông số riêng của danh mục (vd. quạt: loại, sải cánh, điều khiển)
     if (fixedCat) {
-      const keys = [...new Set(products.flatMap((p) => p.specs.map(([k]) => k)))].slice(0, 3);
+      // Ưu tiên thông số khách hay lọc (theo bàn giao: quạt lọc theo loại, sải cánh, công suất, điều khiển)
+      const all = [...new Set(products.flatMap((p) => p.specs.map(([k]) => k)))];
+      const keys = [...SPEC_PRIORITY.filter((k) => all.includes(k)), ...all.filter((k) => !SPEC_PRIORITY.includes(k))].slice(0, 4);
       for (const k of keys)
         g.push({
           key: `spec:${k}`,
