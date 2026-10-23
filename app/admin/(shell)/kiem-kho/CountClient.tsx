@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useState, useTransition, startTransition } from "react";
 import { Check, LockKeyhole, Minus, Plus, Search } from "lucide-react";
 import { closeRound, createRound, saveCount } from "./actions";
 import type { CountItem } from "@/lib/admin/counts";
@@ -10,7 +10,7 @@ const btn = "inline-flex min-h-11 items-center justify-center gap-2 rounded px-4
 export function CreateRoundForm({ categories }: { categories: { slug: string; name: string }[] }) {
   const [state, action, pending] = useActionState(createRound, { ok: false });
   return (
-    <form action={action} className="grid gap-3 rounded-lg border border-line bg-white p-4 sm:grid-cols-[1fr_220px_auto] sm:items-end">
+    <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget); startTransition(() => action(fd)); }} className="grid gap-3 rounded-lg border border-line bg-white p-4 sm:grid-cols-[1fr_220px_auto] sm:items-end">
       <label className="text-sm">Tên đợt<input name="name" required maxLength={100} placeholder="Ví dụ: Kiểm kệ quạt tháng 10" className="mt-1 h-11 w-full rounded border border-line px-3" /></label>
       <label className="text-sm">Phạm vi
         <select name="category" className="mt-1 h-11 w-full rounded border border-line bg-white px-3">

@@ -2,11 +2,10 @@
 import { useState } from "react";
 import { Minus, Plus, X } from "lucide-react";
 import { Badge } from "@/components/admin/ui";
-import { formatVnd } from "@/lib/shop";
 import { adjustStock } from "@/app/admin/(shell)/ton-kho/actions";
 import type { MovementRow, StockRow } from "@/lib/admin/inventory";
 
-// Tồn kho: dữ liệu thật truyền từ trang (server). Khuyến mãi: còn dữ liệu mẫu.
+// Tồn kho: dữ liệu thật truyền từ trang (server).
 const REASONS = ["Nhập hàng", "Hư hỏng", "Thất lạc", "Trả hàng", "Kiểm kho", "Khác"];
 
 const btn = "inline-flex h-10 items-center justify-center gap-2 rounded px-4 text-sm font-semibold";
@@ -126,63 +125,6 @@ export function StockScreen({ rows, history, canAdjust }: { rows: StockRow[]; hi
             </button>
           </div>
         </div>
-      )}
-    </>
-  );
-}
-
-// Khuyến mãi: giá KM theo sản phẩm + mã giảm giá
-const PROMOS = [
-  { name: "Quạt treo tường Hali TR2 (Ghi xám)", old: 480000, price: 430000, from: "22/10", to: "31/10", state: "Đang chạy", on: true },
-  { name: "Bình đun siêu tốc Midea 1.8L", old: 420000, price: 390000, from: "20/10", to: "05/11", state: "Đang chạy", on: true },
-  { name: "Bóng LED Rạng Đông 9W", old: 35000, price: 30000, from: "01/11", to: "15/11", state: "Sắp tới", on: true },
-  { name: "Máy khoan Bosch GSB 550", old: 1250000, price: 1150000, from: "01/10", to: "15/10", state: "Đã hết", on: false },
-];
-const CODES = [
-  { code: "KHAITRUONG", kind: "10%", min: 500000, used: "12 / 100", until: "30/11", state: "Đang chạy" },
-  { code: "GIAM50K", kind: "50.000₫", min: 1000000, used: "3 / 50", until: "31/10", state: "Đang chạy" },
-];
-const stateTone = (s: string) => (s === "Đang chạy" ? "ok" : s === "Sắp tới" ? "info" : "neutral");
-
-export function PromoScreen() {
-  const [tab, setTab] = useState<"gia" | "ma">("gia");
-  return (
-    <>
-      <div className="mb-4 flex gap-2" role="tablist">
-        {([["gia", "Giá KM theo sản phẩm"], ["ma", "Mã giảm giá"]] as const).map(([id, label]) => (
-          <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)} className={`${btn} min-h-11 border ${tab === id ? "border-brand bg-brand-tint text-brand" : "border-line bg-white"}`}>{label}</button>
-        ))}
-      </div>
-      {tab === "gia" ? (
-        <ul className="divide-y divide-line rounded-lg border border-line bg-white">
-          {PROMOS.map((p) => (
-            <li key={p.name} className="flex flex-wrap items-center gap-x-4 gap-y-2 p-3 md:flex-nowrap">
-              <div className="min-w-0 flex-1 basis-full md:basis-auto">
-                <b className="text-sm">{p.name}</b>
-                <p className="mt-0.5 text-xs text-ink-2">{p.from} – {p.to}/2026</p>
-              </div>
-              <span className="text-sm"><del className="num text-ink-2">{formatVnd(p.old)}</del> <b className="num text-danger">{formatVnd(p.price)}</b></span>
-              <Badge tone="danger">-{Math.round((1 - p.price / p.old) * 100)}%</Badge>
-              <Badge tone={stateTone(p.state)}>{p.state}</Badge>
-              <label className="ml-auto flex min-h-11 items-center gap-2 text-sm">
-                <input type="checkbox" defaultChecked={p.on} className="size-5" aria-label={`Bật khuyến mãi ${p.name}`} />Bật
-              </label>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <ul className="divide-y divide-line rounded-lg border border-line bg-white">
-          {CODES.map((c) => (
-            <li key={c.code} className="flex flex-wrap items-center gap-x-4 gap-y-1 p-3 text-sm">
-              <b className="num rounded bg-gold-tint px-2 py-1 text-gold-ink">{c.code}</b>
-              <span>Giảm {c.kind}</span>
-              <span className="text-ink-2">Đơn từ {formatVnd(c.min)}</span>
-              <span className="text-ink-2">Đã dùng {c.used}</span>
-              <span className="text-ink-2">Hạn {c.until}</span>
-              <span className="ml-auto"><Badge tone={stateTone(c.state)}>{c.state}</Badge></span>
-            </li>
-          ))}
-        </ul>
       )}
     </>
   );

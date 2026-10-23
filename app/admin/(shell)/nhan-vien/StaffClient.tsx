@@ -1,5 +1,5 @@
 "use client";
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useState, useTransition, startTransition } from "react";
 import { addStaff, setActive, setPermission, type AddStaffState } from "./actions";
 
 type Person = { id: string; full_name: string; phone: string | null; role: "owner" | "order_staff" | "stock_staff"; is_active: boolean };
@@ -9,7 +9,7 @@ const input = "mt-1 h-11 w-full rounded border border-line bg-white px-3 text-sm
 export function AddStaffForm() {
   const [state, action, pending] = useActionState<AddStaffState, FormData>(addStaff, {});
   return (
-    <form action={action} className="grid gap-3 rounded-lg border border-line bg-white p-4 sm:grid-cols-[1fr_1fr_160px_auto] sm:items-end">
+    <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget); startTransition(() => action(fd)); }} className="grid gap-3 rounded-lg border border-line bg-white p-4 sm:grid-cols-[1fr_1fr_160px_auto] sm:items-end">
       <label className="text-sm">Họ tên<input name="name" maxLength={80} required className={input} /></label>
       <label className="text-sm">Số điện thoại (dùng để đăng nhập)<input name="phone" inputMode="tel" maxLength={14} required className={`${input} num`} /></label>
       <label className="text-sm">Vai trò

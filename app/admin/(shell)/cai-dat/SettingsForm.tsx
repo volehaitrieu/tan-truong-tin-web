@@ -1,5 +1,5 @@
 "use client";
-import { useActionState } from "react";
+import { useActionState, startTransition } from "react";
 import { saveSettings, type SettingsState } from "./actions";
 import type { ShopSettings } from "@/lib/settings";
 
@@ -9,7 +9,7 @@ const section = "rounded-lg border border-line bg-white p-4 sm:p-5";
 export function SettingsForm({ s }: { s: ShopSettings }) {
   const [state, action, pending] = useActionState<SettingsState, FormData>(saveSettings, {});
   return (
-    <form action={action} className="space-y-4">
+    <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget); startTransition(() => action(fd)); }} className="space-y-4">
       <section className={section}>
         <h2 className="mb-3 font-semibold">Thông tin cửa hàng</h2>
         <div className="grid gap-3 sm:grid-cols-2">

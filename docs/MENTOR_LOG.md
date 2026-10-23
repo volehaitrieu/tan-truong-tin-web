@@ -284,3 +284,4 @@
 - [23/10 ~12:10] Admin Tổng quan (số liệu thật theo quyền), Cài đặt (phí ship, đổi trả → hiện ở trang thanh toán/chính sách), Nhân viên & quyền (thêm NV, khóa, bảng quyền) nối DB. Đã thử E2E và dọn dữ liệu thử. Phí ship để trống (chờ chủ shop). Kiểm thử bảo mật 43/43.
 - [23/10 ~12:40] Admin Kiểm kho nối DB (tạo đợt theo danh mục, trang đếm ĐT cho NV kho, chênh lệch, chốt → cập nhật tồn + lịch sử 'Kiểm kho'). E2E chủ shop + NV kho đạt; đã dọn dữ liệu thử.
 - [23/10 ~13:05] Admin Bán tại quầy nối DB (hàm pos_create_order). Tự phát hiện + vá: đơn vãng lai SĐT 0000000000 có thể bị tra cứu khi đoán mã → chặn trong lookup_order. Kiểm thử 47/47. Ghi chú UI: trên ĐT giỏ nằm dưới lưới SP (chưa làm thanh dính đáy).
+- [23/10 ~13:25] Admin Báo cáo nối DB + xuất Excel (CSV có BOM, chặn công thức). Lãi gộp kiểm tay khớp (151.000₫). Đường dẫn xuất: không đăng nhập → 307, thiếu quyền → 403.
