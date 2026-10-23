@@ -28,7 +28,7 @@ function Field({ label, error, children }: { label: ReactNode; error?: string; c
   );
 }
 
-export function CheckoutForm() {
+export function CheckoutForm({ innerFee, freeFrom }: { innerFee: number | null; freeFrom: number | null }) {
   const cart = useCartLines();
   const router = useRouter();
   const [method, setMethod] = useState<Method>("pickup");
@@ -52,6 +52,8 @@ export function CheckoutForm() {
       </div>
     );
   const total = lines.reduce((s, l) => s + l.product.price * l.quantity, 0);
+  // Chỉ để hiển thị — server tự tính lại phí ship khi đặt hàng
+  const fee = method === "pickup" ? 0 : method === "inner" && innerFee !== null ? (freeFrom !== null && total >= freeFrom ? 0 : innerFee) : null;
 
   function validate() {
     const e: Record<string, string> = {};
@@ -187,8 +189,9 @@ export function CheckoutForm() {
           ))}
         </ul>
         <p className="mt-3 flex justify-between border-t border-line pt-3 text-sm">Tiền hàng <b className="num">{formatVnd(total)}</b></p>
-        <p className="mt-1.5 flex justify-between text-sm">Phí ship <span className="text-ink-2">{method === "pickup" ? "0₫" : "Báo khi xác nhận đơn"}</span></p>
-        <p className="mt-3 flex items-baseline justify-between text-base font-bold">Tạm tính <span className="num text-xl text-danger">{formatVnd(total)}</span></p>
+        <p className="mt-1.5 flex justify-between text-sm">Phí ship <span className="num text-ink-2">{fee === null ? "Báo khi xác nhận đơn" : formatVnd(fee)}</span></p>
+        {method === "inner" && fee !== 0 && freeFrom !== null && <p className="mt-1 text-xs text-ok">Miễn phí ship nội thành cho đơn từ {formatVnd(freeFrom)}</p>}
+        <p className="mt-3 flex items-baseline justify-between text-base font-bold">Tạm tính <span className="num text-xl text-danger">{formatVnd(total + (fee ?? 0))}</span></p>
         {serverError && <p role="alert" className="mt-3 rounded-md bg-[#fef2f2] p-3 text-sm text-danger">{serverError}</p>}
         <button type="submit" disabled={sending} className="mt-4 h-12 w-full rounded-md bg-brand font-bold text-white hover:bg-brand-deep disabled:opacity-60">{sending ? "Đang gửi đơn…" : "Đặt hàng"}</button>
         <p className="mt-2 text-center text-xs text-ink-2">Shop sẽ gọi xác nhận đơn trước khi giao.</p>

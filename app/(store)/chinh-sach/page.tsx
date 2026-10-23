@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { MapPin, Phone } from "lucide-react";
 import { POLICIES } from "@/components/storefront/StoreShell";
 import { SHOP } from "@/lib/shop";
+import { getSettings } from "@/lib/settings";
 
 export const metadata: Metadata = { title: "Chính sách & giới thiệu" };
 
@@ -15,7 +16,14 @@ const BODY: Record<string, { text: string; pending?: boolean }> = {
   "gioi-thieu": { text: `Tân Trường Tín — ${SHOP.tagline.toLowerCase()} tại Nha Trang. “${SHOP.slogan}”` },
 };
 
-export default function PolicyPage() {
+export const revalidate = 60;
+
+export default async function PolicyPage() {
+  const st = await getSettings();
+  const body = (id: string) =>
+    id === "doi-tra" && st.return_policy ? { text: st.return_policy }
+    : id === "van-chuyen" && st.inner_ship_fee !== null ? { text: `Nhận tại cửa hàng: miễn phí. Giao nội thành Nha Trang: ${new Intl.NumberFormat("vi-VN").format(st.inner_ship_fee)}₫${st.free_ship_threshold ? `, miễn phí cho đơn từ ${new Intl.NumberFormat("vi-VN").format(st.free_ship_threshold)}₫` : ""}. Gửi đi tỉnh qua SPX, GHTK: phí báo sau.` }
+    : BODY[id];
   return (
     <article className="mx-auto max-w-[760px]">
       <h1 className="text-[28px] font-extrabold sm:text-[34px]">Chính sách & giới thiệu</h1>
@@ -29,9 +37,9 @@ export default function PolicyPage() {
           <section key={id} id={id} className="scroll-mt-32 border-b border-line py-6 last:border-0">
             <h2 className="flex flex-wrap items-center gap-2 text-xl font-bold">
               {label}
-              {BODY[id].pending && <span className="rounded-full bg-gold-tint px-2 py-0.5 text-xs font-medium text-gold-ink">Chờ chủ shop</span>}
+              {body(id).pending && <span className="rounded-full bg-gold-tint px-2 py-0.5 text-xs font-medium text-gold-ink">Chờ chủ shop</span>}
             </h2>
-            <p className="mt-2 text-[15px] leading-7 text-ink-2">{BODY[id].text}</p>
+            <p className="mt-2 whitespace-pre-line text-[15px] leading-7 text-ink-2">{body(id).text}</p>
             {id === "gioi-thieu" && (
               <div className="mt-4 space-y-1.5 text-[15px]">
                 <p className="flex gap-2"><MapPin className="mt-1 size-4 shrink-0 text-brand" aria-hidden />{SHOP.address} · mở cửa {SHOP.hours} hằng ngày</p>

@@ -1,0 +1,62 @@
+"use client";
+import { useActionState } from "react";
+import { saveSettings, type SettingsState } from "./actions";
+import type { ShopSettings } from "@/lib/settings";
+
+const input = "mt-1 h-11 w-full rounded border border-line bg-white px-3 text-sm";
+const section = "rounded-lg border border-line bg-white p-4 sm:p-5";
+
+export function SettingsForm({ s }: { s: ShopSettings }) {
+  const [state, action, pending] = useActionState<SettingsState, FormData>(saveSettings, {});
+  return (
+    <form action={action} className="space-y-4">
+      <section className={section}>
+        <h2 className="mb-3 font-semibold">Thông tin cửa hàng</h2>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="text-sm">Tên cửa hàng<input name="name" defaultValue={s.shop.name} maxLength={80} className={input} /></label>
+          <label className="text-sm">Ngành hàng<input name="tagline" defaultValue={s.shop.tagline} maxLength={120} className={input} /></label>
+          <label className="text-sm sm:col-span-2">Địa chỉ<input name="address" defaultValue={s.shop.address} maxLength={200} className={input} /></label>
+          <label className="text-sm">SĐT/Zalo chính<input name="phone" defaultValue={s.shop.phone} maxLength={20} inputMode="tel" className={input} /></label>
+          <label className="text-sm">SĐT phụ<input name="phone2" defaultValue={s.shop.phone2} maxLength={20} inputMode="tel" className={input} /></label>
+          <label className="text-sm">Giờ mở cửa<input name="hours" defaultValue={s.shop.hours} maxLength={40} className={input} /></label>
+        </div>
+      </section>
+
+      <section className={section}>
+        <h2 className="mb-1 font-semibold">Giao hàng & phí ship</h2>
+        <p className="mb-3 text-[13px] text-ink-2">Lấy tại cửa hàng: 0₫. Gửi đi tỉnh (SPX, GHTK): báo phí sau khi xác nhận đơn. Để trống phí nội thành = “báo sau”.</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="text-sm">Phí ship nội thành Nha Trang (đồng)
+            <input name="inner_ship_fee" defaultValue={s.inner_ship_fee ?? ""} inputMode="numeric" maxLength={9} placeholder="Ví dụ 20000" className={`${input} num`} />
+          </label>
+          <label className="text-sm">Miễn phí ship nội thành cho đơn từ (đồng)
+            <input name="free_ship_threshold" defaultValue={s.free_ship_threshold ?? ""} inputMode="numeric" maxLength={11} placeholder="Để trống = không miễn phí" className={`${input} num`} />
+          </label>
+        </div>
+      </section>
+
+      <section className={section}>
+        <h2 className="mb-1 font-semibold">Thanh toán</h2>
+        <p className="text-sm">COD — tiền mặt khi nhận hàng: <b className="text-ok">Đang bật</b></p>
+        <p className="mt-1 text-sm">Chuyển khoản VietQR: <span className="rounded-full bg-gold-tint px-2 py-0.5 text-xs font-medium text-gold-ink">Sắp có</span> — cần số tài khoản ngân hàng của shop.</p>
+      </section>
+
+      <section className={section}>
+        <h2 className="mb-1 font-semibold">Thông báo đơn mới qua Telegram</h2>
+        <p className="text-sm"><span className="rounded-full bg-gold-tint px-2 py-0.5 text-xs font-medium text-gold-ink">Sắp có</span> — cần chủ shop tạo bot Telegram.</p>
+      </section>
+
+      <section className={section}>
+        <h2 className="mb-1 font-semibold">Chính sách đổi trả & bảo hành</h2>
+        <p className="mb-2 text-[13px] text-ink-2">Nội dung này hiện ở trang Chính sách. Để trống = hiện “Chờ chủ shop”.</p>
+        <textarea name="return_policy" defaultValue={s.return_policy ?? ""} rows={5} maxLength={5000} className="w-full rounded border border-line p-3 text-sm" placeholder="Ví dụ: Đổi trả trong 7 ngày nếu sản phẩm còn nguyên tem, hộp và hóa đơn…" />
+      </section>
+
+      <div className="sticky bottom-[calc(72px+env(safe-area-inset-bottom))] flex items-center gap-3 rounded-lg border border-line bg-white p-3 md:bottom-2">
+        <button disabled={pending} className="h-11 rounded bg-brand px-5 text-sm font-semibold text-white hover:bg-brand-deep disabled:opacity-60">{pending ? "Đang lưu…" : "Lưu thay đổi"}</button>
+        {state.ok && <span role="status" className="text-sm text-ok">Đã lưu.</span>}
+        {state.error && <span role="alert" className="text-sm text-danger">{state.error}</span>}
+      </div>
+    </form>
+  );
+}
