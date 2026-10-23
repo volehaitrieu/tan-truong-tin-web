@@ -21,8 +21,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="vi" className={`${beVietnam.variable} h-full antialiased`}>
-      <body className="min-h-full">{children}</body>
+    <html lang="vi" className={`${beVietnam.variable} h-full antialiased`} suppressHydrationWarning>
+      <body className="min-h-full" suppressHydrationWarning>{children}</body>
     </html>
   );
 }

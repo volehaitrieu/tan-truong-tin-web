@@ -15,7 +15,9 @@ export async function proxy(request: NextRequest) {
       },
     },
   });
-  const { data: { user } } = await supabase.auth.getUser();
+  // getClaims: kiểm chữ ký JWT ngay tại máy chủ web (khóa ES256), làm mới phiên khi hết hạn — không cần hỏi Supabase mỗi lần
+  const { data } = await supabase.auth.getClaims();
+  const user = data?.claims?.sub ? { id: data.claims.sub } : null;
 
   const isLogin = request.nextUrl.pathname.startsWith("/admin/dang-nhap");
   if (!user && !isLogin) {

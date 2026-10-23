@@ -25,11 +25,30 @@ export function loginEmail(id: string) {
   return s;
 }
 
+// Nhớ tạm hồ sơ + quyền 30 giây để chuyển mục nhanh (mỗi lần hỏi Supabase ~0,3s).
+// An toàn: dữ liệu thật vẫn do RLS trong DB kiểm theo thời gian thực; đổi quyền / khóa tài khoản thì xóa bộ nhớ tạm ngay.
+const STAFF_TTL = 30_000;
+const staffCache = new Map<string, { staff: Staff | null; at: number }>();
+export function forgetStaff() {
+  staffCache.clear();
+}
+
 // Nhân viên đang đăng nhập (null nếu chưa đăng nhập / bị khóa). Gọi nhiều lần trong 1 request chỉ tốn 1 lần.
 export const getStaff = cache(async (): Promise<Staff | null> => {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  // Xác minh chữ ký JWT tại chỗ (nhanh). Tài khoản bị khóa vẫn bị chặn nhờ kiểm is_active trong DB ngay bên dưới + RLS.
+  const { data } = await supabase.auth.getClaims();
+  const user = data?.claims?.sub ? { id: data.claims.sub } : null;
   if (!user) return null;
+  const hit = staffCache.get(user.id);
+  if (hit && Date.now() - hit.at < STAFF_TTL) return hit.staff;
+  const staff = await loadStaff(supabase, user.id);
+  staffCache.set(user.id, { staff, at: Date.now() });
+  return staff;
+});
+
+async function loadStaff(supabase: Awaited<ReturnType<typeof createClient>>, id: string): Promise<Staff | null> {
+  const user = { id };
   const [{ data: profile }, { data: perms }] = await Promise.all([
     supabase.from("profiles").select("full_name, role, is_active").eq("id", user.id).maybeSingle(),
     supabase.rpc("my_permissions"),
@@ -41,7 +60,7 @@ export const getStaff = cache(async (): Promise<Staff | null> => {
     role: profile.role,
     perms: new Set(((perms ?? []) as { permission: Permission }[]).map((p) => p.permission)),
   };
-});
+}
 
 // Dùng đầu mỗi trang/hành động admin. Thiếu quyền → về trang Tổng quan; chưa đăng nhập → trang đăng nhập.
 export async function requireStaff(perm?: Permission): Promise<Staff> {

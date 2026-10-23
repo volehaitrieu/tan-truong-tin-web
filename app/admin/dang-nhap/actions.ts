@@ -1,7 +1,7 @@
 "use server";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { loginEmail } from "@/lib/auth";
+import { forgetStaff, loginEmail } from "@/lib/auth";
 
 // id: giữ lại SĐT/email đã gõ khi đăng nhập sai (React xóa form sau mỗi lần gửi)
 export type LoginState = { error?: string; id?: string };
@@ -22,11 +22,13 @@ export async function login(_: LoginState, form: FormData): Promise<LoginState> 
     await supabase.auth.signOut();
     return { error: "Tài khoản chưa được cấp quyền hoặc đã bị khóa. Liên hệ chủ shop.", id };
   }
+  forgetStaff();
   redirect("/admin");
 }
 
 export async function logout() {
   const supabase = await createClient();
   await supabase.auth.signOut();
+  forgetStaff();
   redirect("/admin/dang-nhap");
 }
