@@ -23,5 +23,15 @@ _Lập 22/10/2026. Đánh dấu [x] khi xong. Web vẫn chạy được khi chư
 - [ ] **File Excel sản phẩm mới nhất** (mã, tên, danh mục, giá bán, giá vốn, tồn kho, tồn tối thiểu) để nhập vào web.
 - [ ] **Giá khuyến mãi / mã giảm giá** muốn chạy lúc khai trương (nếu có).
 
+## Bảo mật (làm trước khi đưa web lên mạng)
+- [ ] Supabase → Authentication → tắt "Allow new users to sign up".
+- [ ] Supabase → Settings → API Keys → tạo Secret key mới, thay vào `.env.local` (SUPABASE_SECRET_KEY).
+- [ ] Đăng nhập Admin bằng 0948 732 064, đổi mật khẩu tạm.
+
+## Dữ liệu còn thiếu (từ file Excel)
+- [ ] 2.189 dòng DMHH chưa rõ danh mục → nhập dần ở Admin › Nhập Excel.
+- [ ] 93 dòng quạt thiếu SKU.
+- [ ] Số tồn thật (sheet TON KHO chưa dùng) → nhập qua Tồn kho hoặc Kiểm kho.
+
 ## Quyết định nhỏ
-- [ ] Cho phép **commit (lưu phiên bản) mã nguồn** lên GitHub chưa?
+- [x] Cho phép commit + đẩy GitHub (đã chốt 23/10).
