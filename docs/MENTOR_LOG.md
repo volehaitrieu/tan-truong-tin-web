@@ -286,3 +286,4 @@
 - [23/10 ~13:05] Admin Bán tại quầy nối DB (hàm pos_create_order). Tự phát hiện + vá: đơn vãng lai SĐT 0000000000 có thể bị tra cứu khi đoán mã → chặn trong lookup_order. Kiểm thử 47/47. Ghi chú UI: trên ĐT giỏ nằm dưới lưới SP (chưa làm thanh dính đáy).
 - [23/10 ~13:25] Admin Báo cáo nối DB + xuất Excel (CSV có BOM, chặn công thức). Lãi gộp kiểm tay khớp (151.000₫). Đường dẫn xuất: không đăng nhập → 307, thiếu quyền → 403.
 - [23/10 ~13:50] Admin Khuyến mãi nối DB (đặt/tắt KM, hiện ngay ở trang chủ). Sửa lỗi UX: 4 form bị React xóa trắng sau khi gửi lỗi. Kế: Danh mục & thương hiệu, Nhập Excel.
+- [23/10 ~14:05] Admin Danh mục & thương hiệu nối DB. Còn: Nhập Excel (đọc xlsx trong trình duyệt), Ảnh thông tin SP, Duyệt AI (đã bỏ khỏi kế hoạch → để nhãn), rồi thử vai khách + tấn công + báo cáo.
