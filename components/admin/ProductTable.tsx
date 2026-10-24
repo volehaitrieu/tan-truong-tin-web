@@ -153,7 +153,7 @@ function ProductDialog({ id, picked, pickedCount, onToggle, onDownloadPicked, ca
             // Máy tính: 3 cột (ảnh + giá | thông tin + thông số | mô tả) để thấy hết, không phải kéo
             <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)_minmax(0,1.15fr)]">
               <div className="space-y-3">
-                <div className="relative aspect-square overflow-hidden rounded-lg border border-line bg-sunk">
+                <div className="relative mx-auto aspect-square max-w-60 overflow-hidden rounded-lg border border-line bg-sunk md:max-w-none">
                   {p.images[img] && <Image src={p.images[img]} alt={p.name} fill sizes="(max-width: 768px) 100vw, 260px" className="object-cover" />}
                 </div>
                 {p.images.length > 1 && (
@@ -184,17 +184,17 @@ function ProductDialog({ id, picked, pickedCount, onToggle, onDownloadPicked, ca
         </div>
 
         {/* Chân khung: tải 1 SP, hoặc thêm vào danh sách để tải nhiều SP cùng lúc */}
-        <div className="flex flex-wrap items-center gap-2 border-t border-line bg-ground px-4 py-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
+        <div className="flex items-center gap-2 border-t border-line bg-ground px-3 py-2.5 pb-[calc(10px+env(safe-area-inset-bottom))] md:px-4 md:py-3">
           <button onClick={onToggle} className={`inline-flex h-10 items-center gap-1.5 rounded border px-3 text-sm font-medium ${picked ? "border-brand bg-brand-tint text-brand" : "border-line bg-white"}`}>
-            {picked && <Check className="size-4" aria-hidden />}{picked ? "Đã thêm vào danh sách tải" : "Thêm vào danh sách tải"}
+            {picked && <Check className="size-4" aria-hidden />}<span className="md:hidden">{picked ? "Đã chọn" : "Chọn"}</span><span className="hidden md:inline">{picked ? "Đã thêm vào danh sách tải" : "Thêm vào danh sách tải"}</span>
           </button>
           {canEdit && <Link href={`/admin/san-pham/${id}`} className="inline-flex h-10 items-center gap-1.5 rounded px-3 text-sm text-brand hover:bg-white"><Pencil className="size-4" aria-hidden />Sửa</Link>}
           <div className="ml-auto flex gap-2">
             {pickedCount > 0 && (
-              <button onClick={onDownloadPicked} className="h-10 rounded border border-brand bg-white px-3 text-sm font-semibold text-brand">Tải {pickedCount} SP đã chọn</button>
+              <button onClick={onDownloadPicked} className="h-10 rounded border border-brand bg-white px-3 text-sm font-semibold text-brand">Tải {pickedCount}<span className="hidden md:inline"> SP đã chọn</span></button>
             )}
             <button onClick={() => openQuote([id])} className="inline-flex h-10 items-center gap-1.5 rounded bg-brand px-4 text-sm font-semibold text-white hover:bg-brand-deep">
-              <Download className="size-4" aria-hidden />Tải SP này
+              <Download className="size-4" aria-hidden />Tải<span className="hidden sm:inline"> SP này</span>
             </button>
           </div>
         </div>
