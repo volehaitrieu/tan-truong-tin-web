@@ -1,6 +1,6 @@
 # HANDOFF — Web Tân Trường Tín
 
-_Cập nhật: 24/10/2026. File này thay cho `docs/HANDOFF.md` (bản cũ 21/10, đã lỗi thời)._
+_Cập nhật: 24/10/2026._
 _Nhật ký chi tiết từng bước: `docs/MENTOR_LOG.md` (đọc ~30 dòng cuối)._
 
 ---
@@ -58,8 +58,7 @@ lib/
 supabase/migrations/  11 file SQL (lược đồ, hàm nghiệp vụ, dữ liệu gốc, các bản vá)
 scripts/              kiem-thu-bao-mat.mjs (47 bài), tan-cong-thu.mjs (35 bài), nạp dữ liệu thử, tạo tài khoản thử
 docs/                 PRD, DESIGN, DEV_PLAN, GIAO_DIEN_BAN_GIAO (mô tả màn hình), MENTOR_LOG, BAO_CAO_HOAN_THANH,
-                      CHU_SHOP_CAN_CHUAN_BI, anh-giao-dien/ (ảnh chụp màn hình)
-design/, design-system/, mockup/   Bản thiết kế/mã mẫu cũ để tham khảo — KHÔNG được import vào app
+                      CHU_SHOP_CAN_CHUAN_BI
 public/ai/            Ảnh minh họa theo nhóm hàng (chưa có ảnh SP thật)
 ```
 
@@ -132,7 +131,7 @@ Kiểu enum: `app_role` (owner, order_staff, stock_staff) · `delivery_method` (
 
 ## 8. Giao diện cần thiết kế lại / cải thiện
 
-Hỗ trợ cả **điện thoại (~375–440px)** và **máy tính (1280–1440px)**. Ảnh chụp các màn: `docs/anh-giao-dien/`; mô tả màn gốc: `docs/GIAO_DIEN_BAN_GIAO.md`.
+Hỗ trợ cả **điện thoại (~375–440px)** và **máy tính (1280–1440px)**. Không còn ảnh chụp màn hình trong dự án — chạy web để xem giao diện thật; mô tả màn gốc: `docs/GIAO_DIEN_BAN_GIAO.md`.
 
 - **Bán tại quầy (ĐT):** giỏ nằm dưới lưới SP, phải cuộn xa → cần thanh giỏ dính đáy.
 - **Sản phẩm (ĐT):** thẻ SP dài khi mã SKU dài (đã cho xuống dòng); khung chi tiết trên ĐT trượt từ đáy, ảnh thu nhỏ (max 240px), phải cuộn để xem mô tả (máy tính: 3 cột, vừa 1 màn).
@@ -186,7 +185,7 @@ Migration: file trong `supabase/migrations/`, đã áp lên DB thật (qua công
 - **Phong cách mã:** dòng dài, gọn; chú thích ngắn tiếng Việt ở đầu khối; server action trả `{ ok, error }`; truy vấn admin trong `lib/admin/*.ts` (có `import "server-only"`); thành phần dùng chung trong `components/admin/`.
 - Màu/font dùng biến Tailwind có sẵn (`brand`, `ink`, `ink-2`, `line`, `ground`, `sunk`, `danger`…) — không tự đặt mã màu mới.
 - Nút/ô bấm trên ĐT ≥ 44px; kiểm tra cả 375px và 1280px.
-- **Không sửa:** quy tắc RLS/hàm bảo mật mà không chạy lại 2 bộ kiểm thử; không đưa `SUPABASE_SECRET_KEY` ra trình duyệt; không dùng `lib/supabase/admin.ts` trong mã chạy theo yêu cầu người dùng trừ khi thật cần; không import từ `design/`, `design-system/`, `mockup/`.
+- **Không sửa:** quy tắc RLS/hàm bảo mật mà không chạy lại 2 bộ kiểm thử; không đưa `SUPABASE_SECRET_KEY` ra trình duyệt; không dùng `lib/supabase/admin.ts` trong mã chạy theo yêu cầu người dùng trừ khi thật cần.
 - **Không xóa** 8 SP mẫu cũ (SKU như `QUA-HALI-TR2`, `ONG-BM-21-4M`) — bài kiểm thử dựa vào chúng (giá `QUA-HALI-TR2` phải là 480.000).
 - Supabase **gói miễn phí** — không bật tính năng trả phí.
 - Đổi DB lớn (cập nhật hàng loạt, đổi quyền) → hỏi chủ shop trước.

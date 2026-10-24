@@ -1,2 +1,0 @@
-import { StoreSubpage } from "@/components/storefront/StoreSubpage";
-export default async function Page({params,searchParams}:{params:Promise<{slug:string[]}>,searchParams:Promise<{query?:string}>}){const [{slug},{query=""}]=await Promise.all([params,searchParams]);return <StoreSubpage path={slug.join("/")} query={query}/>;}

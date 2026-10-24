@@ -4,7 +4,30 @@ _24/10/2026. Đọc kèm `HANDOFF.md` (toàn bộ dự án, database, quyết đ
 
 ## Lời nhắn để dán vào Codex
 
-> Bạn nhận nâng cấp **giao diện** cho web bán hàng + trang quản trị "Tân Trường Tín" (Next.js 16 App Router, React 19, Tailwind 4, Supabase). Đọc `HANDOFF.md` rồi `CODEX_NANG_CAP_GIAO_DIEN.md` trước khi làm. Chỉ sửa phần trình bày (JSX, class Tailwind, `app/globals.css`, thành phần trong `components/`); **không đổi** truy vấn, server action, hàm/quyền database, `proxy.ts`, `lib/auth.ts`. Giữ tiếng Việt cho mọi chữ hiển thị. Mỗi màn phải đẹp ở **375px và 1280px**, không tràn ngang, nút ≥ 44px trên điện thoại. Làm từng màn một theo thứ tự ưu tiên trong file, sau mỗi màn chạy `npx tsc --noEmit -p .` và `npm run lint`, chụp ảnh trước/sau. Hỏi chủ shop trước khi đổi bố cục lớn hoặc màu thương hiệu. Next.js 16 khác bản cũ: xem `node_modules/next/dist/docs/` khi cần.
+> Bạn nhận yêu cầu nâng cấp giao diện cho web bán hàng + trang quản trị "Tân Trường Tín" (Next.js 16 App Router, React 19, Tailwind 4, Supabase). Đọc `HANDOFF.md` rồi file này. **Bước đầu chỉ tạo hai ảnh mockup tĩnh để chủ shop duyệt: màn Sản phẩm và màn Tồn kho trên điện thoại. Chưa sửa mã ứng dụng, chưa đụng database và chưa deploy.** Xuất hai PNG riêng, rõ chữ tiếng Việt ở cỡ điện thoại 375–440px; giữ màu xanh hiện tại, font Be Vietnam Pro, logo và nghiệp vụ thật. Có thể tạo HTML tạm chỉ để kết xuất ảnh, nhưng không tích hợp vào ứng dụng. Gửi ảnh và giải thích ngắn các quyết định bố cục; chờ chủ shop xác nhận rõ ràng rồi mới bắt đầu code. Khi được duyệt, chỉ sửa phần trình bày (JSX, class Tailwind, `app/globals.css`, thành phần trong `components/`); không đổi truy vấn, server action, hàm/quyền database, `proxy.ts`, `lib/auth.ts`. Mỗi màn phải đẹp ở 375px và 1280px, không tràn ngang, nút ≥ 44px trên điện thoại. Làm từng màn theo ưu tiên trong file, sau mỗi màn chạy `npx tsc --noEmit -p .` và `npm run lint`, chụp ảnh trước/sau. Hỏi chủ shop trước khi đổi bố cục lớn hoặc màu thương hiệu. Khi bắt đầu code, dùng Taste Skill cho màn ứng dụng và đọc `node_modules/next/dist/docs/` theo yêu cầu trong `AGENTS.md`.
+
+## Bổ sung sau khi trao đổi với chủ shop (24/10/2026)
+
+### Cổng duyệt bằng hình ảnh trước khi code
+
+- Chủ shop muốn xem ảnh kết quả trước; chỉ khi chủ shop thấy phù hợp và đồng ý rõ ràng mới bắt đầu thực hiện giao diện thật.
+- Mockup đầu tiên theo xác nhận mới nhất của chủ shop: **hai màn Sản phẩm và Tồn kho trên điện thoại**, xuất thành hai ảnh PNG riêng ở độ rộng 375–440px. Màn Sản phẩm cần thể hiện ảnh + tên + mã, tìm kiếm/lọc và các thao tác đã có; màn Tồn kho cần giúp nhận biết nhanh số tồn và hàng dưới mức tối thiểu. Không tự đổi nghiệp vụ hoặc thêm số liệu giả.
+- Trước khi duyệt: chỉ tạo ảnh PNG xem trước; không sửa trang thật, không sửa dữ liệu/cơ sở dữ liệu, không thêm thư viện và không deploy.
+- Hình phải giữ nhận diện hiện có của Tân Trường Tín, nội dung tiếng Việt chính xác, tương phản dễ đọc và kích thước thao tác điện thoại đủ lớn. Không dùng số liệu hoặc nghiệp vụ giả như thể là dữ liệu thật.
+
+### Trang tham khảo giao diện và nghiệp vụ
+
+Các trang dưới đây dùng để tham khảo mẫu tương tác, không sao chép nguyên giao diện:
+
+| Tham khảo | Điều có thể học |
+|---|---|
+| [Sapo — Quản lý kho sản phẩm](https://help.sapo.vn/quan-ly-kho-san-pham-tren-phan-mem-quan-ly-ban-hang-sapo) | Ảnh + tên + mã hàng, số tồn và giá; tìm SKU/barcode; lọc, sắp xếp, chỉnh cột, thao tác hàng loạt. Gần với cửa hàng bán lẻ Việt Nam. |
+| [Shopify — Tìm kiếm và lọc sản phẩm](https://help.shopify.com/en/manual/products/searching-filtering) | Bộ lọc dễ tìm, lưu chế độ xem, tùy chỉnh cột và thao tác hàng loạt. |
+| [Shopify — Xem tồn kho](https://help.shopify.com/en/manual/inventory-and-locations/adjusting-inventory/viewing-inventory) | Phân biệt tồn thực, số có thể bán, hàng đang giữ/chờ về và vị trí để hàng. |
+| [Square for Retail](https://squareup.com/us/en/retail/capabilities) | Kiểm hàng bằng điện thoại, cảnh báo sắp hết, nhập danh mục và thao tác tồn kho. |
+| [Sapo — Tổng quan trên điện thoại](https://help.sapo.vn/gioi-thieu-giao-dien-tong-quan-phan-mem-quan-ly-ban-hang-sapo) | Điều hướng dưới màn hình và ghim thao tác thường dùng trên điện thoại. |
+
+Hướng tham khảo tổng hợp: ưu tiên sự rõ ràng và thao tác nhanh cho cửa hàng một địa điểm; giữ bảng/lọc linh hoạt trên máy tính và chuyển thành các khối dễ quét trên điện thoại. Dùng bảng màu/kiểu chữ đã có trong phần 1, không đổi bộ nhận diện nếu chưa được chủ shop duyệt.
 
 ## 1. Hệ màu, chữ (đang dùng — giữ nguyên trừ khi chủ shop đồng ý đổi)
 
@@ -22,7 +45,7 @@ Khai báo trong `app/globals.css` (Tailwind 4, `@theme`). Dùng qua class `bg-br
 - Font: **Be Vietnam Pro** (`next/font/google`, `app/layout.tsx`).
 - Biểu tượng: **lucide-react**.
 - Logo: `components/brand/Logo.tsx`, file `public/brand/logo-trong-suot.png`.
-- Tài liệu thiết kế gốc: `docs/DESIGN.md`; mô tả từng màn: `docs/GIAO_DIEN_BAN_GIAO.md`; ảnh chụp hiện tại: `docs/anh-giao-dien/dt/` (điện thoại) và `docs/anh-giao-dien/mt/` (máy tính) — **ảnh chụp ngày 23/10 sáng, chưa có các thay đổi sau đó**.
+- Tài liệu thiết kế gốc: `docs/DESIGN.md`; mô tả từng màn: `docs/GIAO_DIEN_BAN_GIAO.md`; không còn ảnh chụp màn hình trong dự án — chạy `npm run dev` để xem giao diện thật.
 - Thành phần admin dùng chung: `components/admin/ui.tsx` (PageHeader, Card, Badge, ButtonLink, OwnerOnly), `ProductCell.tsx` (ảnh + tên + "Mã:").
 
 ## 2. Danh sách màn và việc cần cải thiện (theo thứ tự ưu tiên)
@@ -48,7 +71,6 @@ Khai báo trong `app/globals.css` (Tailwind 4, `@theme`). Dùng qua class `bg-br
 - Bộ làm sạch HTML `lib/rich-text.ts` (bảo mật) — chỉ được thêm style cho `.rich-text` trong CSS.
 - Chữ hiển thị phải tiếng Việt; đường dẫn trang giữ nguyên.
 - Không thêm thư viện UI/animation mới nếu chưa hỏi chủ shop (dự án cố ý ít phụ thuộc).
-- Không import gì từ `design/`, `design-system/`, `mockup/` (bản mẫu cũ).
 - Không lộ giá nhập ở nơi khách thấy; ô "Giá nhập" trong admin chỉ hiện khi có quyền (`OwnerOnly`).
 
 ## 4. Cách kiểm tra sau khi sửa

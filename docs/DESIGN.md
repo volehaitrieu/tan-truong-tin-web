@@ -1,7 +1,7 @@
 # Design Guideline — Tân Trường Tín
 
 _v1.0 · 2026-10-21 · Trạng thái: **đã duyệt** (theo mẫu trang chủ v3)_
-_Mẫu tham chiếu: `mockup/trang-chu.html` · bản xem online: https://claude.ai/artifact/E5Vo4W6s1hL8aqcbgrWthg_
+_Mẫu tham chiếu (bản xem online): https://claude.ai/artifact/E5Vo4W6s1hL8aqcbgrWthg_
 
 > Khi code thật, **mẫu v3 là chuẩn**: màu, chữ, khoảng cách, cách hoạt động của menu và bộ lọc lấy đúng theo file mẫu. Tài liệu này giải thích các quy tắc đằng sau để áp dụng cho những trang chưa có mẫu.
 

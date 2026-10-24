@@ -10,7 +10,7 @@ _v1.2 · 2026-10-21 · **đã duyệt** · cách thực thi: Native (Mentor làm
 
 **Công nghệ:** Next.js + TypeScript + Tailwind CSS + shadcn/ui · Supabase (`@supabase/ssr`) · Zod + React Hook Form (form) · SheetJS `xlsx` (đọc Excel) · `sharp` (nén ảnh WebP) · @vercel/og (ảnh thông tin SP) · JSZip (tải nhiều ảnh) · Telegram Bot API (báo đơn) · Vitest (test logic) + Playwright (test luồng mua hàng) · GitHub + Vercel.
 
-**Tài liệu gốc (đọc trước khi làm):** `docs/PRD.md` (v1.0) · `docs/DESIGN.md` (v1.0) · `docs/IDEA_BRIEF.md` · canvas thiết kế https://claude.ai/artifact/9hbAUJokC937LsVrHWRs3C (trang Quản trị + trang Bán hàng) · mẫu `mockup/trang-chu.html` · logo `docs/brand/`.
+**Tài liệu gốc (đọc trước khi làm):** `docs/PRD.md` (v1.0) · `docs/DESIGN.md` (v1.0) · canvas thiết kế https://claude.ai/artifact/9hbAUJokC937LsVrHWRs3C (trang Quản trị + trang Bán hàng) · logo `docs/brand/`.
 
 ---
 
