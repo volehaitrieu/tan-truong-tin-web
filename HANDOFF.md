@@ -106,7 +106,7 @@ Kiểu enum: `app_role` (owner, order_staff, stock_staff) · `delivery_method` (
 
 ## 6. Đang làm dở / còn lỗi
 
-- **Chưa commit/push và chưa deploy** các thay đổi từ 23/10 chiều (Vị trí, lọc, Nhập Excel đối chiếu, mô tả Word, ảnh báo giá…). Bản trên Vercel là bản cũ hơn. (Có thể đã có commit "điểm quay lại" lúc tạo file này — xem `git log`.)
+- **Đã commit + push lên GitHub (24/10, commit cd5c6e0) nhưng CHƯA deploy Vercel.** Bản trên tan-truong-tin-web.vercel.app là bản 23/10 trưa. Vercel KHÔNG nối GitHub (push không tự deploy) — deploy bằng `vercel --prod`.
 - **Bài kiểm thử phân quyền không chạy được:** mật khẩu chủ shop đã đổi, `TEST_OWNER_PASSWORD` trong `.env.local` không còn đúng.
 - **Lưu thư mục ảnh báo giá** chỉ chạy trên Chrome/Edge thật; khung trình duyệt nhúng (ví dụ trong ứng dụng Claude) không hiện câu hỏi cấp quyền → web báo lỗi. Chrome cấm chọn thẳng Tải xuống/Màn hình (phải chọn thư mục con). Chưa xác nhận chủ shop đã lưu thành công bằng hộp thật.
 - **Giá vốn SP cũ chưa +10%** (cập nhật hàng loạt bị chặn, chưa được duyệt). Chỉ SP sửa giá nhập/nhập Excel mới tính +10%.
@@ -135,7 +135,7 @@ Kiểu enum: `app_role` (owner, order_staff, stock_staff) · `delivery_method` (
 Hỗ trợ cả **điện thoại (~375–440px)** và **máy tính (1280–1440px)**. Ảnh chụp các màn: `docs/anh-giao-dien/`; mô tả màn gốc: `docs/GIAO_DIEN_BAN_GIAO.md`.
 
 - **Bán tại quầy (ĐT):** giỏ nằm dưới lưới SP, phải cuộn xa → cần thanh giỏ dính đáy.
-- **Sản phẩm (ĐT):** thẻ SP dài khi mã SKU dài (đã cho xuống dòng); khung chi tiết trên ĐT phải cuộn (máy tính đã vừa 1 màn).
+- **Sản phẩm (ĐT):** thẻ SP dài khi mã SKU dài (đã cho xuống dòng); khung chi tiết trên ĐT trượt từ đáy, ảnh thu nhỏ (max 240px), phải cuộn để xem mô tả (máy tính: 3 cột, vừa 1 màn).
 - **Ảnh SP toàn bộ:** đang là ảnh minh họa theo nhóm → mọi màn (trang bán hàng, khung chi tiết, ảnh báo giá) sẽ đẹp hơn khi có ảnh thật; hàng ảnh nhỏ trong khung chi tiết chỉ hiện khi ≥ 2 ảnh.
 - **Nhập Excel:** màn dài (xem trước + bảng đối chiếu + nút); bảng đối chiếu trên ĐT dạng thẻ — chưa được chủ shop duyệt kỹ.
 - **Ảnh báo giá (PNG):** bố cục canvas cố định trong `lib/quote-image.ts`; mô tả dài sẽ làm ảnh rất cao.
