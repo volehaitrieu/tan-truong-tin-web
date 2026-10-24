@@ -2,8 +2,9 @@
 import { useActionState, useTransition, startTransition } from "react";
 import { clearSale, setSale, type PromoState } from "./actions";
 import { formatVnd } from "@/lib/shop";
+import { ProductCell } from "@/components/admin/ProductCell";
 
-export type PromoRow = { sku: string; name: string; price: number; sale: number; from: string | null; to: string | null; state: "Đang chạy" | "Sắp tới" | "Đã hết" };
+export type PromoRow = { sku: string; name: string; image: string | null; price: number; sale: number; from: string | null; to: string | null; state: "Đang chạy" | "Sắp tới" | "Đã hết" };
 const tone = { "Đang chạy": "bg-[#ecfdf5] text-brand", "Sắp tới": "bg-[#eff6ff] text-[#1d4ed8]", "Đã hết": "bg-sunk text-ink-2" };
 const input = "mt-1 h-11 w-full rounded border border-line bg-white px-3 text-sm";
 
@@ -33,8 +34,7 @@ export function PromoList({ rows }: { rows: PromoRow[] }) {
       {rows.map((p) => (
         <li key={p.sku} className="flex flex-wrap items-center gap-x-4 gap-y-2 p-3">
           <div className="min-w-0 flex-1 basis-full md:basis-auto">
-            <b className="text-sm">{p.name}</b>
-            <p className="num text-xs text-ink-2">{p.sku} · {p.from ?? "…"} → {p.to ?? "…"}</p>
+            <ProductCell name={p.name} sku={p.sku} image={p.image} className="text-sm" extra={` · ${p.from ?? "…"} → ${p.to ?? "…"}`} />
           </div>
           <span className="text-sm"><del className="num text-ink-2">{formatVnd(p.price)}</del> <b className="num text-danger">{formatVnd(p.sale)}</b></span>
           <span className="rounded-full bg-[#fef2f2] px-2.5 py-0.5 text-xs font-semibold text-danger">-{Math.round((1 - p.sale / p.price) * 100)}%</span>

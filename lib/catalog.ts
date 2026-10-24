@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { createPublicClient } from "@/lib/supabase/public";
 import { normalize, type Category, type Product } from "@/lib/mock/store";
+import { parseSpecs, sanitizeHtml } from "@/lib/rich-text";
 
 // Đọc danh mục / sản phẩm cho trang bán hàng từ Supabase (vai trò khách → RLS chỉ cho SP đang hiển thị).
 // Trả về đúng kiểu Category / Product mà giao diện đang dùng.
@@ -9,12 +10,13 @@ import { normalize, type Category, type Product } from "@/lib/mock/store";
 type Row = {
   sku: string; name: string; unit: string; price: number; sale_price: number | null; sale_from: string | null; sale_to: string | null;
   spec_line: string | null; attributes: Record<string, string | number>; warranty: string | null; in_stock: boolean;
+  origin: string | null; made_in: string | null; description: string | null;
   category_id: number | null;
   brand: { name: string } | null;
   images: { url: string; sort: number }[];
 };
 const SELECT =
-  "sku, name, unit, price, sale_price, sale_from, sale_to, spec_line, attributes, warranty, in_stock, " +
+  "sku, name, unit, price, sale_price, sale_from, sale_to, spec_line, attributes, warranty, origin, made_in, description, in_stock, " +
   "category_id, brand:brands(name), images:product_images(url, sort)";
 
 // Bảng danh mục (id → tên, slug, danh mục cha) — tra trong bộ nhớ thay vì nhúng bảng tự tham chiếu
@@ -52,6 +54,7 @@ async function attributeLabels() {
 
 function toProduct(r: Row, labels: Map<string, { label: string; unit?: string }>, cats: CatRow[]): Product {
   const sale = saleActive(r);
+  const specs = parseSpecs(r.spec_line ?? "");
   const sub = cats.find((c) => c.id === r.category_id);
   const top = sub?.parent_id ? cats.find((c) => c.id === sub.parent_id) : sub;
   return {
@@ -65,11 +68,20 @@ function toProduct(r: Row, labels: Map<string, { label: string; unit?: string }>
     unit: r.unit,
     stock: r.in_stock,
     image: [...r.images].sort((a, b) => a.sort - b.sort)[0]?.url ?? "/ai/hardware-hero.jpg",
-    spec: r.spec_line ?? "",
-    specs: Object.entries(r.attributes ?? {}).map(([k, v]) => {
-      const l = labels.get(k);
-      return [l?.label ?? k, `${v}${l?.unit ? " " + l.unit : ""}`] as [string, string];
-    }),
+    // Thẻ SP: 3 giá trị thông số đầu (hoặc dòng đầu)
+    spec: specs.rows.length ? specs.rows.slice(0, 3).map(([, v]) => v).join(" · ") : specs.notes[0] ?? "",
+    specs: [
+      // Thông số nhập tay thắng thông số cũ cùng tên
+      ...Object.entries(r.attributes ?? {}).map(([k, v]) => {
+        const l = labels.get(k);
+        return [l?.label ?? k, `${v}${l?.unit ? " " + l.unit : ""}`] as [string, string];
+      }).filter(([label]) => !specs.rows.some(([n]) => n.toLowerCase() === label.toLowerCase())),
+      ...specs.rows,
+      ...(r.origin ? [["Xuất xứ", r.origin] as [string, string]] : []),
+      ...(r.made_in ? [["Sản xuất tại", r.made_in] as [string, string]] : []),
+    ],
+    specNotes: specs.notes,
+    description: r.description ? sanitizeHtml(r.description) : "",
     warranty: r.warranty ?? "Theo chính sách của hãng",
   };
 }

@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { firstImage } from "@/components/admin/ProductCell";
 
 // Đọc đơn hàng cho Admin (chạy với quyền người đăng nhập — RLS chỉ cho người có quyền xử lý đơn).
 
@@ -66,10 +67,14 @@ export async function getOrder(code: string) {
     db.from("order_items").select("id, sku, name, unit, unit_price, qty").eq("order_id", o.id).order("id"),
     db.from("order_events").select("id, type, note, created_at").eq("order_id", o.id).order("created_at"),
   ]);
-  return { ...(o as OrderRow & Record<string, unknown>), items: items ?? [], events: events ?? [] } as OrderRow & {
+  // Ảnh SP theo mã (đơn chỉ lưu tên + mã lúc bán)
+  const skus = [...new Set((items ?? []).map((i) => i.sku))];
+  const { data: imgs } = skus.length ? await db.from("products").select("sku, images:product_images(url, sort)").in("sku", skus) : { data: [] };
+  const img = new Map(((imgs ?? []) as { sku: string; images: { url: string; sort: number }[] }[]).map((p) => [p.sku, firstImage(p.images)]));
+  return { ...(o as OrderRow & Record<string, unknown>), items: (items ?? []).map((i) => ({ ...i, image: img.get(i.sku) ?? null })), events: events ?? [] } as OrderRow & {
     email: string | null; province: string | null; ward: string | null; street: string | null; note: string | null;
     tracking_code: string | null;
-    items: { id: number; sku: string; name: string; unit: string; unit_price: number; qty: number }[];
+    items: { id: number; sku: string; name: string; unit: string; unit_price: number; qty: number; image: string | null }[];
     events: { id: number; type: string; note: string | null; created_at: string }[];
   };
 }

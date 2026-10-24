@@ -22,6 +22,8 @@ export type Product = {
   image: string;
   spec: string; // 1 dòng thông số chính trên thẻ
   specs: [string, string][];
+  specNotes?: string[]; // dòng thông số không có dấu ":"
+  description?: string; // HTML đã làm sạch
   warranty: string;
 };
 

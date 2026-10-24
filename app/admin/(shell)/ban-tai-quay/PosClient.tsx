@@ -4,8 +4,9 @@ import { useMemo, useState, useTransition } from "react";
 import { Minus, Plus, Search, Trash2 } from "lucide-react";
 import { posSell, type PosResult } from "./actions";
 import { formatVnd } from "@/lib/shop";
+import { ProductThumb } from "@/components/admin/ProductCell";
 
-export type PosProduct = { id: number; sku: string; name: string; unit: string; price: number; stock: number };
+export type PosProduct = { id: number; sku: string; name: string; unit: string; price: number; stock: number; image: string | null };
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "d").toLowerCase();
 
 export function PosClient({ products }: { products: PosProduct[] }) {
@@ -54,7 +55,13 @@ export function PosClient({ products }: { products: PosProduct[] }) {
           {found.map((p) => (
             <li key={p.id}>
               <button onClick={() => setQty(p.id, (cart[p.id] ?? 0) + 1)} className="flex h-full min-h-24 w-full flex-col rounded border border-line p-2 text-left hover:border-brand hover:bg-brand-tint">
-                <span className="line-clamp-2 text-[13px] font-semibold">{p.name}</span>
+                <span className="flex gap-2">
+                  <ProductThumb src={p.image} size={44} />
+                  <span className="min-w-0">
+                    <span className="line-clamp-2 text-[13px] font-semibold leading-snug">{p.name}</span>
+                    <span className="num block truncate text-[11px] text-ink-2">Mã: {p.sku}</span>
+                  </span>
+                </span>
                 <span className="num mt-auto pt-1 text-sm font-bold text-danger">{formatVnd(p.price)}</span>
                 <span className={`num text-xs ${p.stock > 0 ? "text-ink-2" : "text-ask"}`}>Tồn {p.stock}</span>
               </button>
@@ -70,7 +77,7 @@ export function PosClient({ products }: { products: PosProduct[] }) {
           <ul className="mt-2 divide-y divide-line">
             {lines.map(({ p, qty }) => (
               <li key={p.id} className="py-2">
-                <div className="flex justify-between gap-2 text-sm"><span>{p.name}</span><b className="num">{formatVnd(p.price * qty)}</b></div>
+                <div className="flex items-start justify-between gap-2 text-sm"><span className="flex min-w-0 gap-2"><ProductThumb src={p.image} size={36} /><span className="min-w-0">{p.name}<small className="num block text-xs text-ink-2">Mã: {p.sku}</small></span></span><b className="num">{formatVnd(p.price * qty)}</b></div>
                 <div className="mt-1 flex items-center gap-2">
                   <button aria-label="Bớt" onClick={() => setQty(p.id, qty - 1)} className="grid size-10 place-items-center rounded border border-line"><Minus className="size-4" /></button>
                   <span className="num w-8 text-center">{qty}</span>

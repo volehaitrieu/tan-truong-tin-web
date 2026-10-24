@@ -85,12 +85,18 @@ export default async function ProductPage({ params }: PageProps<"/san-pham/[sku]
               <div key={k} className="flex justify-between gap-4 py-2.5"><dt className="text-ink-2">{k}</dt><dd className="text-right font-medium">{v}</dd></div>
             ))}
           </dl>
+          {!!p.specNotes?.length && <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">{p.specNotes.map((n) => <li key={n}>{n}</li>)}</ul>}
         </section>
         <section className="rounded-md bg-white p-5" aria-labelledby="h-mo-ta">
           <h2 id="h-mo-ta" className="text-lg font-bold">Mô tả & bảo hành</h2>
-          <p className="mt-2 text-[15px] leading-6 text-ink-2">{p.name} — {p.spec.toLowerCase()}. Phù hợp dùng trong gia đình, phòng trọ và công trình nhỏ. Cần tư vấn chọn loại, gọi shop {""}
-            <a href="tel:0948732064" className="font-semibold text-brand">0948 732 064</a>.
-          </p>
+          {p.description ? (
+            // Đã làm sạch ở server (lib/rich-text): chỉ còn thẻ định dạng cho phép
+            <div className="rich-text mt-2 text-[15px] leading-6 text-ink-2" dangerouslySetInnerHTML={{ __html: p.description }} />
+          ) : (
+            <p className="mt-2 text-[15px] leading-6 text-ink-2">{p.name}{p.spec ? ` — ${p.spec.toLowerCase()}` : ""}. Phù hợp dùng trong gia đình, phòng trọ và công trình nhỏ. Cần tư vấn chọn loại, gọi shop {""}
+              <a href="tel:0948732064" className="font-semibold text-brand">0948 732 064</a>.
+            </p>
+          )}
           <p className="mt-3 text-sm"><b>Bảo hành:</b> {p.warranty}</p>
         </section>
       </div>

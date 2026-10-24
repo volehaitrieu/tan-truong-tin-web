@@ -1,21 +1,22 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { firstImage } from "@/components/admin/ProductCell";
 
-export type StockRow = { id: number; sku: string; name: string; cat: string; unit: string; stock: number; min: number };
+export type StockRow = { id: number; sku: string; name: string; cat: string; unit: string; stock: number; min: number; image: string | null };
 export type MovementRow = { id: number; when: string; who: string; what: string; delta: number; why: string };
 
 export async function listStock(): Promise<StockRow[]> {
   const db = await createClient();
   const { data, error } = await db
     .from("products")
-    .select("id, sku, name, unit, category:categories(name), inventory(qty, min_qty)")
+    .select("id, sku, name, unit, category:categories(name), inventory(qty, min_qty), images:product_images(url, sort)")
     .order("name")
     .limit(5000);
   if (error) throw error;
-  type R = { id: number; sku: string; name: string; unit: string; category: { name: string } | null; inventory: { qty: number; min_qty: number } | null };
+  type R = { id: number; sku: string; name: string; unit: string; category: { name: string } | null; inventory: { qty: number; min_qty: number } | null; images: { url: string; sort: number }[] };
   return (data as unknown as R[]).map((r) => ({
     id: r.id, sku: r.sku, name: r.name, unit: r.unit.toLowerCase(), cat: r.category?.name ?? "",
-    stock: r.inventory?.qty ?? 0, min: r.inventory?.min_qty ?? 0,
+    stock: r.inventory?.qty ?? 0, min: r.inventory?.min_qty ?? 0, image: firstImage(r.images),
   }));
 }
 

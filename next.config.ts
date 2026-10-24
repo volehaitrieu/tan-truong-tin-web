@@ -33,6 +33,9 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
+  // Nhớ tạm trang đã mở 30 giây trên trình duyệt: quay lại trang vừa xem hiện ngay, không chờ máy chủ.
+  // Thao tác lưu (server action) vẫn làm mới dữ liệu ngay.
+  experimental: { staleTimes: { dynamic: 30 } },
   // Trang quản trị chủ yếu là dữ liệu động theo người đăng nhập, nên tắt cacheComponents mặc định của Next 16.
   turbopack: {
     rules: {

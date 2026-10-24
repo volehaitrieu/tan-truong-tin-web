@@ -18,7 +18,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
       <PageHeader
         title={product.name}
         crumbs={[{ label: "Sản phẩm", href: "/admin/san-pham" }, { label: "Sửa" }]}
-        sub={`SKU: ${product.sku} · ${product.visible ? "Hiển thị" : "Ẩn"}`}
+        sub={`Mã: ${product.sku} · ${product.visible ? "Hiển thị" : "Ẩn"}`}
       />
       <ProductForm product={product} options={options} canPrice={staff.perms.has("edit_price")} canCost={staff.perms.has("view_cost")} />
     </>

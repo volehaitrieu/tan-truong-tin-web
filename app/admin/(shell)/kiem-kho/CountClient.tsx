@@ -4,6 +4,7 @@ import { useActionState, useState, useTransition, startTransition } from "react"
 import { Check, LockKeyhole, Minus, Plus, Search } from "lucide-react";
 import { closeRound, createRound, saveCount } from "./actions";
 import type { CountItem } from "@/lib/admin/counts";
+import { ProductCell } from "@/components/admin/ProductCell";
 
 const btn = "inline-flex min-h-11 items-center justify-center gap-2 rounded px-4 text-sm font-semibold disabled:opacity-50";
 
@@ -55,7 +56,7 @@ export function RoundDetail({ id, status, items, isOwner, canCount }: { id: numb
           <tbody>
             {rows.map((r) => (
               <tr key={r.product_id} className="h-14 border-t border-line">
-                <td className="px-3"><b>{r.name}</b><small className="block text-ink-2">{r.sku}</small></td>
+                <td className="px-3 py-2"><ProductCell name={r.name} sku={r.sku} image={r.image} /></td>
                 <td className="num px-3">{r.system_qty}</td>
                 <td className="num px-3">{r.counted_qty ?? "—"}</td>
                 <td className="px-3">{cell(r)}</td>
@@ -67,7 +68,7 @@ export function RoundDetail({ id, status, items, isOwner, canCount }: { id: numb
         <ul className="divide-y divide-line md:hidden">
           {rows.map((r) => (
             <li key={r.product_id} className="p-3 text-sm">
-              <b className="block">{r.name}</b>
+              <ProductCell name={r.name} sku={r.sku} image={r.image} />
               <div className="mt-1 flex flex-wrap gap-x-4 text-ink-2">
                 <span>Hệ thống <b className="num text-ink">{r.system_qty}</b></span>
                 <span>Đếm <b className="num text-ink">{r.counted_qty ?? "—"}</b></span>
@@ -122,7 +123,7 @@ export function CountPad({ id, items }: { id: number; items: CountItem[] }) {
           return (
             <li key={i.product_id} className="rounded-lg border border-line bg-white p-3">
               <div className="flex items-start justify-between gap-2">
-                <span><b className="block text-[15px]">{i.name}</b><span className="num text-xs text-ink-2">{i.sku} · {i.unit}</span></span>
+                <ProductCell name={i.name} sku={i.sku} image={i.image} size={52} className="text-[15px]" extra={` · ${i.unit}`} />
                 {done !== null && done !== undefined && <span className="flex items-center gap-1 text-xs font-semibold text-ok"><Check className="size-4" />Đã đếm {done}</span>}
               </div>
               <div className="mt-2 flex items-center gap-2">

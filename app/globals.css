@@ -70,3 +70,12 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-brand); 
     animation: none !important;
   }
 }
+
+/* Mô tả sản phẩm định dạng (ô soạn Admin + trang chi tiết SP) */
+.rich-text h3 { margin: 0.75em 0 0.35em; font-size: 1.1em; font-weight: 700; }
+.rich-text h4 { margin: 0.6em 0 0.3em; font-weight: 700; }
+.rich-text p { margin: 0.4em 0; }
+.rich-text ul { margin: 0.4em 0; padding-left: 1.4em; list-style: disc; }
+.rich-text ol { margin: 0.4em 0; padding-left: 1.4em; list-style: decimal; }
+.rich-text a { color: var(--color-brand); text-decoration: underline; }
+.rich-text > :first-child { margin-top: 0; }

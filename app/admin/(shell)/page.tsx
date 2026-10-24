@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AlertTriangle, ClipboardList, PackageX, Wallet } from "lucide-react";
 import { Badge, ButtonLink, Card, OwnerOnly, PageHeader } from "@/components/admin/ui";
+import { ProductCell, stockClass } from "@/components/admin/ProductCell";
 import { createClient } from "@/lib/supabase/server";
 import { listStock } from "@/lib/admin/inventory";
 import { DELIVERY_LABEL, STATUS_LABEL, STATUS_TONE, type OrderRow } from "@/lib/admin/orders";
@@ -122,7 +123,6 @@ export default async function DashboardPage() {
             <thead>
               <tr className="border-b border-line text-left text-xs font-semibold text-ink-2">
                 <th className="px-4 py-2.5">Sản phẩm</th>
-                <th className="px-4 py-2.5">SKU</th>
                 <th className="px-4 py-2.5 text-right">Tồn / tối thiểu</th>
                 <th className="px-4 py-2.5">Trạng thái</th>
                 <th className="px-4 py-2.5" />
@@ -130,11 +130,10 @@ export default async function DashboardPage() {
             </thead>
             <tbody>
               {LOW_STOCK.map((p) => (
-                <tr key={p.sku} className="h-11 border-b border-line last:border-0">
-                  <td className="px-4 font-medium">{p.name}</td>
-                  <td className="num px-4 text-ink-2">{p.sku}</td>
+                <tr key={p.sku} className="border-b border-line last:border-0">
+                  <td className="px-4 py-2.5"><ProductCell name={p.name} sku={p.sku} image={p.image} size={44} /></td>
                   <td className="num px-4 text-right">
-                    {formatNum(p.stock)} / {formatNum(p.min)} {p.unit}
+                    <span className={stockClass(p.stock, p.min)}>{formatNum(p.stock)}</span> / {formatNum(p.min)} {p.unit}
                   </td>
                   <td className="px-4">{p.stock === 0 ? <Badge tone="danger">Hết hàng</Badge> : <Badge tone="warn">Sắp hết</Badge>}</td>
                   <td className="px-4 text-right">
@@ -148,12 +147,7 @@ export default async function DashboardPage() {
         <ul className="divide-y divide-line md:hidden">
           {LOW_STOCK.map((p) => (
             <li key={p.sku} className="flex items-center gap-3 px-4 py-3">
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium">{p.name}</span>
-                <span className="num text-[13px] text-ink-2">
-                  {p.sku} · còn {p.stock}/{p.min} {p.unit}
-                </span>
-              </span>
+              <ProductCell name={p.name} sku={p.sku} image={p.image} size={44} className="flex-1 text-sm" extra={<span className="block">Còn <span className={stockClass(p.stock, p.min)}>{p.stock}</span>/{p.min} {p.unit}</span>} />
               {p.stock === 0 ? <Badge tone="danger">Hết hàng</Badge> : <Badge tone="warn">Sắp hết</Badge>}
             </li>
           ))}

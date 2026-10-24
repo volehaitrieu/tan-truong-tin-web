@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/admin/ui";
 import { requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { firstImage } from "@/components/admin/ProductCell";
 import { PromoForm, PromoList, type PromoRow } from "./PromoClient";
 
 export const metadata: Metadata = { title: "Khuyến mãi" };
@@ -11,13 +12,13 @@ const todayVN = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_
 export default async function PromoPage() {
   await requireStaff("edit_price");
   const db = await createClient();
-  const { data } = await db.from("products").select("sku, name, price, sale_price, sale_from, sale_to").order("name").limit(5000);
+  const { data } = await db.from("products").select("sku, name, price, sale_price, sale_from, sale_to, images:product_images(url, sort)").order("name").limit(5000);
   const today = todayVN();
   const all = data ?? [];
   const rows: PromoRow[] = all
     .filter((p) => p.sale_price != null)
     .map((p) => ({
-      sku: p.sku, name: p.name, price: p.price, sale: p.sale_price!, from: p.sale_from, to: p.sale_to,
+      sku: p.sku, name: p.name, image: firstImage(p.images), price: p.price, sale: p.sale_price!, from: p.sale_from, to: p.sale_to,
       state: p.sale_to && p.sale_to < today ? "Đã hết" : p.sale_from && p.sale_from > today ? "Sắp tới" : "Đang chạy",
     } as PromoRow))
     .sort((a, b) => ["Đang chạy", "Sắp tới", "Đã hết"].indexOf(a.state) - ["Đang chạy", "Sắp tới", "Đã hết"].indexOf(b.state));

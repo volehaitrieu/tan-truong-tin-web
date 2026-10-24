@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Minus, Plus, X } from "lucide-react";
 import { Badge } from "@/components/admin/ui";
+import { ProductCell, stockClass } from "@/components/admin/ProductCell";
 import { adjustStock } from "@/app/admin/(shell)/ton-kho/actions";
 import type { MovementRow, StockRow } from "@/lib/admin/inventory";
 
@@ -48,9 +49,9 @@ export function StockScreen({ rows, history, canAdjust }: { rows: StockRow[]; hi
             <tbody>
               {rows.map((p) => (
                 <tr key={p.sku} className="h-14 border-t border-line">
-                  <td className="px-3"><b>{p.name}</b><small className="block text-ink-2">{p.sku}</small></td>
+                  <td className="px-3 py-2"><ProductCell name={p.name} sku={p.sku} image={p.image} /></td>
                   <td className="px-3">{p.cat}</td>
-                  <td className="num px-3 font-semibold">{p.stock} {p.unit}</td>
+                  <td className={`num px-3 font-semibold ${stockClass(p.stock, p.min)}`}>{p.stock} {p.unit}</td>
                   <td className="num px-3">{p.min}</td>
                   <td className="px-3">{level(p.stock, p.min)}</td>
                   <td className="px-3 text-right">
@@ -64,9 +65,8 @@ export function StockScreen({ rows, history, canAdjust }: { rows: StockRow[]; hi
             {rows.map((p) => (
               <li key={p.sku} className="flex items-center gap-3 p-3">
                 <div className="min-w-0 flex-1">
-                  <b className="block text-sm">{p.name}</b>
-                  <span className="text-xs text-ink-2">{p.sku}</span>
-                  <p className="mt-1 flex items-center gap-2 text-sm"><span className="num font-semibold">{p.stock} {p.unit}</span><span className="text-xs text-ink-2">/ tối thiểu {p.min}</span>{level(p.stock, p.min)}</p>
+                  <ProductCell name={p.name} sku={p.sku} image={p.image} className="text-sm" />
+                  <p className="mt-1 flex items-center gap-2 text-sm"><span className={`num font-semibold ${stockClass(p.stock, p.min)}`}>{p.stock} {p.unit}</span><span className="text-xs text-ink-2">/ tối thiểu {p.min}</span>{level(p.stock, p.min)}</p>
                 </div>
                 <button disabled={!canAdjust} onClick={() => open(p)} className={`${btn} min-h-11 border border-brand px-3 text-brand disabled:opacity-40`}>Điều chỉnh</button>
               </li>

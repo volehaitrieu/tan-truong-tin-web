@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Clock3 } from "lucide-react";
 import { Badge, Card, PageHeader } from "@/components/admin/ui";
+import { ProductCell } from "@/components/admin/ProductCell";
 import { OrderActions, ShippingForm, PaidButton } from "@/components/admin/orders/OrderActions";
 import { requireStaff } from "@/lib/auth";
 import { DELIVERY_LABEL, NEXT_STATUS, STATUS_LABEL, STATUS_TONE, fmtTime, getOrder } from "@/lib/admin/orders";
@@ -37,8 +38,8 @@ export default async function OrderDetailPage({ params }: PageProps<"/admin/don-
           <Card pad title="Sản phẩm">
             <ul className="divide-y divide-line">
               {o.items.map((it) => (
-                <li key={it.id} className="flex justify-between gap-3 py-2.5 text-sm">
-                  <span>{it.name}<small className="num block text-ink-2">{it.qty} × {formatVnd(it.unit_price)} · {it.sku}</small></span>
+                <li key={it.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                  <ProductCell name={it.name} sku={it.sku} image={it.image} size={44} extra={<span className="block">{it.qty} × {formatVnd(it.unit_price)}</span>} />
                   <b className="num">{formatVnd(it.qty * it.unit_price)}</b>
                 </li>
               ))}

@@ -2,6 +2,8 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { Card } from "@/components/admin/ui";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { stockClass } from "@/components/admin/ProductCell";
 import { saveProduct } from "@/app/admin/(shell)/san-pham/actions";
 import type { Option, ProductDetail } from "@/lib/admin/products";
 
@@ -15,7 +17,7 @@ const toNum = (s: string) => (s.trim() === "" ? null : Number(s.replace(/[.\s,]/
 export function ProductForm({ product: p, options, canPrice, canCost }: { product: ProductDetail; options: { categories: Option[]; brands: Option[] }; canPrice: boolean; canCost: boolean }) {
   const [f, setF] = useState({
     name: p.name, unit: p.unit, categoryId: p.categoryId ? String(p.categoryId) : "", brandId: p.brandId ? String(p.brandId) : "", spec: p.spec,
-    warranty: p.warranty, origin: p.origin, description: p.description, needTags: p.needTags, visible: p.visible, min: String(p.min),
+    warranty: p.warranty, origin: p.origin, madeIn: p.madeIn, description: p.description, needTags: p.needTags, visible: p.visible, min: String(p.min), location: p.location,
     price: String(p.price), salePrice: p.salePrice != null ? String(p.salePrice) : "", saleFrom: p.saleFrom, saleTo: p.saleTo, cost: p.cost != null ? String(p.cost) : "",
   });
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -35,7 +37,7 @@ export function ProductForm({ product: p, options, canPrice, canCost }: { produc
     start(async () => {
       const r = await saveProduct({
         id: p.id, name: f.name, unit: f.unit, categoryId: f.categoryId ? Number(f.categoryId) : null, brandId: f.brandId ? Number(f.brandId) : null,
-        spec: f.spec, warranty: f.warranty, origin: f.origin, description: f.description, needTags: f.needTags, visible: f.visible, min,
+        spec: f.spec, warranty: f.warranty, origin: f.origin, madeIn: f.madeIn, description: f.description, needTags: f.needTags, visible: f.visible, min, location: f.location,
         ...(canPrice ? { price: price as number, salePrice: sale as number | null, saleFrom: f.saleFrom, saleTo: f.saleTo, cost: cost as number | null | undefined } : {}),
       });
       setMsg({ ok: r.ok, text: r.ok ? "Đã lưu thay đổi." : r.error ?? "Không lưu được." });
@@ -64,7 +66,7 @@ export function ProductForm({ product: p, options, canPrice, canCost }: { produc
             {canPrice ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Giá bán (₫)"><input className={input} inputMode="numeric" value={f.price} onChange={set("price")} /></Field>
-                {canCost && <Field label="Giá nhập (₫) · chỉ chủ shop"><input className={input} inputMode="numeric" value={f.cost} onChange={set("cost")} /></Field>}
+                {canCost && <Field label="Giá nhập (₫) · giá vốn tính lãi = giá nhập + 10%"><input className={input} inputMode="numeric" value={f.cost} onChange={set("cost")} /></Field>}
                 <Field label="Giá khuyến mãi (₫, để trống nếu không giảm)"><input className={input} inputMode="numeric" value={f.salePrice} onChange={set("salePrice")} /></Field>
                 <div className="grid grid-cols-2 gap-2">
                   <Field label="Từ ngày"><input type="date" className={input} value={f.saleFrom} onChange={set("saleFrom")} /></Field>
@@ -77,10 +79,19 @@ export function ProductForm({ product: p, options, canPrice, canCost }: { produc
           </Card>
           <Card pad title="3. Mô tả & bảo hành">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="sm:col-span-2"><Field label="Thông số ngắn (một dòng)"><input className={input} value={f.spec} onChange={set("spec")} maxLength={300} /></Field></div>
-              <div className="sm:col-span-2"><Field label="Mô tả"><textarea className={`${input} h-28 py-2`} value={f.description} onChange={set("description")} maxLength={5000} /></Field></div>
+              <div className="sm:col-span-2">
+                <Field label="Thông số (mỗi dòng một thông số)">
+                  <textarea className={`${input} h-36 py-2 leading-6`} value={f.spec} onChange={set("spec")} maxLength={3000} placeholder={"Công suất: 47W\nSải cánh: 40cm\nĐiều khiển: nút nhấn"} />
+                </Field>
+                <p className="mt-1 text-xs text-ink-2">Dòng có dấu “:” hiện thành bảng trên web. Dán từ trang khác cũng được.</p>
+              </div>
+              <div className="sm:col-span-2 text-sm">
+                <span className="mb-1.5 block font-medium">Mô tả</span>
+                <RichTextEditor label="Mô tả" value={f.description} onChange={(html) => setF((s) => ({ ...s, description: html }))} />
+              </div>
               <Field label="Bảo hành"><input className={input} value={f.warranty} onChange={set("warranty")} maxLength={100} /></Field>
-              <Field label="Xuất xứ"><input className={input} value={f.origin} onChange={set("origin")} maxLength={100} /></Field>
+              <Field label="Xuất xứ (nước của hãng)"><input className={input} value={f.origin} onChange={set("origin")} maxLength={100} placeholder="Ví dụ: Nhật Bản" /></Field>
+              <Field label="Sản xuất tại"><input className={input} value={f.madeIn} onChange={set("madeIn")} maxLength={100} placeholder="Ví dụ: Việt Nam" /></Field>
             </div>
           </Card>
         </div>
@@ -91,7 +102,8 @@ export function ProductForm({ product: p, options, canPrice, canCost }: { produc
             </label>
           </Card>
           <Card pad title="Tồn kho">
-            <p className="num text-2xl font-bold">{p.stock} {p.unit.toLowerCase()}</p>
+            <p className={`num text-2xl font-bold ${stockClass(p.stock, Number(f.min) || 0)}`}>{p.stock} {p.unit.toLowerCase()}</p>
+            <div className="mt-3"><Field label="Vị trí"><input className={input} value={f.location} onChange={set("location")} maxLength={40} placeholder="Kho 1" /></Field></div>
             <div className="mt-3"><Field label="Tồn tối thiểu (báo sắp hết)"><input className={input} inputMode="numeric" value={f.min} onChange={set("min")} /></Field></div>
             <Link href="/admin/ton-kho" className="mt-3 block text-sm font-medium text-brand">Điều chỉnh tồn kho ở mục Tồn kho</Link>
           </Card>
