@@ -13,6 +13,7 @@ export type Product = {
   sku: string;
   name: string;
   brand: string;
+  industry: string;
   cat: string; // slug danh mục
   sub: string;
   price: number;
@@ -34,3 +35,8 @@ export const normalize = (s: string) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase();
 
 export const discountPct = (p: Product) => (p.old ? Math.round((1 - p.price / p.old) * 100) : 0);
+
+// Số sản phẩm mỗi lượt "Xem thêm". Khung chờ máy chủ và lưới client dùng chung để không nhảy layout.
+// Trang chủ lưới 5 cột trên desktop nên lấy 15 (3 hàng đủ); các trang có cột lọc lưới 4 cột nên lấy 12.
+export const PAGE_SIZE = 12;
+export const HOME_PAGE_SIZE = 15;

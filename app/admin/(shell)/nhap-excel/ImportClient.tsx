@@ -9,16 +9,16 @@ import { formatVnd } from "@/lib/shop";
 
 type Sub = { slug: string; name: string; parent: string };
 const STEPS = ["1 · Chọn file", "2 · Xem trước & kiểm lỗi", "3 · Xác nhận"];
-const WIDTHS = [22, 36, 12, 14, 14, 16, 22, 16, 12, 14, 36, 44, 18, 14, 14];
+const WIDTHS = [22, 36, 12, 14, 14, 16, 18, 22, 24, 16, 12, 14, 36, 44, 18, 14, 14];
 
 // File mẫu: sheet SanPham (2 dòng ví dụ, cột Giá nhập + 10% có công thức), Hướng dẫn, Danh mục
 function downloadTemplate(subs: Sub[]) {
   const ex = (r: number, v: Cell[]): Cell[] => v.map((x, i) => (i === 5 ? { formula: `IF(E${r}="","",ROUND(E${r}*1.1,0))` } : x));
   const rows: Cell[][] = [
     [...TEMPLATE_COLUMNS],
-    ex(2, ["QUATDUNG-SENKO-DD1602", "Quạt đứng Senko DD1602 47W", "Cái", 520000, 410000, null, "Quạt đứng", "Senko", "Kho 1", 2,
+    ex(2, ["QUATDUNG-SENKO-DD1602", "Quạt đứng Senko DD1602 47W", "Cái", 520000, 410000, null, "Quạt", "Đồ gia dụng", "Quạt đứng", "Senko", "Kho 1", 2,
       "Công suất: 47W\nSải cánh: 40cm\nĐiều khiển: nút nhấn", "Quạt đứng Senko chạy êm, gió mạnh.\nThân thép sơn tĩnh điện, bền.", "12 tháng", "Việt Nam", "Việt Nam"]),
-    ex(3, ["AMSIEUTOC-PANA-17", "Ấm siêu tốc Panasonic 1.7L", "Cái", 650000, 520000, null, "Ấm & bình đun", "Panasonic", "Kệ A2", 3,
+    ex(3, ["AMSIEUTOC-PANA-17", "Ấm siêu tốc Panasonic 1.7L", "Cái", 650000, 520000, null, "Ấm siêu tốc", "Đồ gia dụng", "Ấm siêu tốc", "Panasonic", "Kệ A2", 3,
       "Dung tích: 1.7 lít\nCông suất: 2200W", "Đun sôi nhanh, tự ngắt khi cạn nước.", "12 tháng theo hãng", "Nhật Bản", "Malaysia"]),
   ];
   const guide: Cell[][] = [
@@ -26,7 +26,9 @@ function downloadTemplate(subs: Sub[]) {
     ["Mã hàng hóa", "Bắt buộc. Mã đã có trên web → web hiện bảng đối chiếu để bạn tick xác nhận thay đổi. Mã mới → thêm thẳng."],
     ["Tên sản phẩm, Đơn vị tính, Giá bán", "Bắt buộc. Giá tính bằng đồng, chỉ gõ số (ví dụ 520000)."],
     ["Giá nhập", "Tùy chọn. Giá nhập + 10% tự tính; web dùng con số này làm giá vốn để tính lãi."],
-    ["Danh mục", "Tên danh mục con, xem sheet “Danh mục”. Để trống: chọn danh mục trên web khi nhập."],
+    ["Danh mục", "Danh mục cha như Gia dụng. Dùng cùng Danh mục con để phân loại chính xác."],
+    ["Danh mục con", "Tên danh mục con có trong sheet “Danh mục”; đây là giá trị dùng để gắn sản phẩm vào web."],
+    ["Ngành hàng", "Nhóm sản phẩm như Quạt hoặc Ấm siêu tốc. Các giá trị đã nhập sẽ tự hiện thành thẻ ngành hàng ở trang chủ."],
     ["Thông số, Mô tả", "Mỗi dòng một nội dung (trong ô Excel bấm Alt + Enter để xuống dòng). Thông số dạng “Tên: giá trị” hiện thành bảng."],
     ["Ô để trống", "Với sản phẩm đã có: ô trống = giữ nguyên thông tin cũ trên web."],
   ];
@@ -43,7 +45,7 @@ function downloadErrors(bad: ImportRow[]) {
   bad.forEach((r, i) => {
     const raw = r.raw ?? {
       "Mã hàng hóa": r.sku, "Tên sản phẩm": r.name, "Đơn vị tính": r.unit, "Giá bán": Number.isFinite(r.price) ? String(r.price) : "",
-      "Giá nhập": r.cost != null && Number.isFinite(r.cost) ? String(r.cost) : "", "Danh mục": "", "Thương hiệu": r.brand ?? "",
+      "Giá nhập": r.cost != null && Number.isFinite(r.cost) ? String(r.cost) : "", "Ngành hàng": r.industry ?? "", "Danh mục": "", "Danh mục con": "", "Thương hiệu": r.brand ?? "",
       "Tồn tối thiểu": r.minQty != null ? String(r.minQty) : "", "Thông số": r.spec ?? "", "Bảo hành": r.warranty ?? "", "Xuất xứ": r.origin ?? "",
     } as Record<string, string>;
     rows.push([...TEMPLATE_COLUMNS.map((c, ci) => (ci === 5 ? { formula: `IF(E${i + 2}="","",ROUND(E${i + 2}*1.1,0))` } : raw[c] ?? "")), `Dòng ${r.line}: ${r.errors.join("; ")}`]);
@@ -128,7 +130,7 @@ export function ImportClient({ subs, brands }: { subs: Sub[]; brands: string[] }
           </div>
           <div className="mt-3 max-h-[60vh] overflow-auto rounded border border-line">
             <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-ground text-left text-xs text-ink-2"><tr>{["Dòng", "SKU", "Tên", "Đơn vị", "Giá bán", "Danh mục", "Tình trạng"].map((h) => <th key={h} className="px-2 py-2 font-semibold">{h}</th>)}</tr></thead>
+              <thead className="sticky top-0 bg-ground text-left text-xs text-ink-2"><tr>{["Dòng", "SKU", "Tên", "Đơn vị", "Giá bán", "Ngành hàng", "Danh mục", "Tình trạng"].map((h) => <th key={h} className="px-2 py-2 font-semibold">{h}</th>)}</tr></thead>
               <tbody>
                 {visible.map((r) => (
                   <tr key={r.line} className={`border-t border-line ${r.errors.length ? "bg-[#fef2f2]" : ""}`}>
@@ -137,6 +139,7 @@ export function ImportClient({ subs, brands }: { subs: Sub[]; brands: string[] }
                     <td className="px-2">{r.name}</td>
                     <td className="px-2">{r.unit}</td>
                     <td className="num px-2">{Number.isFinite(r.price) ? formatVnd(r.price) : "—"}</td>
+                    <td className="px-2">{r.industry ?? "—"}</td>
                     <td className="px-2 text-ink-2">{r.sub ? subName.get(r.sub) : defaultSub ? subName.get(defaultSub) : "—"}</td>
                     <td className="px-2">{r.errors.length ? <span className="text-danger">{r.errors.join(", ")}</span> : <span className="text-ok">OK</span>}</td>
                   </tr>

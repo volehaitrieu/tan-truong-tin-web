@@ -3,7 +3,7 @@
 
 export type ImportRow = {
   line: number; sku: string; name: string; unit: string; price: number; cost: number | null; minQty: number | null;
-  sub: string | null; brand: string | null; spec: string | null; attributes: Record<string, string>;
+  sub: string | null; industry: string | null; brand: string | null; spec: string | null; attributes: Record<string, string>;
   warranty: string | null; origin: string | null; errors: string[];
   // Chỉ mẫu chuẩn TTT: vị trí, sản xuất tại, mô tả (chữ thường, mỗi dòng một đoạn), ô gốc để xuất lại file lỗi
   location?: string | null; madeIn?: string | null; description?: string | null; raw?: Record<string, string>;
@@ -11,7 +11,7 @@ export type ImportRow = {
 
 // Cột của file Excel mẫu (mẫu chuẩn TTT). Giá tính bằng đồng.
 export const TEMPLATE_COLUMNS = [
-  "Mã hàng hóa", "Tên sản phẩm", "Đơn vị tính", "Giá bán", "Giá nhập", "Giá nhập + 10%", "Danh mục", "Thương hiệu",
+  "Mã hàng hóa", "Tên sản phẩm", "Đơn vị tính", "Giá bán", "Giá nhập", "Giá nhập + 10%", "Ngành hàng", "Danh mục", "Danh mục con", "Thương hiệu",
   "Vị trí", "Tồn tối thiểu", "Thông số", "Mô tả", "Bảo hành", "Xuất xứ", "Sản xuất tại",
 ] as const;
 export const TEMPLATE_SHEET = "SanPham";
@@ -84,12 +84,15 @@ export function detectAndParse(
         const raw = Object.fromEntries(TEMPLATE_COLUMNS.map((c) => [c, h.indexOf(plain(c)) >= 0 ? r[h.indexOf(plain(c))] ?? "" : ""]));
         const g = (c: (typeof TEMPLATE_COLUMNS)[number]) => raw[c].trim();
         const opt = (c: (typeof TEMPLATE_COLUMNS)[number]) => g(c) || null;
-        const cat = g("Danh mục");
+        const cat = g("Danh mục con") || g("Danh mục");
         const sub = cat ? subByName.get(plain(cat)) ?? null : null;
+        // The fan workbook stores price and cost in thousands of đồng while
+        // the kettle workbook and the standard template store full đồng.
+        const scale = plain(g("Ngành hàng")) === "quat" && num(g("Giá bán")) > 0 && num(g("Giá bán")) < 100_000 ? 1_000 : 1;
         const row = finish({
-          line, sku: toSku(g("Mã hàng hóa")), name: g("Tên sản phẩm"), unit: g("Đơn vị tính") || "Cái", price: num(g("Giá bán")),
-          cost: g("Giá nhập") ? num(g("Giá nhập")) : null, minQty: g("Tồn tối thiểu") ? num(g("Tồn tối thiểu")) : null,
-          sub, brand: opt("Thương hiệu"), spec: opt("Thông số"), attributes: {}, warranty: opt("Bảo hành"), origin: opt("Xuất xứ"),
+          line, sku: toSku(g("Mã hàng hóa")), name: g("Tên sản phẩm"), unit: g("Đơn vị tính") || "Cái", price: num(g("Giá bán")) * scale,
+          cost: g("Giá nhập") ? num(g("Giá nhập")) * scale : null, minQty: g("Tồn tối thiểu") ? num(g("Tồn tối thiểu")) : null,
+          sub, industry: opt("Ngành hàng"), brand: opt("Thương hiệu"), spec: opt("Thông số"), attributes: {}, warranty: opt("Bảo hành"), origin: opt("Xuất xứ"),
           location: opt("Vị trí"), madeIn: opt("Sản xuất tại"), description: opt("Mô tả"), raw, errors: [],
         });
         if (cat && !sub) row.errors.push(`Không tìm thấy danh mục “${cat}”`);
@@ -115,22 +118,28 @@ export function detectAndParse(
         const name = r[iName] ?? "";
         return finish({
           line: head + i + 2, sku: toSku(r[iCode] || name), name, unit: r[iUnit] || "Cái", price: num(r[iPrice]), cost: null, minQty: null,
-          sub: guessSub(name), brand: brandOf(name), spec: null, attributes: {}, warranty: null, origin: null, errors: [],
+          sub: guessSub(name), industry: null, brand: brandOf(name), spec: null, attributes: {}, warranty: null, origin: null, errors: [],
         });
       }),
     };
   }
 
   // Mẫu quạt (sheet có cột SKU + Giá bán, giá nghìn đồng)
-  const fanName = Object.keys(sheets).find((n) => sheets[n][0]?.some((c) => c === "SKU") && sheets[n][0]?.some((c) => c === "Giá bán"));
+  const fanName = Object.keys(sheets).find((n) => {
+    const headers = (sheets[n][0] ?? []).map(plain);
+    return headers.includes("sku") && headers.includes("gia ban");
+  });
   if (fanName) {
     const rows = sheets[fanName];
     const h = rows[0];
-    const g = (r: string[], k: string) => (h.indexOf(k) >= 0 ? r[h.indexOf(k)] ?? "" : "");
+    const g = (r: string[], k: string) => {
+      const index = h.findIndex((cell) => plain(cell) === plain(k));
+      return index >= 0 ? r[index] ?? "" : "";
+    };
     return {
       format: "File quạt (giá tính bằng nghìn đồng)",
       rows: rows.slice(1).filter((r) => g(r, "Tên sản phẩm")).map((r, i) => {
-        const cat = g(r, "Danh mục").split(">").pop()?.trim().toLowerCase() ?? "";
+        const cat = (g(r, "Danh mục con") || g(r, "Danh mục")).split(">").pop()?.trim().toLowerCase() ?? "";
         const name = g(r, "Tên sản phẩm");
         const attributes = Object.fromEntries(Object.entries({
           loai: g(r, "Loại / kiểu"), sai_canh: g(r, "Sải cánh"), so_canh: g(r, "Số cánh"), cong_suat: g(r, "Công suất"),
@@ -140,7 +149,7 @@ export function detectAndParse(
           line: i + 2, sku: toSku(g(r, "SKU")), name, unit: g(r, "Đơn vị") || "cái",
           price: num(g(r, "Giá bán")) * 1000, cost: g(r, "Giá nhập") ? num(g(r, "Giá nhập")) * 1000 : null,
           minQty: g(r, "Ngưỡng tối thiểu") ? num(g(r, "Ngưỡng tối thiểu")) : null,
-          sub: FAN_SUB[cat] ?? guessSub(name), brand: g(r, "Thương hiệu") || brandOf(name),
+          sub: subs.find((item) => plain(item.name) === plain(cat))?.slug ?? FAN_SUB[cat] ?? guessSub(name), industry: g(r, "Ngành hàng") || null, brand: g(r, "Thương hiệu") || brandOf(name),
           spec: [g(r, "Sải cánh"), g(r, "Công suất"), g(r, "Điều khiển")].filter(Boolean).join(" · ").slice(0, 120) || null,
           attributes, warranty: g(r, "Bảo hành") || null, origin: g(r, "Xuất xứ") || null, errors: [],
         });

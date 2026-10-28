@@ -1,0 +1,2 @@
+sloplint: cannot read http://localhost:3000
+sloplint: no .html, .css, .jsx, .tsx, .vue, .svelte or .astro files found

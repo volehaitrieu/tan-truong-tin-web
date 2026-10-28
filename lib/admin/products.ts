@@ -77,20 +77,23 @@ export type ProductDetail = {
   id: number; sku: string; name: string; unit: string; price: number; salePrice: number | null; saleFrom: string; saleTo: string;
   categoryId: number | null; brandId: number | null; spec: string; warranty: string; origin: string; madeIn: string; description: string;
   needTags: string; visible: boolean; stock: number; min: number; location: string; cost: number | null; updatedAt: string;
+  images: ProductImage[];
 };
+
+export type ProductImage = { id: number; url: string; sort: number; is_illustration: boolean };
 
 export async function getProductDetail(id: number, withCost: boolean): Promise<ProductDetail | null> {
   const db = await createClient();
   const { data } = await db
     .from("products")
-    .select("id, sku, name, unit, price, sale_price, sale_from, sale_to, category_id, brand_id, spec_line, warranty, origin, made_in, description, need_tags, is_visible, updated_at, inventory(qty, min_qty, location)")
+    .select("id, sku, name, unit, price, sale_price, sale_from, sale_to, category_id, brand_id, spec_line, warranty, origin, made_in, description, need_tags, is_visible, updated_at, inventory(qty, min_qty, location), images:product_images(id, url, sort, is_illustration)")
     .eq("id", id)
     .maybeSingle();
   if (!data) return null;
   const d = data as unknown as {
     id: number; sku: string; name: string; unit: string; price: number; sale_price: number | null; sale_from: string | null; sale_to: string | null;
     category_id: number | null; brand_id: number | null; spec_line: string | null; warranty: string | null; origin: string | null; made_in: string | null;
-    description: string | null; need_tags: string[]; is_visible: boolean; updated_at: string; inventory: { qty: number; min_qty: number; location: string } | null;
+    description: string | null; need_tags: string[]; is_visible: boolean; updated_at: string; inventory: { qty: number; min_qty: number; location: string } | null; images: ProductImage[] | null;
   };
   let cost: number | null = null;
   if (withCost) {
@@ -102,6 +105,6 @@ export async function getProductDetail(id: number, withCost: boolean): Promise<P
     categoryId: d.category_id, brandId: d.brand_id, spec: d.spec_line ?? "", warranty: d.warranty ?? "", origin: d.origin ?? "", madeIn: d.made_in ?? "",
     description: d.description ?? "", needTags: d.need_tags.join(", "), visible: d.is_visible, stock: d.inventory?.qty ?? 0, min: d.inventory?.min_qty ?? 0,
     location: d.inventory?.location ?? "Kho 1",
-    cost, updatedAt: new Intl.DateTimeFormat("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "short", timeStyle: "short" }).format(new Date(d.updated_at)),
+    cost, images: [...(d.images ?? [])].sort((a, b) => a.sort - b.sort), updatedAt: new Intl.DateTimeFormat("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "short", timeStyle: "short" }).format(new Date(d.updated_at)),
   };
 }

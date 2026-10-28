@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/storefront/Breadcrumb";
-import { ProductBrowser } from "@/components/storefront/ProductBrowser";
+import Link from "next/link";
+import { ProductBrowserShell } from "@/components/storefront/ProductBrowserShell";
 import { getCategories, getProducts } from "@/lib/catalog";
 
 // Dữ liệu từ Supabase, làm mới mỗi 60 giây
@@ -26,7 +27,14 @@ export default async function CategoryPage({ params }: PageProps<"/danh-muc/[slu
     <>
       <Breadcrumb items={[{ label: "Sản phẩm", href: "/danh-muc" }, { label: cat.name }]} />
       <h1 className="mb-4 text-[28px] font-extrabold sm:text-[34px]">{cat.name}</h1>
-      <ProductBrowser key={cat.slug} products={products} categories={categories} fixedCat={cat.slug} />
+      {cat.subs.length > 0 && (
+        <nav aria-label={`Danh mục con của ${cat.name}`} className="mb-5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
+          {cat.subs.filter((sub) => products.some((product) => product.sub === sub)).map((sub) => (
+            <Link key={sub} href={`/danh-muc/${cat.slug}?sub=${encodeURIComponent(sub)}`} className="flex min-h-10 shrink-0 items-center rounded-full border border-line bg-surface px-4 text-[13px] font-medium transition-colors duration-150 hover:border-brand-line hover:bg-brand-tint hover:text-brand">{sub}</Link>
+          ))}
+        </nav>
+      )}
+      <ProductBrowserShell key={cat.slug} products={products} categories={categories} fixedCat={cat.slug} />
     </>
   );
 }

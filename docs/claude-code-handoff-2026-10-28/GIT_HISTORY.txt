@@ -1,0 +1,8 @@
+696105a Dọn dự án: bỏ mã/ảnh mẫu cũ (design, mockup, design-system, ảnh chụp màn hình) và tài liệu lỗi thời; sửa tham chiếu trong tài liệu
+b2b88ac Bàn giao giao diện cho Codex + cập nhật HANDOFF
+cd5c6e0 Khung chi tiết SP gọn hơn trên điện thoại (ảnh nhỏ lại, nút một hàng)
+85dc4c6 Điểm quay lại trước bàn giao: ảnh SP ở các màn, Vị trí, lọc thương hiệu/khoảng giá, Xóa bộ lọc, khung chi tiết + ảnh báo giá PNG, Nhập Excel có bảng đối chiếu + file mẫu + file lỗi, mô tả kiểu Word, Sản xuất tại, giá vốn +10%; thêm HANDOFF.md + PROMPT_TIEP_THEO.md
+3717000 Nhật ký: đã lưu DNS tên miền
+18d96b1 Nhật ký: đã khai báo tên miền
+6a540e1 Giai đoạn thử: chặn công cụ tìm kiếm (robots.txt + noindex)
+384a5c5 Nhật ký: đưa lên Vercel + gắn tên miền

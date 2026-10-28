@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Breadcrumb } from "@/components/storefront/Breadcrumb";
 import { CategoryIcon } from "@/components/storefront/CategoryIcon";
-import { ProductBrowser } from "@/components/storefront/ProductBrowser";
+import { ProductBrowserShell } from "@/components/storefront/ProductBrowserShell";
 import { getCategories, getProducts } from "@/lib/catalog";
 
 export const metadata: Metadata = { title: "Tất cả sản phẩm" };
@@ -22,7 +22,7 @@ export default async function AllProducts() {
           </Link>
         ))}
       </div>
-      <ProductBrowser products={products} categories={categories} />
+      <ProductBrowserShell products={products} categories={categories} />
     </>
   );
 }

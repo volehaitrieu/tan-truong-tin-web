@@ -112,7 +112,7 @@ export function AddToCartButton({ sku, name, available = true }: { sku: string; 
           addToCart(sku);
           setToast(name);
         }}
-        className={`mt-3 h-11 w-full rounded-md text-sm font-semibold transition-colors duration-150 ${available ? "bg-brand text-white hover:bg-brand-deep" : "bg-gold text-gold-ink hover:bg-[#e0aa04]"}`}
+        className={`mt-3 h-11 w-full rounded-md text-sm font-semibold transition-colors duration-150 ${available ? "bg-brand text-white hover:bg-brand-deep" : "bg-gold text-gold-ink hover:bg-gold-hover"}`}
       >
         {available ? "Thêm vào giỏ" : "Đặt trước"}
       </button>

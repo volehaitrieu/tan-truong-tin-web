@@ -11,13 +11,14 @@ type Row = {
   sku: string; name: string; unit: string; price: number; sale_price: number | null; sale_from: string | null; sale_to: string | null;
   spec_line: string | null; attributes: Record<string, string | number>; warranty: string | null; in_stock: boolean;
   origin: string | null; made_in: string | null; description: string | null;
-  category_id: number | null;
+  category_id: number | null; industry: string | null;
   brand: { name: string } | null;
   images: { url: string; sort: number }[];
 };
 const SELECT =
   "sku, name, unit, price, sale_price, sale_from, sale_to, spec_line, attributes, warranty, origin, made_in, description, in_stock, " +
-  "category_id, brand:brands(name), images:product_images(url, sort)";
+  "category_id, industry, brand:brands(name), images:product_images(url, sort)";
+const SELECT_BEFORE_INDUSTRY = SELECT.replace("category_id, industry,", "category_id,");
 
 // Bảng danh mục (id → tên, slug, danh mục cha) — tra trong bộ nhớ thay vì nhúng bảng tự tham chiếu
 type CatRow = { id: number; parent_id: number | null; name: string; slug: string; icon: string | null; sort: number };
@@ -55,14 +56,28 @@ async function attributeLabels() {
 function toProduct(r: Row, labels: Map<string, { label: string; unit?: string }>, cats: CatRow[]): Product {
   const sale = saleActive(r);
   const specs = parseSpecs(r.spec_line ?? "");
-  const sub = cats.find((c) => c.id === r.category_id);
-  const top = sub?.parent_id ? cats.find((c) => c.id === sub.parent_id) : sub;
+  let sub = cats.find((c) => c.id === r.category_id);
+  let top = sub;
+  // Keep the storefront's category filter at the root + first child level,
+  // even when a product is assigned to a deeper leaf such as "Quạt treo tường".
+  while (top && top.parent_id) {
+    const parentId = top.parent_id;
+    const parent = cats.find((c) => c.id === parentId);
+    if (!parent) break;
+    if (parent.parent_id === null) {
+      sub = top;
+      top = parent;
+      break;
+    }
+    top = parent;
+  }
   return {
     sku: r.sku,
     name: r.name,
     brand: r.brand?.name ?? "",
+    industry: r.industry ?? "",
     cat: top?.slug ?? "",
-    sub: sub?.name ?? "",
+    sub: sub && sub.parent_id === top?.id ? sub.name : "",
     price: sale ? r.sale_price! : r.price,
     old: sale ? r.price : undefined,
     unit: r.unit,
@@ -87,11 +102,19 @@ function toProduct(r: Row, labels: Map<string, { label: string; unit?: string }>
 }
 
 export const getProducts = cache(async (): Promise<Product[]> => {
-  const [{ data, error }, labels, cats] = await Promise.all([
+  const [initial, labels, cats] = await Promise.all([
     createPublicClient().from("products").select(SELECT).order("name").limit(5000),
     attributeLabels(),
     getCategoryRows(),
   ]);
+  let data = initial.data;
+  let error = initial.error;
+  // Keep the storefront readable while the industry migration is waiting to be applied.
+  if (error && /column products\.industry does not exist/i.test(error.message)) {
+    const legacy = await createPublicClient().from("products").select(SELECT_BEFORE_INDUSTRY).order("name").limit(5000);
+    data = legacy.data;
+    error = legacy.error;
+  }
   if (error) throw error;
   return (data as unknown as Row[]).map((r) => toProduct(r, labels, cats));
 });
@@ -104,7 +127,7 @@ export async function getProduct(sku: string) {
 export async function searchCatalog(q: string) {
   const words = normalize(q).split(/\s+/).filter(Boolean).slice(0, 8);
   return (await getProducts()).filter((p) => {
-    const hay = normalize(`${p.name} ${p.brand} ${p.sku} ${p.sub}`);
+    const hay = normalize(`${p.name} ${p.brand} ${p.sku} ${p.industry} ${p.sub}`);
     return words.every((w) => hay.includes(w));
   });
 }

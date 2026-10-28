@@ -9,7 +9,7 @@ export type PendingChange = {
 };
 
 const LABEL: Record<string, string> = {
-  name: "Tên sản phẩm", unit: "Đơn vị tính", price: "Giá bán", import_price: "Giá nhập", category: "Danh mục", brand: "Thương hiệu",
+  name: "Tên sản phẩm", unit: "Đơn vị tính", price: "Giá bán", import_price: "Giá nhập", category: "Danh mục", industry: "Ngành hàng", brand: "Thương hiệu",
   location: "Vị trí", min_qty: "Tồn tối thiểu", spec: "Thông số", description: "Mô tả", warranty: "Bảo hành", origin: "Xuất xứ", made_in: "Sản xuất tại",
 };
 const MONEY = new Set(["price", "import_price"]);

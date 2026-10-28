@@ -1,0 +1,30 @@
+[
+  {
+    "Name": "commerce-content-review",
+    "Source": "C:\\Users\\Hai Trieu\\.agents\\skills\\commerce-content-review"
+  },
+  {
+    "Name": "shop-mentor",
+    "Source": "C:\\Users\\Hai Trieu\\.agents\\skills\\shop-mentor"
+  },
+  {
+    "Name": "frontend-ui-engineering",
+    "Source": "C:\\Users\\Hai Trieu\\Documents\\tan-truong-tin-web\\.agents\\skills\\frontend-ui-engineering"
+  },
+  {
+    "Name": "ponytail-review",
+    "Source": "C:\\Users\\Hai Trieu\\.agents\\skills\\ponytail-review"
+  },
+  {
+    "Name": "ponytail-audit",
+    "Source": "C:\\Users\\Hai Trieu\\.agents\\skills\\ponytail-audit"
+  },
+  {
+    "Name": "supabase",
+    "Source": "C:\\Users\\Hai Trieu\\.codex\\plugins\\cache\\openai-curated-remote\\supabase\\1.0.0\\skills\\supabase"
+  },
+  {
+    "Name": "supabase-postgres-best-practices",
+    "Source": "C:\\Users\\Hai Trieu\\.codex\\plugins\\cache\\openai-curated-remote\\supabase\\1.0.0\\skills\\supabase-postgres-best-practices"
+  }
+]

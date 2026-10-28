@@ -1,0 +1,46 @@
+ M app/(store)/danh-muc/[slug]/page.tsx
+ M app/(store)/danh-muc/page.tsx
+ M app/(store)/page.tsx
+ M app/(store)/tim-kiem/page.tsx
+ M app/admin/(shell)/nhap-excel/ImportClient.tsx
+ M app/admin/(shell)/nhap-excel/ReviewTable.tsx
+ M app/admin/(shell)/nhap-excel/actions.ts
+ M app/admin/(shell)/san-pham/actions.ts
+ M app/admin/(shell)/san-pham/page.tsx
+ M app/globals.css
+ M components/admin/ProductForm.tsx
+ M components/admin/ProductTable.tsx
+ M components/storefront/Breadcrumb.tsx
+ M components/storefront/CartControls.tsx
+ M components/storefront/ProductBrowser.tsx
+ M components/storefront/ProductCard.tsx
+ M components/storefront/Rail.tsx
+ M components/storefront/StoreShell.tsx
+ M docs/MENTOR_LOG.md
+ M lib/admin/products.ts
+ M lib/catalog.ts
+ M lib/excel/parse-products.ts
+ M lib/mock/store.ts
+ M next.config.ts
+?? .hallmark/
+?? Kho-App-Quạt-da-bo-tien-to-phan-loai.xlsx
+?? app/(store)/tai-khoan/
+?? app/admin/(shell)/san-pham/them/
+?? components/admin/ProductImageManager.tsx
+?? components/storefront/BackButton.tsx
+?? components/storefront/BrandCarousel.tsx
+?? components/storefront/FavoriteButton.tsx
+?? components/storefront/ProductBrowserShell.tsx
+?? docs/AI_TASK_BOARD.md
+?? docs/HUONG_DAN_BAT_DAU_VA_CAC_QUYET_DINH.md
+?? docs/PROJECT_DOSSIER.md
+?? docs/brand-logo-sources.md
+?? docs/claude-code-handoff-2026-10-28/
+?? docs/superpowers/
+?? exports/
+?? lib/supabase/client.ts
+?? public/brand-logos/
+?? reports/
+?? research_notes/
+?? supabase/migrations/20261027000100_product_industry.sql
+?? supabase/migrations/20261028000100_product_image_storage.sql

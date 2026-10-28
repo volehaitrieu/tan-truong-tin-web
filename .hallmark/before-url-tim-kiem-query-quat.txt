@@ -1,0 +1,52 @@
+render tier: 5 screenshots in C:\Users\Hai Trieu\Documents\tan-truong-tin-web\.hallmark\shots (1280x800, 1440x900, 1920x1080 folds; 1440 and 375 full pages)
+app\(store)\bao-gia\page.tsx
+  FAIL 19 :13 dash "—" in copy | fix: A comma, a colon, a full stop or parentheses; never a dash
+app\(store)\page.tsx
+  FAIL 19 :27 dash "—" in copy
+  WARN 58 :27 h1 runs 15 words ("Tân Trường Tín điện nước, kim khí, dụng…") | fix: Seven words or fewer, 50 characters or fewer
+app\globals.css
+  FAIL 20 :1 no Hallmark stamp on the first non-empty line of any CSS | fix: The stamp comment is line 1 of the CSS; only @charset may precede it
+  FAIL 48 :40 colour literal #cde6d6 outside tokens (background on ::selection) | fix: Lift the value into the token block
+  FAIL 48 :40 colour literal #08482f outside tokens (color on ::selection)
+  FAIL 48 :44 colour literal #b7d4c1 outside tokens (border-color on .product-card:hover)
+  FAIL 48 :59 colour literal #fff outside tokens (box-shadow on :focus-visible)
+  REFLEX 7b :12 pure #fff: --color-surface: #ffffff (@theme) | fix: Tint the base toward the anchor hue
+http://localhost:3000/tim-kiem?query=quat
+  FAIL 40 :1 [1280px] contrast 3.64:1 against the pixels behind < 4.5:1 on p.flex.items-center "Liên hệ" | fix: Raise the contrast to threshold
+  FAIL 40 :1 [1440px] a field's edge is under 3:1 against what surrounds it: select.h-11 1.18:1 | fix: Draw the field in --color-muted, or fill it a step off the surface it sits on
+  FAIL 58 :1 [1440px] 128 words on one screen (from y=300) | fix: One idea per screen: cut to about 80 words, make the section an object
+  FAIL 73 :1 [1440px] text painted under another element: b.num over "40 cm ( 16 inch "; b.num over "39 cm ( 16 inch "; b.num over "… | fix: Give the text its own space, or put it above what covers it on a surface of its own
+  REFLEX 44c :1 [1440px] hero ends at 101px of a 900px screen | fix: Fill the first screen with the visual or the headline, not with copy
+  REFLEX 49b :1 [320px] link "Quạt bàn Lifan B-378" wraps to 2 lines (a.line-clamp-2.min-h-10) | fix: Shorten the label or set nowrap
+  REFLEX 49b :1 [320px] link "Quạt bàn Senko B1612 47W - Nút v" wraps to 3 lines (a.line-clamp-2.min-h-10)
+  REFLEX 49b :1 [320px] link "Quạt đứng công nghiệp Hali DC199" wraps to 3 lines (a.line-clamp-2.min-h-10)
+  REFLEX 49b :1 [320px] link "Quạt đứng Senko DD1602 47W - Nút" wraps to 3 lines (a.line-clamp-2.min-h-10)
+  REFLEX 49b :1 [320px] link "Quạt hộp B4 ChingHai BF168" wraps to 2 lines (a.line-clamp-2.min-h-10)
+  REFLEX 49b :1 [320px] link "Quạt hộp B4 Eko" wraps to 2 lines (a.line-clamp-2.min-h-10)
+  REFLEX 49b :1 [320px] link "Quạt lửng công nghiệp Hali LC168" wraps to 3 lines (a.line-clamp-2.min-h-10)
+  REFLEX 49b :1 [320px] link "Quạt lửng Hali LU168" wraps to 2 lines (a.line-clamp-2.min-h-10)
+  REFLEX 49b :1 [320px] link "Quạt sàn công nghiệp Hali SN199" wraps to 3 lines (a.line-clamp-2.min-h-10)
+  REFLEX 49b :1 [320px] link "Quạt sàn lửng công nghiệp Hali L" wraps to 3 lines (a.line-clamp-2.min-h-10)
+  REFLEX 49b :1 [320px] link "Quạt trần đảo 16 Lifan TĐ-16" wraps to 2 lines (a.line-clamp-2.min-h-10)
+  REFLEX 49b :1 [320px] link "Quạt trần đảo 16 Remote Lifan TĐ" wraps to 3 lines (a.line-clamp-2.min-h-10)
+  REFLEX 49b :1 [375px] link "Quạt đứng công nghiệp Hali DC199" wraps to 2 lines (a.line-clamp-2.min-h-10)
+  REFLEX 49b :1 [375px] link "Quạt lửng công nghiệp Hali LC168" wraps to 2 lines (a.line-clamp-2.min-h-10)
+  REFLEX 49b :1 [375px] link "Quạt sàn công nghiệp Hali SN199" wraps to 2 lines (a.line-clamp-2.min-h-10)
+  REFLEX 49b :1 [375px] link "Quạt sàn lửng công nghiệp Hali L" wraps to 2 lines (a.line-clamp-2.min-h-10)
+  REFLEX 49b :1 [414px] link "Quạt bàn Senko B1612 47W - Nút v" wraps to 2 lines (a.line-clamp-2.min-h-10)
+  REFLEX 49b :1 [1280px] link "Quạt đứng Senko DD1602 47W - Nút" wraps to 2 lines (a.line-clamp-2.min-h-10)
+  REFLEX 49b :1 [1280px] link "Quạt trần đảo 16 Remote Lifan TĐ" wraps to 2 lines (a.line-clamp-2.min-h-10)
+  REFLEX 78 :1 [1440px] section heads render at 16px under a 32px hero head | fix: h2 at --text-section (about 52px at 1440), item titles at --text-title (layout.md § 2)
+  WARN 77 :1 [1440px] 2 sections, hero and footer included | fix: A landing strip, not a page: six to nine sections, five on a thin prompt (layout.md § 3)
+components\storefront\CartControls.tsx
+  FAIL 48 :109 colour literal hover:bg-[#e0aa04] in a class on <button class="mt-3 h-11 w-full rounded-md tex…"> | fix: Lift the value into the token block (@theme or :root) and use its utility name
+components\storefront\CheckoutForm.tsx
+  FAIL 48 :195 colour literal bg-[#fef2f2] in a class on <p class="mt-3 rounded-md bg-[#fef2f2] p-…">
+components\storefront\OrderLookup.tsx
+  FAIL 48 :55 colour literal bg-[#fef2f2] in a class on <p class="rounded-md bg-[#fef2f2] p-3 tex…">
+  FAIL 67 :38 uppercase at 14px on <input class="num border-line uppercase"> | fix: Sentence case in the body face, a step smaller, untracked: drop uppercase and the tracking-* class
+components\storefront\StoreShell.tsx
+  FAIL 48 :41 colour literal hover:bg-[#d3eadc] in a class on <Link class="relative ml-auto grid size-11 s…">
+app\(store)\chinh-sach\page.tsx
+  REFLEX 26b :1 no :active styling anywhere | fix: All eight states; guard: not a form control, no aria-disabled anywhere
+sloplint: 16 FAIL, 23 REFLEX, 2 WARN across 27 file(s) and 1 URL(s).

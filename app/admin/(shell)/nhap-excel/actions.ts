@@ -13,7 +13,7 @@ const slugify = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replac
 const str = (v: unknown, max: number) => (v == null ? null : String(v).replace(/\r/g, "").trim().slice(0, max) || null);
 
 // Các trường được so sánh khi SP đã có. Khóa = cột field trong bảng import_changes.
-type Field = "name" | "unit" | "price" | "import_price" | "category" | "brand" | "location" | "min_qty" | "spec" | "description" | "warranty" | "origin" | "made_in";
+type Field = "name" | "unit" | "price" | "import_price" | "category" | "industry" | "brand" | "location" | "min_qty" | "spec" | "description" | "warranty" | "origin" | "made_in";
 
 // Ghi SP từ Excel. Kiểm lại toàn bộ ở server (không tin dữ liệu xem trước), bỏ qua dòng lỗi.
 // SP mới → thêm thẳng. SP đã có → thay đổi đưa vào bảng chờ duyệt (import_changes), chưa ghi đè.
@@ -26,7 +26,12 @@ export async function importProducts(input: ImportRow[], defaultSub: string | nu
   if (input.length > 5000) return { ok: false, error: "Tối đa 5.000 dòng mỗi lần." };
 
   const db = await createClient();
-  const { data: cats } = await db.from("categories").select("id, slug, name");
+  const { data: cats, error: categoryError } = await db.from("categories").select("id, slug, name");
+  if (categoryError) return { ok: false, error: "Không tải được danh mục. Vui lòng thử lại trước khi nhập sản phẩm." };
+  const { error: industryError } = await db.from("products").select("industry").limit(0);
+  if (industryError) return { ok: false, error: industryError.code === "42703" || industryError.code === "PGRST204"
+    ? "Chức năng Ngành hàng chưa được cập nhật trên hệ thống. Vui lòng hoàn tất cập nhật trước khi nhập Excel."
+    : "Không kiểm tra được dữ liệu sản phẩm. Vui lòng thử lại trước khi nhập Excel." };
   const catId = new Map((cats ?? []).map((c) => [c.slug, c.id]));
   const catName = new Map((cats ?? []).map((c) => [c.id, c.name]));
   const rows = markDuplicates(input.map((r) => finish({
@@ -34,6 +39,7 @@ export async function importProducts(input: ImportRow[], defaultSub: string | nu
     unit: String(r.unit ?? "").trim(), price: Number(r.price), cost: r.cost == null ? null : Number(r.cost),
     minQty: r.minQty == null ? null : Math.max(0, Math.min(100000, Number(r.minQty) || 0)),
     sub: r.sub && catId.has(r.sub) ? r.sub : defaultSub && catId.has(defaultSub) ? defaultSub : null,
+    industry: str(r.industry, 80),
     brand: str(r.brand, 60), spec: str(r.spec, 3000),
     attributes: Object.fromEntries(Object.entries(r.attributes ?? {}).slice(0, 20).map(([k, v]) => [k.slice(0, 30), String(v).slice(0, 120)])),
     warranty: str(r.warranty, 100), origin: str(r.origin, 100), location: str(r.location, 40), madeIn: str(r.madeIn, 100),
@@ -51,15 +57,16 @@ export async function importProducts(input: ImportRow[], defaultSub: string | nu
 
   // SP đã có
   type Old = {
-    id: number; sku: string; name: string; unit: string; price: number; category_id: number | null; brand_id: number | null;
+    id: number; sku: string; name: string; unit: string; price: number; category_id: number | null; industry: string | null; brand_id: number | null;
     spec_line: string | null; description: string | null; warranty: string | null; origin: string | null; made_in: string | null;
     inventory: { min_qty: number; location: string } | null;
   };
   const old = new Map<string, Old>();
   for (let i = 0; i < good.length; i += 500) {
-    const { data } = await db.from("products")
-      .select("id, sku, name, unit, price, category_id, brand_id, spec_line, description, warranty, origin, made_in, inventory(min_qty, location)")
+    const { data, error } = await db.from("products")
+      .select("id, sku, name, unit, price, category_id, industry, brand_id, spec_line, description, warranty, origin, made_in, inventory(min_qty, location)")
       .in("sku", good.slice(i, i + 500).map((r) => r.sku));
+    if (error) return { ok: false, error: "Không đọc được sản phẩm hiện có để đối chiếu. Vui lòng thử lại." };
     for (const p of (data ?? []) as unknown as Old[]) old.set(p.sku, p);
   }
   const costs = new Map<number, number | null>();
@@ -76,6 +83,7 @@ export async function importProducts(input: ImportRow[], defaultSub: string | nu
     const batch = toAdd.slice(i, i + 500);
     const { data: saved, error } = await db.from("products").insert(batch.map((r) => ({
       sku: r.sku, name: r.name, slug: r.sku.toLowerCase(), unit: r.unit, price: r.price, category_id: catId.get(r.sub!),
+      industry: r.industry,
       brand_id: r.brand ? brandId.get(r.brand) ?? null : null, spec_line: r.spec, attributes: r.attributes,
       warranty: r.warranty, origin: r.origin, made_in: r.madeIn ?? null,
       description: r.description ? sanitizeHtml(textToHtml(r.description)) : null,
@@ -104,6 +112,7 @@ export async function importProducts(input: ImportRow[], defaultSub: string | nu
     cmp("price", String(p.price), String(r.price));
     if (canCost && r.cost !== null) cmp("import_price", costs.has(p.id) && costs.get(p.id) != null ? String(costs.get(p.id)) : null, String(r.cost));
     if (r.sub) cmp("category", p.category_id ? catName.get(p.category_id) ?? null : null, catName.get(catId.get(r.sub)!) ?? null);
+    cmp("industry", p.industry, r.industry);
     cmp("brand", p.brand_id ? brandName.get(p.brand_id) ?? null : null, r.brand);
     cmp("location", p.inventory?.location ?? null, r.location);
     if (r.minQty !== null) cmp("min_qty", String(p.inventory?.min_qty ?? 0), String(r.minQty));
@@ -152,6 +161,7 @@ export async function applyChanges(ids: number[]): Promise<{ ok: boolean; applie
       else if (field === "origin") prod.origin = v.slice(0, 100);
       else if (field === "made_in") prod.made_in = v.slice(0, 100);
       else if (field === "category") prod.category_id = subByName.get(v) ?? null;
+      else if (field === "industry") prod.industry = v.slice(0, 80);
       else if (field === "brand") {
         await db.from("brands").upsert({ name: v, slug: slugify(v) }, { onConflict: "name", ignoreDuplicates: true });
         const { data: b } = await db.from("brands").select("id").eq("name", v).maybeSingle();

@@ -2,11 +2,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState, useTransition } from "react";
-import { Check, Download, FolderDown, Pencil, X } from "lucide-react";
+import { Check, Download, FolderDown, Pencil, Trash2, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Badge, OwnerOnly } from "@/components/admin/ui";
 import { ProductCell, ProductThumb, stockClass } from "@/components/admin/ProductCell";
 import { ProductDescription, ProductFacts, ProductPrice, ProductSpecs } from "@/components/admin/ProductInfo";
-import { getProductPreview, getProductPreviews } from "@/app/admin/(shell)/san-pham/actions";
+import { deleteProduct, getProductPreview, getProductPreviews } from "@/app/admin/(shell)/san-pham/actions";
 import { canPickFolder, downloadQuoteImages, pickFolder, quoteFolderName, saveQuotesToFolder } from "@/lib/quote-image";
 import type { ProductRow } from "@/lib/admin/products";
 import type { ProductPreview } from "@/lib/admin/preview";
@@ -30,8 +31,10 @@ async function openQuote(ids: number[]) {
 }
 
 export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[]; canEdit: boolean; canCost: boolean }) {
+  const router = useRouter();
   const [picked, setPicked] = useState<Set<number>>(new Set());
   const [openId, setOpenId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const close = useCallback(() => setOpenId(null), []);
   const all = items.length > 0 && items.every((p) => picked.has(p.id));
   const toggle = (id: number) => setPicked((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
@@ -40,6 +43,23 @@ export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[];
   // Nhiều SP: hiện bảng của web trước rồi mới chọn chỗ lưu thư mục; 1 SP hoặc trình duyệt không hỗ trợ → tải thẳng
   const [saveIds, setSaveIds] = useState<number[] | null>(null);
   const requestDownload = (ids: number[]) => (ids.length > 1 && canPickFolder() ? setSaveIds(ids) : openQuote(ids));
+  const removeProduct = async (id: number, name: string) => {
+    if (deletingId !== null) return;
+    const confirmed = window.confirm(`Xóa “${name}” khỏi danh sách?\n\nDữ liệu ảnh, giá nhập, tồn kho và lịch sử nhập kho gắn với sản phẩm cũng sẽ bị xóa. Sản phẩm đã có trong đơn hàng sẽ được giữ lại.`);
+    if (!confirmed) return;
+    setDeletingId(id);
+    try {
+      const result = await deleteProduct(id);
+      if (!result.ok) { window.alert(result.error ?? "Không xóa được sản phẩm."); return; }
+      setPicked((current) => { const next = new Set(current); next.delete(id); return next; });
+      if (openId === id) setOpenId(null);
+      router.refresh();
+    } catch {
+      window.alert("Không xóa được sản phẩm. Vui lòng thử lại.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <>
@@ -66,7 +86,7 @@ export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[];
           <thead className="text-left text-xs text-ink-2">
             <tr className="border-b border-line">
               <th className="w-12 px-3 py-3" />
-              {["Sản phẩm", "Danh mục", "Thương hiệu", "Giá bán", "Giá nhập", "Tồn", "Vị trí", "Trạng thái", ""].map((h) => <th key={h} className="px-3 py-3 font-semibold">{h}</th>)}
+              {["Sản phẩm", "Danh mục", "Thương hiệu", "Giá bán", "Giá nhập", "Tồn", "Vị trí", "Trạng thái", "Thao tác"].map((h) => <th key={h} className="px-3 py-3 font-semibold">{h}</th>)}
             </tr>
           </thead>
           <tbody>
@@ -81,7 +101,10 @@ export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[];
                 <td className={`num px-3 ${stockClass(p.stock, p.min)}`}>{p.stock}</td>
                 <td className="whitespace-nowrap px-3">{p.location}</td>
                 <td className="px-3"><Badge tone={p.visible ? "ok" : "neutral"}>{p.visible ? "Hiển thị" : "Ẩn"}</Badge></td>
-                <td className="px-3" onClick={stop}>{canEdit && <Link href={`/admin/san-pham/${p.id}`} aria-label={`Sửa ${p.name}`} className="grid size-11 -my-2 place-items-center rounded text-brand hover:bg-brand-tint"><Pencil className="size-4" /></Link>}</td>
+                <td className="px-3" onClick={stop}>{canEdit && <div className="flex items-center gap-1">
+                  <Link href={`/admin/san-pham/${p.id}`} aria-label={`Sửa ${p.name}`} title="Sửa" className="grid size-10 place-items-center rounded text-brand hover:bg-brand-tint"><Pencil className="size-4" /></Link>
+                  <button type="button" disabled={deletingId !== null} onClick={() => void removeProduct(p.id, p.name)} aria-label={`Xóa ${p.name}`} title="Xóa" className="inline-flex h-10 items-center gap-1 rounded px-2 text-danger hover:bg-[#fef2f2] disabled:opacity-50"><Trash2 className="size-4" aria-hidden /><span>Xóa</span></button>
+                </div>}</td>
               </tr>
             ))}
           </tbody>
@@ -102,7 +125,10 @@ export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[];
                 {!p.visible && <Badge>Ẩn</Badge>}
               </div>
             </div>
-            {canEdit && <Link onClick={stop} href={`/admin/san-pham/${p.id}`} aria-label={`Sửa ${p.name}`} className="grid size-11 shrink-0 place-items-center rounded text-brand hover:bg-brand-tint"><Pencil className="size-4" /></Link>}
+            {canEdit && <div className="flex shrink-0 flex-col gap-1" onClick={stop}>
+              <Link href={`/admin/san-pham/${p.id}`} aria-label={`Sửa ${p.name}`} className="inline-flex h-10 items-center gap-1 rounded px-2 text-sm text-brand hover:bg-brand-tint"><Pencil className="size-4" aria-hidden />Sửa</Link>
+              <button type="button" disabled={deletingId !== null} onClick={() => void removeProduct(p.id, p.name)} className="inline-flex h-10 items-center gap-1 rounded px-2 text-sm text-danger hover:bg-[#fef2f2] disabled:opacity-50"><Trash2 className="size-4" aria-hidden />Xóa</button>
+            </div>}
           </li>
         ))}
       </ul>

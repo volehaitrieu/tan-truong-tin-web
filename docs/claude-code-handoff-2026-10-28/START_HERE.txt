@@ -1,0 +1,20 @@
+Bạn tiếp quản phần code hệ thống dự án Tân Trường Tín trong repo:
+C:\Users\Hai Trieu\Documents\tan-truong-tin-web
+
+Đọc CLAUDE.md và HANDOFF.md ở root; sau đó đọc docs/claude-code-handoff-2026-10-28/README.md, PROJECT.md, CHAT_HISTORY.md, NEXT_STEPS.md, SKILLS.md. Đây là bản bàn giao mới nhất. Bản HANDOFF ngày 24-10 đã được lưu riêng để tra cứu lịch sử, không dùng các lệnh/giả định seed cũ làm chỉ dẫn hiện hành.
+
+Tôi muốn bạn đảm nhận code hệ thống. Giữ working tree chưa commit và toàn bộ dữ liệu thật. Luôn phản biện dựa bằng chứng theo commerce-content-review, nói tiếng Việt rõ ràng. Kiểm kê skill đã có; dùng gói skills-source/Install-Skills.ps1 để bổ sung skill còn thiếu sau khi đọc script, không ghi đè skill cũ hoặc tự bật hooks/quyền rộng.
+
+Trước hết đối chiếu code và trạng thái thật, báo ngắn điểm đã có/chưa xong. Ưu tiên hoàn thiện tính năng tôi đã chốt: thêm 1 sản phẩm bằng SKU nhập tay, form đầy đủ như Sửa; nhiều ảnh từ thư viện/camera Android và iPhone; ảnh đầu làm bìa, được sắp xếp/xóa. Có code nhưng Storage migration chưa apply trong phiên trước và chưa kiểm thử đầy đủ. Đọc các vấn đề cụ thể về quyền, HTTP LAN, upload/retry trong NEXT_STEPS. Kiểm tra Next docs trong node_modules trước khi sửa; chạy kiểm tra thích hợp trên môi trường an toàn, không nạp seed hoặc chạy script ghi vào DB thật một cách mù quáng.
+
+Ngành hàng lấy động từ Excel nhập lên; khác Danh mục/Danh mục con/Phân loại. Khách chỉ mới có giao diện tài khoản, chưa làm đăng nhập thật. Phần logo/thương hiệu để sau. Không xóa lại sản phẩm, không nhập lại Excel quạt đã nhập thành công. Không tự deploy hoặc sửa hàng loạt production ngoài phạm vi rõ ràng.
+
+Nếu phân công công cụ/agent khác: khảo sát chỉ đọc trước, một người sửa mỗi nhóm file, review độc lập sau, tích hợp tuần tự và báo bằng chứng. Không khẳng định công cụ đã làm việc nếu chưa thực sự giao được.
+
+KIỂM TRA ĐỦ HỒ SƠ TRƯỚC KHI CODE
+1. Nếu nhận ZIP: giải nén và đọc README.md ngay trong thư mục bàn giao. ZIP chỉ chứa tài liệu/skills, không phải toàn bộ repo. Nếu chưa truy cập được repo, báo thiếu mã nguồn, không suy đoán đã kiểm tra hoặc sửa được hệ thống.
+2. Đọc toàn bộ PROJECT.md, CHAT_HISTORY.md, NEXT_STEPS.md, SKILLS.md; đối chiếu GIT_STATUS.txt, GIT_HISTORY.txt, SOURCE_MAP.txt, SKILL_PROVENANCE.json và FILE_MANIFEST.csv. Tài liệu dài phải đọc tiếp đến hết, không chỉ đoạn đầu bị cắt.
+3. Đọc CLAUDE.md, HANDOFF.md, AGENTS.md và tài liệu được dẫn chiếu trong repo thực tế. HANDOFF-current.md trong ZIP là bản sao bàn giao hiện hành; HANDOFF-2026-10-24-original.md chỉ để tra cứu lịch sử. Đường dẫn tương đối của bản sao có thể cần mở từ repo gốc.
+4. Trước khi sửa, trình bày bảng ngắn: yêu cầu đã chốt; bằng chứng trong code; phần chưa xác minh; bước tiếp theo. Nêu rõ các yêu cầu cũ đã bị thay thế và thông tin còn thiếu. Không đánh dấu hoàn thành chỉ vì tài liệu nói đã có code.
+5. Kiểm tra git status/diff hiện tại so với bản chụp bàn giao, vì chủ shop hoặc công cụ khác có thể đã sửa tiếp. Không ghi đè thay đổi mới. Không in secrets, không đưa dữ liệu khách hàng hoặc giá nhập vào báo cáo công khai.
+6. Hoàn thiện theo NEXT_STEPS, ghi kết quả kiểm tra thực tế và cập nhật hồ sơ. Chỉ hỏi những điểm thực sự thiếu hoặc có xung đột; không hỏi lại các yêu cầu đã chốt. Nếu thiếu file, tool hoặc quyền, chỉ rõ thiếu gì, tác động gì và tiếp tục phần độc lập có thể làm.

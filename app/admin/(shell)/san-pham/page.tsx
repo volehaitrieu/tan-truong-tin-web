@@ -30,7 +30,10 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   };
   return (
     <>
-      <PageHeader title="Sản phẩm" sub={`${formatNum(list.total)} sản phẩm`} actions={staff.perms.has("import_excel") ? <ButtonLink href="/admin/nhap-excel" variant="secondary">Nhập Excel</ButtonLink> : undefined} />
+      <PageHeader title="Sản phẩm" sub={`${formatNum(list.total)} sản phẩm`} actions={<div className="flex gap-2">
+        {canEdit && <ButtonLink href="/admin/san-pham/them">Thêm sản phẩm</ButtonLink>}
+        {staff.perms.has("import_excel") && <ButtonLink href="/admin/nhap-excel" variant="secondary">Nhập Excel</ButtonLink>}
+      </div>} />
       <ProductFilters categories={categories} brands={brands} init={sp} />
 
       <div className="overflow-hidden rounded-lg border border-line bg-white">

@@ -8,7 +8,7 @@ const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  `img-src 'self' data: blob: ${process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""}`,
   "font-src 'self' data:",
   `connect-src 'self' ${process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""}${isDev ? " ws:" : ""}`,
   "frame-ancestors 'none'",
@@ -17,19 +17,27 @@ const csp = [
   "object-src 'none'",
 ].join("; ");
 
+// next/image chỉ tải ảnh ngoài đã khai báo: chỉ cho phép thư mục ảnh sản phẩm công khai trên Supabase của shop.
+const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname : null;
+
 const securityHeaders = [
   { key: "Content-Security-Policy", value: csp },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
 ];
 
 const nextConfig: NextConfig = {
   devIndicators: false,
   poweredByHeader: false,
   // Cho phép mở bản chạy thử từ điện thoại cùng mạng Wi-Fi
-  allowedDevOrigins: ["192.168.5.122"],
+  allowedDevOrigins: ["192.168.5.122", "192.168.1.64"],
+  images: {
+    remotePatterns: supabaseHost
+      ? [{ protocol: "https", hostname: supabaseHost, port: "", pathname: "/storage/v1/object/public/product-images/**", search: "" }]
+      : [],
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

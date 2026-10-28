@@ -51,3 +51,12 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# Không đưa lên GitHub: Excel có thể chứa giá nhập, gói ZIP không quét được bên trong, nhật ký chạy thử, bản dump dữ liệu.
+*.xlsx
+*.xls
+*.xlsm
+exports/
+*.log
+*.dump
+*.backup

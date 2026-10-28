@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Clock3, House, MapPin, MessageCircle, Phone, ReceiptText, ShoppingCart } from "lucide-react";
+import { House, MapPin, MessageCircle, Phone, ReceiptText, ShoppingCart, UserRound } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { StoreSearch } from "@/components/storefront/StoreSearch";
 import { CartCount } from "@/components/storefront/CartControls";
@@ -21,16 +21,8 @@ export async function StoreShell({ children }: { children: ReactNode }) {
   const categories = await getCategories();
   return (
     <div className="store flex min-h-screen flex-col pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0">
-      <div className="bg-brand-tint text-[13px] text-ink-2">
-        <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-x-5 gap-y-1 px-4 py-2">
-          <span className="flex items-center gap-1.5"><MapPin className="size-3.5 shrink-0 text-brand" aria-hidden />{SHOP.address}</span>
-          <span className="flex items-center gap-1.5"><Clock3 className="size-3.5 shrink-0 text-brand" aria-hidden />{SHOP.hours} hằng ngày</span>
-          <a className="hidden items-center gap-1.5 font-semibold text-brand sm:flex" href="tel:0948732064"><Phone className="size-3.5" aria-hidden />Hotline {SHOP.phone}</a>
-        </div>
-      </div>
-
       <header className="sticky top-0 z-30 border-b border-line bg-white">
-        <div className="mx-auto flex max-w-[1240px] items-center gap-3 px-4 py-2.5 sm:gap-5">
+        <div className="mx-auto flex max-w-[1240px] items-center gap-3 px-4 py-3 sm:gap-6">
           <Link href="/" className="shrink-0" aria-label="Tân Trường Tín — Trang chủ">
             <Logo size={40} subtitle={SHOP.tagline} subtitleClassName="hidden lg:block" />
           </Link>
@@ -38,7 +30,10 @@ export async function StoreShell({ children }: { children: ReactNode }) {
           <Link href="/tra-cuu" className="ml-auto hidden min-h-11 items-center gap-1.5 text-sm font-medium text-brand hover:underline sm:ml-0 md:flex">
             <ReceiptText className="size-4" aria-hidden />Tra cứu đơn
           </Link>
-          <Link href="/gio-hang" aria-label="Giỏ hàng" className="relative ml-auto grid size-11 shrink-0 place-items-center rounded-md bg-brand-tint text-brand hover:bg-[#d3eadc] sm:ml-0">
+          <Link href="/tai-khoan" aria-label="Tài khoản" title="Tài khoản" className="flex min-h-11 items-center gap-1.5 rounded-md px-2 text-sm font-medium text-brand hover:bg-brand-tint">
+            <UserRound className="size-5" aria-hidden /><span className="hidden md:inline">Tài khoản</span>
+          </Link>
+          <Link href="/gio-hang" aria-label="Giỏ hàng" className="relative grid size-11 shrink-0 place-items-center rounded-md bg-brand-tint text-brand hover:bg-brand-hover">
             <ShoppingCart className="size-5" aria-hidden />
             <CartCount />
           </Link>

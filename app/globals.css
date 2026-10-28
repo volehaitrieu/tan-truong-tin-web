@@ -1,3 +1,7 @@
+/* Hallmark v2.0.0 · desktop storefront redesign · specimen-catalogue adapted to the approved Tân Trường Tín system. */
+/* Critique: the baseline is legible but flat; keep its real content and sequence while clarifying surfaces, hierarchy and interaction states. */
+/* Hallmark · dropped /tim-kiem?query=, setSort, setMoreBrands, setPicked, setShown · brand links now filter directly; filter, sort and paging state now follow the URL */
+/* Hallmark · reworded "Tân Trường Tín — điện nước, kim khí, dụng cụ, quạt, gia dụng tại Nha Trang" to "Tân Trường Tín: điện nước, kim khí, dụng cụ, quạt, gia dụng tại Nha Trang" · punctuation-only edit to remove a Hallmark copy finding */
 @import "tailwindcss";
 
 /* Bộ màu Tân Trường Tín — docs/DESIGN.md. Chỉ giao diện sáng. */
@@ -17,6 +21,11 @@
   --color-danger: #b3261e;
   --color-ok: #1b7a47;
   --color-ask: #b7791f;
+  --color-brand-hover: #d3eadc;
+  --color-brand-line: #b7d4c1;
+  --color-brand-selection: #cde6d6;
+  --color-gold-hover: #e0aa04;
+  --color-danger-tint: #fef2f2;
 
   --font-sans: var(--font-be-vietnam), system-ui, "Segoe UI", Roboto, Arial, sans-serif;
 
@@ -26,24 +35,36 @@
 
 html {
   color-scheme: light;
+  overflow-x: clip;
 }
 
 body {
   background: var(--color-ground);
   color: var(--color-ink);
   font-family: var(--font-sans);
+  overflow-x: clip;
 }
 
 /* A consistent, quiet icon language across storefront and admin. */
 svg.lucide { stroke-width: 1.75; }
 
-::selection { background: #cde6d6; color: #08482f; }
+::selection { background: var(--color-brand-selection); color: var(--color-brand-deep); }
 
 /* Hiệu ứng nhẹ: ≤200ms (quy tắc dự án) */
 .product-card { transition: border-color 180ms ease, transform 180ms ease; }
-.product-card:hover { border-color: #b7d4c1; transform: translateY(-2px); }
+.product-card:hover { border-color: var(--color-brand-line); transform: translateY(-2px); }
 .product-art { transition: transform 200ms ease; }
 .product-card:hover .product-art { transform: scale(1.03); }
+
+@keyframes brand-marquee {
+  to { transform: translateX(calc(-33.333333% - 4px)); }
+}
+.brand-marquee-track { animation: brand-marquee 36s linear infinite; }
+.brand-marquee:hover .brand-marquee-track,
+.brand-marquee:focus-within .brand-marquee-track { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .brand-marquee-copy { display: none; }
+}
 
 input, textarea, select, button, a { -webkit-tap-highlight-color: transparent; }
 
@@ -56,7 +77,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-brand); 
 
 :focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-brand);
+  box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-brand);
   border-radius: var(--radius-ctl);
 }
 /* Trang bán hàng: viền focus vàng 3px */

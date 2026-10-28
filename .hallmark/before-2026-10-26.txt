@@ -1,0 +1,65 @@
+components\admin\Sidebar.tsx
+  FAIL 10a :27 transition-all on <Link class="group relative flex h-10 items-…"> | fix: Name the properties: transition-colors, transition-opacity or transition-transform
+app\(store)\bao-gia\page.tsx
+  FAIL 19 :13 dash "—" in copy | fix: A comma, a colon, a full stop or parentheses; never a dash
+app\(store)\page.tsx
+  FAIL 19 :27 dash "—" in copy
+  WARN 58 :27 h1 runs 15 words ("Tân Trường Tín điện nước, kim khí, dụng…") | fix: Seven words or fewer, 50 characters or fewer
+app\admin\(shell)\ban-tai-quay\PosClient.tsx
+  FAIL 19 :88 dash "—" in copy
+app\admin\(shell)\cai-dat\SettingsForm.tsx
+  FAIL 19 :40 dash "—" in copy
+app\admin\(shell)\don-hang\[ma]\page.tsx
+  FAIL 19 :34 dash "—" in copy
+app\admin\(shell)\nhan-vien\StaffClient.tsx
+  FAIL 19 :25 dash "—" in copy
+  FAIL 48 :45 colour literal bg-[#ecfdf5] in a class on <span class="rounded-full px-2.5 py-0.5 text…"> | fix: Lift the value into the token block (@theme or :root) and use its utility name
+app\admin\(shell)\nhap-excel\ImportClient.tsx
+  FAIL 19 :114 dash "—" in copy
+  FAIL 48 :106 colour literal bg-[#fef2f2] in a class on <p class="mt-3 rounded bg-[#fef2f2] p-3 t…">
+  FAIL 48 :121 colour literal hover:bg-[#fef2f2] in a class on <button class="inline-flex min-h-11 items-cent…">
+  FAIL 48 :134 colour literal bg-[#fef2f2] in a class on <tr class="border-t border-line bg-[#fef2f…">
+  FAIL 63 :110 middle-dot meta string "Mẫu: · dòng · dòng sẽ nhập · dòng lỗi (bỏ qua) · …" | fix: Line breaks, columns or hairlines; one dot in a byline at most
+  WARN 49 :121 long clickable label "Xuất file sản phẩm lỗi ( )" without nowrap | fix: Shorten the label or set nowrap
+app\admin\(shell)\nhap-excel\ReviewTable.tsx
+  FAIL 19 :33 dash "–" in copy
+  FAIL 48 :51 colour literal bg-[#fef2f2] in a class on <p class="mx-4 mt-3 rounded p-3 text-sm b…">
+components\admin\ProductFilters.tsx
+  FAIL 19 :54 dash "–" in copy
+components\admin\ProductForm.tsx
+  FAIL 19 :57 dash "—" in copy
+app\globals.css
+  FAIL 20 :1 no Hallmark stamp on the first non-empty line of any CSS | fix: The stamp comment is line 1 of the CSS; only @charset may precede it
+  FAIL 34 :1 no overflow-x: clip on html and body | fix: overflow-x: clip on both html and body
+  FAIL 48 :40 colour literal #cde6d6 outside tokens (background on ::selection) | fix: Lift the value into the token block
+  FAIL 48 :40 colour literal #08482f outside tokens (color on ::selection)
+  FAIL 48 :44 colour literal #b7d4c1 outside tokens (border-color on .product-card:hover)
+  FAIL 48 :59 colour literal #fff outside tokens (box-shadow on :focus-visible)
+  REFLEX 7b :12 pure #fff: --color-surface: #ffffff (@theme) | fix: Tint the base toward the anchor hue
+app\admin\(shell)\khuyen-mai\PromoClient.tsx
+  FAIL 48 :40 colour literal bg-[#fef2f2] in a class on <span class="rounded-full bg-[#fef2f2] px-2.…">
+app\admin\(shell)\kiem-kho\CountClient.tsx
+  FAIL 48 :117 colour literal bg-[#fef2f2] in a class on <p class="mb-3 rounded bg-[#fef2f2] p-3 t…">
+components\admin\MobileTabBar.tsx
+  FAIL 48 :24 colour literal shadow-[0_-8px_24px_rgba(8,72,47,0.15)] in a class on <div class="absolute inset-x-0 bottom-0 rou…">
+components\admin\ProductTable.tsx
+  FAIL 48 :249 colour literal bg-[#fef2f2] in a class on <p class="mt-4 rounded-md p-3 text-sm bg-…">
+components\admin\orders\OrderActions.tsx
+  FAIL 48 :39 colour literal bg-[#fef2f2] in a class on <span class="flex flex-wrap items-center gap…">
+components\admin\ui.tsx
+  FAIL 48 :46 colour literal hover:border-[#d3e4d8] in a class on <section class="overflow-hidden rounded-xl bord…">
+components\storefront\CartControls.tsx
+  FAIL 48 :109 colour literal hover:bg-[#e0aa04] in a class on <button class="mt-3 h-11 w-full rounded-md tex…">
+components\storefront\CheckoutForm.tsx
+  FAIL 48 :195 colour literal bg-[#fef2f2] in a class on <p class="mt-3 rounded-md bg-[#fef2f2] p-…">
+components\storefront\OrderLookup.tsx
+  FAIL 48 :55 colour literal bg-[#fef2f2] in a class on <p class="rounded-md bg-[#fef2f2] p-3 tex…">
+  FAIL 67 :38 uppercase at 14px on <input class="num border-line uppercase"> | fix: Sentence case in the body face, a step smaller, untracked: drop uppercase and the tracking-* class
+components\storefront\StoreShell.tsx
+  FAIL 48 :41 colour literal hover:bg-[#d3eadc] in a class on <Link class="relative ml-auto grid size-11 s…">
+app\admin\(shell)\san-pham\page.tsx
+  FAIL 63 :45 arrow glued to the label "Sau ›" (<Link>) | fix: A verb as the label; the link already says it goes somewhere
+components\admin\ProductInfo.tsx
+  FAIL 67 :34 "Thông số" uppercase at 12px on <h3 class="mb-1.5 text-xs font-bold upperc…">
+  FAIL 67 :54 "Mô tả" uppercase at 12px on <h3 class="mb-1.5 text-xs font-bold upperc…">
+sloplint: 37 FAIL, 1 REFLEX, 2 WARN across 77 file(s).
