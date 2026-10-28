@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
-import { Minus, Plus, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Minus, Plus, Search, X } from "lucide-react";
+import { normalize } from "@/lib/mock/store";
 import { Badge } from "@/components/admin/ui";
 import { ProductCell, stockClass } from "@/components/admin/ProductCell";
 import { adjustStock } from "@/app/admin/(shell)/ton-kho/actions";
@@ -21,6 +22,16 @@ export function StockScreen({ rows, history, canAdjust }: { rows: StockRow[]; hi
   const [note, setNote] = useState("");
   const [delta, setDelta] = useState(0);
   const [reason, setReason] = useState(REASONS[0]);
+  // Lọc ngay khi gõ (danh sách đã tải sẵn): không dấu vẫn khớp, nhiều từ thì phải khớp đủ các từ.
+  const [query, setQuery] = useState("");
+  const shown = useMemo(() => {
+    const words = normalize(query).split(/\s+/).filter(Boolean);
+    if (!words.length) return rows;
+    return rows.filter((p) => {
+      const text = normalize(`${p.name} ${p.sku} ${p.cat}`);
+      return words.every((w) => text.includes(w));
+    });
+  }, [rows, query]);
   const open = (row: StockRow) => {
     setEditing(row);
     setDelta(0);
@@ -40,14 +51,26 @@ export function StockScreen({ rows, history, canAdjust }: { rows: StockRow[]; hi
       </div>
       {!canAdjust && <p className="mb-3 text-sm text-ink-2">Bạn chỉ có quyền xem.</p>}
 
+      {tab === "ton" && (
+        <div className="mb-3">
+          <label className="flex h-11 items-center gap-2 rounded-lg border border-line bg-white px-3 focus-within:border-brand">
+            <Search className="size-4 shrink-0 text-ink-2" aria-hidden />
+            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Tìm tên, mã hàng, danh mục…" aria-label="Tìm sản phẩm trong tồn kho" enterKeyHint="search" className="h-full min-w-0 flex-1 border-0 bg-transparent text-[15px] outline-none focus-visible:shadow-none! [&::-webkit-search-cancel-button]:appearance-none" />
+            {query && <button type="button" onClick={() => setQuery("")} aria-label="Xóa tìm kiếm" className="grid size-8 shrink-0 place-items-center rounded-full text-ink-2 hover:bg-sunk"><X className="size-4" /></button>}
+          </label>
+          {query && <p className="mt-2 text-sm text-ink-2" role="status">Tìm thấy <b className="num text-ink">{shown.length}</b> / {rows.length} sản phẩm</p>}
+        </div>
+      )}
+
       {tab === "ton" ? (
+        shown.length === 0 ? <p className="rounded-lg border border-line bg-white p-6 text-center text-sm text-ink-2">Không có sản phẩm nào khớp “{query}”.</p> :
         <div className="overflow-hidden rounded-lg border border-line bg-white">
           <table className="hidden w-full text-sm md:table">
             <thead className="bg-ground text-left text-xs text-ink-2">
               <tr>{["Sản phẩm", "Danh mục", "Tồn hiện có", "Tồn tối thiểu", "Trạng thái", ""].map((x) => <th key={x} className="px-3 py-3 font-semibold">{x}</th>)}</tr>
             </thead>
             <tbody>
-              {rows.map((p) => (
+              {shown.map((p) => (
                 <tr key={p.sku} className="h-14 border-t border-line">
                   <td className="px-3 py-2"><ProductCell name={p.name} sku={p.sku} image={p.image} /></td>
                   <td className="px-3">{p.cat}</td>
@@ -62,7 +85,7 @@ export function StockScreen({ rows, history, canAdjust }: { rows: StockRow[]; hi
             </tbody>
           </table>
           <ul className="divide-y divide-line md:hidden">
-            {rows.map((p) => (
+            {shown.map((p) => (
               <li key={p.sku} className="flex items-center gap-3 p-3">
                 <div className="min-w-0 flex-1">
                   <ProductCell name={p.name} sku={p.sku} image={p.image} className="text-sm" />

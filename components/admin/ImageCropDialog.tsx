@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type WheelEvent } from "react";
-import { createPortal } from "react-dom";
 import { MAX_IMAGE_EDGE, drawOnWhite, encodeCanvas, renamed } from "@/lib/image-encode";
 
 // Khung vuông 1:1 (đúng khung ảnh sản phẩm trong docs/DESIGN.md): kéo để đặt sản phẩm vào giữa, phóng to bằng
@@ -15,6 +14,7 @@ export function ImageCropDialog({ file, preview, onApply, onKeep, onDiscard }: {
 }) {
   const frameRef = useRef<HTMLDivElement>(null);
   const applyRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const [frame, setFrame] = useState(0);
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
   // null = chưa chỉnh: ảnh nằm giữa khung, tính lúc vẽ nên khung đổi cỡ vẫn đúng tâm.
@@ -33,7 +33,15 @@ export function ImageCropDialog({ file, preview, onApply, onKeep, onDiscard }: {
     return () => ro.disconnect();
   }, []);
 
-  useEffect(() => { applyRef.current?.focus(); }, []);
+  // Mở dạng modal + khóa cuộn trang nền (con lăn chuột để phóng to không cuộn biểu mẫu phía sau).
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    dialog?.showModal();
+    applyRef.current?.focus();
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previous; dialog?.close(); };
+  }, []);
 
   // Tỉ lệ "phủ kín": cạnh ngắn của ảnh vừa bằng cạnh khung khi zoom = 1.
   const base = natural && frame ? frame / Math.min(natural.w, natural.h) : 0;
@@ -118,10 +126,11 @@ export function ImageCropDialog({ file, preview, onApply, onKeep, onDiscard }: {
 
   const size = natural && base ? { width: natural.w * base * crop.zoom, height: natural.h * base * crop.zoom } : undefined;
 
-  // Gắn thẳng vào body: vùng nội dung quản trị tạo lớp xếp chồng riêng, z-index bên trong bị thanh điều hướng đáy đè lên.
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/50 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="crop-title" onKeyDown={(e) => { if (e.key === "Escape") onKeep(); }}>
-      <div className="w-full max-w-md rounded-t-xl bg-white p-4 shadow-xl sm:rounded-xl">
+  // Thẻ <dialog> mở bằng showModal(): trình duyệt tự giữ tiêu điểm bên trong, Esc để đóng, nằm trên mọi lớp
+  // (thanh điều hướng đáy không đè lên được), nên không cần portal hay z-index.
+  return (
+    <dialog ref={dialogRef} aria-labelledby="crop-title" onCancel={(e) => { e.preventDefault(); onKeep(); }} className="m-auto w-[calc(100%-1.5rem)] max-w-md rounded-xl bg-transparent p-0 backdrop:bg-ink/50">
+      <div className="w-full rounded-xl bg-white p-4 shadow-xl">
         <h2 id="crop-title" className="text-base font-semibold">Chỉnh khung ảnh</h2>
         <p className="mt-1 text-xs text-ink-2">Kéo ảnh để đặt sản phẩm vào giữa khung vuông. Phóng to bằng thanh trượt, hai ngón tay hoặc con lăn chuột.</p>
         <div
@@ -154,7 +163,6 @@ export function ImageCropDialog({ file, preview, onApply, onKeep, onDiscard }: {
           <button ref={applyRef} type="button" onClick={() => void apply()} disabled={!natural || busy} className="rounded bg-brand px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">{busy ? "Đang cắt…" : "Dùng khung này"}</button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </dialog>
   );
 }

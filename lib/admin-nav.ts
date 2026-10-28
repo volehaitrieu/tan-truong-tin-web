@@ -37,7 +37,8 @@ export const ADMIN_NAV: NavItem[] = [
 ];
 
 // 4 tab đầu trên thanh đáy điện thoại; còn lại nằm trong "Thêm".
-export const MOBILE_TABS = ["/admin", "/admin/don-hang", "/admin/ban-tai-quay", "/admin/san-pham"];
+// 4 tab chính ở thanh đáy điện thoại, đúng thứ tự hiển thị; các mục khác (kể cả Bán tại quầy) nằm trong "Thêm".
+export const MOBILE_TABS = ["/admin", "/admin/don-hang", "/admin/san-pham", "/admin/ton-kho"];
 
 // Các mục menu người này được thấy
 export function visibleNav(perms: readonly Permission[]) {

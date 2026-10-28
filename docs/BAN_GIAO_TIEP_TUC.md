@@ -51,11 +51,19 @@ Web bán hàng + trang quản trị kho/đơn cho cửa hàng điện nước, k
 ### Ngành hàng (AI-002) — Codex làm
 - Cột `products.industry`, nhập từ Excel; thẻ Ngành hàng lấy theo dữ liệu đã nhập. Ngành khởi đầu: Quạt, Ấm siêu tốc. Xem `AI_TASK_BOARD.md` dòng AI-002.
 
+### Đã làm thêm 28–29/10 (sau lần bàn giao đầu)
+- Danh sách SP điện thoại: giữ yên 0,6s để chọn, chạm để chọn thêm, thanh dính đáy "Hủy · Tải N ảnh" (`components/admin/useProductSelection.ts`). Desktop giữ ô tick.
+- Lọc ngay khi gõ cho mọi ô tìm (`lib/use-url-params.ts`, `components/LiveSearchField.tsx`): Sản phẩm, Đơn hàng, trang Tìm kiếm web bán hàng; Tồn kho có ô tìm mới. Ô "Tìm nhanh" đầu trang quản trị: Enter → trang Sản phẩm.
+- Thanh đáy quản trị điện thoại: Tổng quan · Đơn hàng · Sản phẩm · Tồn kho · Thêm.
+- Sửa: tên tệp ảnh trên http://IP-LAN (không có crypto.randomUUID) giờ đúng dạng UUID; ảnh báo giá vẽ ảnh Supabase cần `crossOrigin` (trước báo "Không tạo được ảnh"); xóa sản phẩm dùng hộp xác nhận riêng (trình duyệt nhúng chặn `window.confirm`); khung chỉnh ảnh là `<dialog>` modal + khóa cuộn nền.
+- **Vercel:** dự án `trieuvolehai-2530/tan-truong-tin-web`, deploy **bằng tay qua `vercel` CLI** (không tự deploy từ GitHub). Có đủ 3 biến môi trường mã cần. `robots.txt` đang chặn mọi công cụ tìm kiếm.
+- **Quyền nhân viên:** `order_staff` (bán quầy, xử lý đơn), `stock_staff` (kiểm kho, xem giá nhập) — **chưa vai trò nhân viên nào có `edit_products`**, nên nhân viên chưa sửa SP/tải ảnh được cho tới khi chủ shop cấp quyền.
+
 ## 5. Việc còn dở — làm tiếp theo thứ tự
 
-1. **Chủ shop sẽ báo thêm lỗi** sau khi thử ảnh — hỏi chủ shop trước tiên.
-2. **Nút xóa sản phẩm không chạy trong trình duyệt nhúng** — `components/admin/ProductTable.tsx:48` vẫn dùng `window.confirm`. Sửa giống nút xóa ảnh (state `confirmingId`).
-3. **Khung chỉnh ảnh chưa giữ tiêu điểm bàn phím** — `components/admin/ImageCropDialog.tsx`: đổi `div` + `createPortal` sang thẻ `<dialog>` mở bằng `showModal()`. Thêm khóa cuộn trang nền khi mở (con lăn chuột đang cuộn trang phía sau).
+1. **Chủ shop sẽ báo thêm lỗi** sau khi thử — hỏi chủ shop trước tiên.
+2. (Đã xong 29/10) ~~Nút xóa sản phẩm~~, ~~khung chỉnh ảnh giữ tiêu điểm~~.
+3. Xóa các ảnh thử (ảnh chụp màn hình game/mạng xã hội) khỏi SP 361 và 366 trước khi cho khách xem.
 4. **Thử nén ảnh trên điện thoại thật** (Android, iPhone; ảnh HEIC, ảnh chụp dọc). Ảnh PNG 2,1 MB của SP 366 có thể xóa rồi tải lại.
 5. **Lịch sử migration lệch** giữa Supabase và repo: trên Supabase `product_industry`=`20261027133325`, `product_image_storage`=`20261028121846`, `fix_product_image_insert_policy`=`20261028124745`; tệp repo mang số khác, và `inventory_column_privileges` có trên Supabase mà repo không có. Phải dọn trước khi ai đó chạy `supabase db push`.
 6. **Chủ shop cần quyết:** bộ lọc giá trên trang chủ có lưu vào URL không (hiện chỉ lưu trong trang).

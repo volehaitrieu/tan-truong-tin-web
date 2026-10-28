@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Search } from "lucide-react";
 import { Badge, PageHeader } from "@/components/admin/ui";
+import { LiveSearchField } from "@/components/LiveSearchField";
 import { requireStaff } from "@/lib/auth";
 import { DELIVERY_LABEL, STATUS_LABEL, STATUS_TONE, countByStatus, fmtTime, listOrders, type OrderStatus } from "@/lib/admin/orders";
 import { formatVnd } from "@/lib/shop";
@@ -20,15 +20,9 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/don
   return (
     <>
       <PageHeader title="Đơn hàng" sub={`${orders.length} đơn${status ? " · " + STATUS_LABEL[status as OrderStatus] : ""}`} />
-      <form className="mb-3 flex gap-2" action="/admin/don-hang">
-        {status && <input type="hidden" name="trang_thai" value={status} />}
-        <label className="relative flex-1">
-          <span className="sr-only">Tìm đơn</span>
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-2" aria-hidden />
-          <input name="q" defaultValue={q} maxLength={40} placeholder="Tìm mã đơn, tên hoặc số điện thoại…" className="h-11 w-full rounded border border-line bg-white pl-9 pr-3 text-sm" />
-        </label>
-        <button className="h-11 rounded bg-brand px-4 text-sm font-semibold text-white">Tìm</button>
-      </form>
+      {/* Lọc ngay khi gõ; giữ nguyên tab trạng thái đang chọn */}
+      <LiveSearchField param="q" initial={q} maxLength={40} label="Tìm đơn" placeholder="Tìm mã đơn, tên hoặc số điện thoại…"
+        className="mb-3" inputClassName="h-11 rounded border border-line bg-white text-sm outline-none focus:border-brand" />
       <nav aria-label="Lọc theo trạng thái" className="mb-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
         {tabs.map(([id, label]) => (
           <Link key={id} href={href(id)} aria-current={status === id ? "page" : undefined}

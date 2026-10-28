@@ -26,6 +26,9 @@ function lines(ctx: CanvasRenderingContext2D, text: string, maxW: number): strin
 
 const loadImage = (src: string) => new Promise<HTMLImageElement | null>((ok) => {
   const img = new Image();
+  // Ảnh từ kho Supabase là tên miền khác: thiếu crossOrigin thì canvas bị "bẩn" và toBlob ném lỗi bảo mật.
+  // Supabase trả Access-Control-Allow-Origin: *, ảnh nội bộ "/..." cũng không bị ảnh hưởng.
+  img.crossOrigin = "anonymous";
   img.onload = () => ok(img);
   img.onerror = () => ok(null);
   img.src = src;

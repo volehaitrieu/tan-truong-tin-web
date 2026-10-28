@@ -16,10 +16,14 @@ const acceptedTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/h
 
 // crypto.randomUUID chỉ có trong secure context (HTTPS/localhost); điện thoại mở qua http://IP-LAN thì không có.
 // getRandomValues dùng được ở mọi origin và vẫn là nguồn ngẫu nhiên an toàn.
+// Phải ra đúng dạng UUID 8-4-4-4-12 vì máy chủ (registerProductImage) chỉ nhận tên tệp dạng đó.
 function randomId() {
   if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
   const bytes = crypto.getRandomValues(new Uint8Array(16));
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  bytes[6] = (bytes[6] & 0x0f) | 0x40; // UUID phiên bản 4
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
 // Mọi ảnh đều thu nhỏ còn cạnh dài 1600px và nén WebP/JPEG (ảnh điện thoại 3-5 MB → vài trăm KB).

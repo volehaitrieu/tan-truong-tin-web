@@ -12,6 +12,7 @@ import { canPickFolder, downloadQuoteImages, pickFolder, quoteFolderName, saveQu
 import type { ProductRow } from "@/lib/admin/products";
 import type { ProductPreview } from "@/lib/admin/preview";
 import { formatVnd } from "@/lib/shop";
+import { SELECTION_KEEP_ATTR, useProductSelection } from "@/components/admin/useProductSelection";
 
 // Danh sách SP: bấm dòng → khung chi tiết; tick nhiều SP → tải ảnh báo giá PNG.
 const box = "size-5 shrink-0 cursor-pointer accent-[var(--color-brand)]";
@@ -32,26 +33,27 @@ async function openQuote(ids: number[]) {
 
 export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[]; canEdit: boolean; canCost: boolean }) {
   const router = useRouter();
-  const [picked, setPicked] = useState<Set<number>>(new Set());
   const [openId, setOpenId] = useState<number | null>(null);
+  // Điện thoại: giữ yên dòng để chọn; desktop: ô tick. Cả hai dùng chung một danh sách đã chọn.
+  const { picked, toggle, clear, remove, setMany, rowProps } = useProductSelection(setOpenId);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const close = useCallback(() => setOpenId(null), []);
   const all = items.length > 0 && items.every((p) => picked.has(p.id));
-  const toggle = (id: number) => setPicked((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
-  const toggleAll = () => setPicked((s) => { const n = new Set(s); for (const p of items) if (all) n.delete(p.id); else n.add(p.id); return n; });
+  const toggleAll = () => setMany(items.map((p) => p.id), !all);
   const stop = (e: React.SyntheticEvent) => e.stopPropagation();
   // Nhiều SP: hiện bảng của web trước rồi mới chọn chỗ lưu thư mục; 1 SP hoặc trình duyệt không hỗ trợ → tải thẳng
   const [saveIds, setSaveIds] = useState<number[] | null>(null);
   const requestDownload = (ids: number[]) => (ids.length > 1 && canPickFolder() ? setSaveIds(ids) : openQuote(ids));
-  const removeProduct = async (id: number, name: string) => {
-    if (deletingId !== null) return;
-    const confirmed = window.confirm(`Xóa “${name}” khỏi danh sách?\n\nDữ liệu ảnh, giá nhập, tồn kho và lịch sử nhập kho gắn với sản phẩm cũng sẽ bị xóa. Sản phẩm đã có trong đơn hàng sẽ được giữ lại.`);
-    if (!confirmed) return;
+  // Hỏi xác nhận bằng khung riêng: trình duyệt nhúng (khung xem của ứng dụng) chặn window.confirm, trả về "Hủy" ngay.
+  const [confirmDelete, setConfirmDelete] = useState<{ id: number; name: string } | null>(null);
+  const removeProduct = (id: number, name: string) => { if (deletingId === null) setConfirmDelete({ id, name }); };
+  const doRemove = async (id: number) => {
+    setConfirmDelete(null);
     setDeletingId(id);
     try {
       const result = await deleteProduct(id);
       if (!result.ok) { window.alert(result.error ?? "Không xóa được sản phẩm."); return; }
-      setPicked((current) => { const next = new Set(current); next.delete(id); return next; });
+      remove(id);
       if (openId === id) setOpenId(null);
       router.refresh();
     } catch {
@@ -64,8 +66,21 @@ export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[];
   return (
     <>
       {saveIds && <SaveFolderDialog ids={saveIds} onClose={() => setSaveIds(null)} />}
-      {/* Thanh chọn: luôn gọn một hàng; nút tải chỉ hiện khi đã chọn */}
-      <div className="flex min-h-12 items-center gap-3 border-b border-line bg-ground px-3 py-1.5">
+      {confirmDelete && (
+        <div {...{ [SELECTION_KEEP_ATTR]: "" }} className="fixed inset-0 z-[80] grid place-items-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="xoa-sp-tieu-de" aria-describedby="xoa-sp-mo-ta">
+          <button type="button" aria-label="Đóng" onClick={() => setConfirmDelete(null)} className="absolute inset-0 bg-ink/40" />
+          <div className="relative w-full max-w-sm rounded-lg bg-white p-5 shadow-xl">
+            <h2 id="xoa-sp-tieu-de" className="font-semibold">Xóa “{confirmDelete.name}”?</h2>
+            <p id="xoa-sp-mo-ta" className="mt-2 text-sm text-ink-2">Dữ liệu ảnh, giá nhập, tồn kho và lịch sử nhập kho gắn với sản phẩm cũng sẽ bị xóa. Sản phẩm đã có trong đơn hàng sẽ được giữ lại.</p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button type="button" autoFocus onClick={() => setConfirmDelete(null)} className="h-10 rounded border border-line px-4 text-sm font-medium">Hủy</button>
+              <button type="button" onClick={() => void doRemove(confirmDelete.id)} className="h-10 rounded bg-danger px-4 text-sm font-semibold text-white">Xóa sản phẩm</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Thanh chọn desktop (ô tick); điện thoại dùng giữ yên + thanh dính đáy bên dưới */}
+      <div className="hidden min-h-12 items-center gap-3 border-b border-line bg-ground px-3 py-1.5 md:flex">
         <label className="flex min-h-11 items-center gap-2 text-sm font-medium">
           <input type="checkbox" className={box} checked={all} onChange={toggleAll} aria-label="Chọn tất cả sản phẩm trên trang này" />
           <span>Chọn tất cả <span className="text-ink-2">({items.length})</span></span>
@@ -73,7 +88,7 @@ export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[];
         {picked.size > 0 && (
           <div className="ml-auto flex items-center gap-2">
             <span className="hidden text-sm text-ink-2 sm:inline">Đã chọn <b className="text-ink">{picked.size}</b></span>
-            <button onClick={() => setPicked(new Set())} className="h-9 rounded px-3 text-sm text-ink-2 hover:bg-white">Bỏ chọn</button>
+            <button onClick={clear} className="h-9 rounded px-3 text-sm text-ink-2 hover:bg-white">Bỏ chọn</button>
             <button onClick={() => requestDownload([...picked])} className="inline-flex h-9 items-center gap-1.5 rounded bg-brand px-3 text-sm font-semibold text-white hover:bg-brand-deep">
               <Download className="size-4" aria-hidden />Tải {picked.size} SP
             </button>
@@ -111,10 +126,11 @@ export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[];
         </table>
       </div>
 
-      <ul className="divide-y divide-line md:hidden">
+      {/* Đang chọn: chừa chỗ cho thanh dính đáy để sản phẩm cuối không bị che */}
+      <ul className={`divide-y divide-line md:hidden ${picked.size ? "pb-16" : ""}`} role="listbox" aria-multiselectable="true" aria-label="Sản phẩm. Giữ yên một sản phẩm để chọn nhiều.">
         {items.map((p) => (
-          <li key={p.id} onClick={() => setOpenId(p.id)} className={`flex cursor-pointer gap-3 p-3 ${picked.has(p.id) ? "bg-brand-tint/40" : ""}`}>
-            <span onClick={stop} className="grid place-items-center"><input type="checkbox" className={box} checked={picked.has(p.id)} onChange={() => toggle(p.id)} aria-label={`Chọn ${p.name}`} /></span>
+          <li key={p.id} role="option" {...rowProps(p.id)} aria-selected={picked.has(p.id)}
+            className={`flex cursor-pointer select-none gap-3 border-l-4 p-3 [-webkit-touch-callout:none] ${picked.has(p.id) ? "border-brand bg-brand-tint" : "border-transparent"}`}>
             <ProductThumb src={p.image} size={60} />
             <div className="min-w-0 flex-1">
               <b className="block text-sm leading-snug">{p.name}</b>
@@ -125,13 +141,25 @@ export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[];
                 {!p.visible && <Badge>Ẩn</Badge>}
               </div>
             </div>
-            {canEdit && <div className="flex shrink-0 flex-col gap-1" onClick={stop}>
+            {canEdit && <div className="flex shrink-0 flex-col gap-1" onClick={stop} onPointerDown={stop}>
               <Link href={`/admin/san-pham/${p.id}`} aria-label={`Sửa ${p.name}`} className="inline-flex h-10 items-center gap-1 rounded px-2 text-sm text-brand hover:bg-brand-tint"><Pencil className="size-4" aria-hidden />Sửa</Link>
               <button type="button" disabled={deletingId !== null} onClick={() => void removeProduct(p.id, p.name)} className="inline-flex h-10 items-center gap-1 rounded px-2 text-sm text-danger hover:bg-[#fef2f2] disabled:opacity-50"><Trash2 className="size-4" aria-hidden />Xóa</button>
             </div>}
           </li>
         ))}
       </ul>
+
+      {/* Thanh dính đáy (điện thoại), ngay trên thanh điều hướng; chỉ hiện khi đang chọn */}
+      {picked.size > 0 && (
+        <div {...{ [SELECTION_KEEP_ATTR]: "" }} role="region" aria-label="Sản phẩm đã chọn"
+          className="fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-30 flex items-center gap-2 border-t border-line bg-white px-3 py-2 md:hidden">
+          <span className="mr-auto text-sm">Đã chọn <b className="num">{picked.size}</b></span>
+          <button type="button" onClick={clear} className="h-10 shrink-0 whitespace-nowrap rounded border border-line px-3 text-sm font-medium">Hủy</button>
+          <button type="button" onClick={() => requestDownload([...picked])} className="inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded bg-brand px-3 text-sm font-semibold text-white">
+            <Download className="size-4" aria-hidden />Tải {picked.size} ảnh
+          </button>
+        </div>
+      )}
 
       {openId !== null && (
         <ProductDialog
@@ -164,7 +192,7 @@ function ProductDialog({ id, picked, pickedCount, onToggle, onDownloadPicked, ca
   }, [id, onClose]);
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-end justify-center md:items-center md:p-4" role="dialog" aria-modal="true" aria-label={p?.name ?? "Chi tiết sản phẩm"}>
+    <div {...{ [SELECTION_KEEP_ATTR]: "" }} className="fixed inset-0 z-[70] flex items-end justify-center md:items-center md:p-4" role="dialog" aria-modal="true" aria-label={p?.name ?? "Chi tiết sản phẩm"}>
       <button aria-label="Đóng" onClick={onClose} className="absolute inset-0 bg-ink/50" />
       <div className="relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl lg:max-h-[96dvh] lg:w-[min(1320px,96vw)] bg-white shadow-2xl md:rounded-xl">
         <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
@@ -255,7 +283,7 @@ function SaveFolderDialog({ ids, onClose }: { ids: number[]; onClose: () => void
     }
   };
   return (
-    <div className="fixed inset-0 z-[80] grid place-items-center p-4" role="dialog" aria-modal="true" aria-label="Lưu ảnh báo giá">
+    <div {...{ [SELECTION_KEEP_ATTR]: "" }} className="fixed inset-0 z-[80] grid place-items-center p-4" role="dialog" aria-modal="true" aria-label="Lưu ảnh báo giá">
       <button aria-label="Đóng" onClick={state.busy ? undefined : onClose} className="absolute inset-0 bg-ink/50" />
       <div className="relative w-full max-w-md rounded-xl bg-white p-5 shadow-2xl">
         <div className="flex items-start gap-3">

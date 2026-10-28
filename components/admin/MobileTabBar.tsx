@@ -12,7 +12,7 @@ export function MobileTabBar({ perms }: { perms: Permission[] }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const nav = visibleNav(perms);
-  const tabs = nav.filter((n) => MOBILE_TABS.includes(n.href));
+  const tabs = nav.filter((n) => MOBILE_TABS.includes(n.href)).sort((a, b) => MOBILE_TABS.indexOf(a.href) - MOBILE_TABS.indexOf(b.href));
   const more = nav.filter((n) => !MOBILE_TABS.includes(n.href));
   const moreActive = more.some((n) => isActive(pathname, n.href));
 
