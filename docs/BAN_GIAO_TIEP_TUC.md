@@ -56,10 +56,12 @@ Web bán hàng + trang quản trị kho/đơn cho cửa hàng điện nước, k
 - Lọc ngay khi gõ cho mọi ô tìm (`lib/use-url-params.ts`, `components/LiveSearchField.tsx`): Sản phẩm, Đơn hàng, trang Tìm kiếm web bán hàng; Tồn kho có ô tìm mới. Ô "Tìm nhanh" đầu trang quản trị: Enter → trang Sản phẩm.
 - Thanh đáy quản trị điện thoại: Tổng quan · Đơn hàng · Sản phẩm · Tồn kho · Thêm.
 - Sửa: tên tệp ảnh trên http://IP-LAN (không có crypto.randomUUID) giờ đúng dạng UUID; ảnh báo giá vẽ ảnh Supabase cần `crossOrigin` (trước báo "Không tạo được ảnh"); xóa sản phẩm dùng hộp xác nhận riêng (trình duyệt nhúng chặn `window.confirm`); khung chỉnh ảnh là `<dialog>` modal + khóa cuộn nền.
-- **Vercel:** dự án `trieuvolehai-2530/tan-truong-tin-web`, deploy **bằng tay**: `npx vercel deploy --prod --yes` (không tự deploy từ GitHub). Tên miền: tantruongtin.com. Deploy 29/10 = commit 33665d4; `main` đã khớp. Quay lại bản trước: `npx vercel rollback`. Có đủ 3 biến môi trường mã cần. `robots.txt` đang chặn mọi công cụ tìm kiếm.
+- **Vercel:** dự án `trieuvolehai-2530/tan-truong-tin-web`, deploy **bằng tay**: `npx vercel deploy --prod --yes` (không tự deploy từ GitHub). Tên miền: tantruongtin.com. Deploy mới nhất 29/10 16:30 = commit 032c7c3 (chủ shop tự chạy lệnh; công cụ AI bị hệ thống quyền chặn deploy production, Vercel CLI cần `npx vercel login` trong Terminal của chủ shop). `main` vẫn ở 33665d4, **chưa khớp** bản trên web. Quay lại bản trước: `npx vercel rollback`. Có đủ 3 biến môi trường mã cần. `robots.txt` đang chặn mọi công cụ tìm kiếm.
 - **Quyền nhân viên:** `order_staff` (bán quầy, xử lý đơn), `stock_staff` (kiểm kho, xem giá nhập) — 29/10 chủ shop đã cấp `edit_products` cho `stock_staff` (gồm sửa, tạo, xóa SP, tải ảnh; không gồm sửa giá/tồn).
 
 ## 5. Việc còn dở — làm tiếp theo thứ tự
+
+0. (29/10) Đã thêm: thanh chọn điện thoại Hủy · Sửa · Tải · Xóa (xóa nhiều), sửa lỗi không xóa được SP (migration `products_delete_policy`), Xuất Excel theo bộ lọc, chuyển trang số + chọn 20/50/100. Chờ chủ shop/nhân viên thử trên điện thoại thật. Hạn chế: Nhập Excel nhân giá ×1000 khi Ngành hàng "Quạt" và giá < 100.000đ (hiện 0 SP bị ảnh hưởng).
 
 1. **Chủ shop sẽ báo thêm lỗi** sau khi thử — hỏi chủ shop trước tiên.
 2. (Đã xong 29/10) ~~Nút xóa sản phẩm~~, ~~khung chỉnh ảnh giữ tiêu điểm~~.
