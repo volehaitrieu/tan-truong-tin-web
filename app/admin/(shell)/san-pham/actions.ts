@@ -4,6 +4,8 @@ import { requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { sanitizeHtml } from "@/lib/rich-text";
 import { costFromImport } from "@/lib/admin/products";
+import { parseProductFilter, type ProductSearchParams } from "@/lib/admin/products-params";
+import type { Cell } from "@/lib/excel/write-xlsx";
 
 export type SaveInput = {
   id: number; name: string; unit: string; categoryId: number | null; brandId: number | null; spec: string; warranty: string; origin: string; madeIn: string;
@@ -229,4 +231,15 @@ export async function getProductPreviews(ids: number[]) {
   if (!Array.isArray(ids)) return [];
   const { getPreviews } = await import("@/lib/admin/preview");
   return getPreviews(ids.map(Number));
+}
+
+// Xuất Excel theo đúng bộ lọc đang xem trên trang Sản phẩm (tham số URL); giá nhập chỉ khi có quyền view_cost
+export async function exportProducts(sp: ProductSearchParams): Promise<{ ok: true; rows: Cell[][] } | { ok: false; error: string }> {
+  const staff = await requireStaff();
+  try {
+    const { productExportSheet } = await import("@/lib/admin/product-export");
+    return { ok: true, rows: await productExportSheet(parseProductFilter(sp ?? {}), staff.perms.has("view_cost")) };
+  } catch {
+    return { ok: false, error: "Không đọc được danh sách sản phẩm để xuất. Vui lòng thử lại." };
+  }
 }

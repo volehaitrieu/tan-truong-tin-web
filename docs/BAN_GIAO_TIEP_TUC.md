@@ -65,7 +65,7 @@ Web bán hàng + trang quản trị kho/đơn cho cửa hàng điện nước, k
 2. (Đã xong 29/10) ~~Nút xóa sản phẩm~~, ~~khung chỉnh ảnh giữ tiêu điểm~~.
 3. Xóa các ảnh thử (ảnh chụp màn hình game/mạng xã hội) khỏi SP 361 và 366 trước khi cho khách xem.
 4. **Thử nén ảnh trên điện thoại thật** (Android, iPhone; ảnh HEIC, ảnh chụp dọc). Ảnh PNG 2,1 MB của SP 366 có thể xóa rồi tải lại.
-5. **Lịch sử migration lệch** giữa Supabase và repo: trên Supabase `product_industry`=`20261027133325`, `product_image_storage`=`20261028121846`, `fix_product_image_insert_policy`=`20261028124745`; tệp repo mang số khác, và `inventory_column_privileges` có trên Supabase mà repo không có. Phải dọn trước khi ai đó chạy `supabase db push`.
+5. **Lịch sử migration lệch** giữa Supabase và repo: trên Supabase `product_industry`=`20261027133325`, `product_image_storage`=`20261028121846`, `fix_product_image_insert_policy`=`20261028124745`; tệp repo mang số khác, và `inventory_column_privileges` có trên Supabase mà repo không có. Phải dọn trước khi ai đó chạy `supabase db push`. (Riêng `products_delete_policy` 29/10 đã khớp: `20261029090608`.)
 6. **Chủ shop cần quyết:** bộ lọc giá trên trang chủ có lưu vào URL không (hiện chỉ lưu trong trang).
 7. Các khoảng trống khác đã ghi ở `docs/claude-code-handoff-2026-10-28/NEXT_STEPS.md` mục 3–4 (menu lấy Ngành hàng thay Danh mục con, `getProducts()` giới hạn 5000, logo hãng bị CSP chặn, VietQR/phí ship chưa xong...).
 

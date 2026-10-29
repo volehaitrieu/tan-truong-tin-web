@@ -1,6 +1,8 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { firstImage } from "@/components/admin/ProductCell";
+import type { ProductFilter } from "@/lib/admin/products-params";
+export type { PriceMode } from "@/lib/admin/products-params";
 
 export type ProductRow = {
   id: number; sku: string; name: string; cat: string; brand: string; price: number; salePrice: number | null;
@@ -8,9 +10,6 @@ export type ProductRow = {
 };
 export type Option = { id: number; name: string };
 export type BrandOption = Option & { count: number };
-export type PriceMode = "goc" | "km" | "ca2";
-
-const PAGE_SIZE = 50;
 
 // Giá vốn dùng tính lãi = giá nhập + 10% chi phí
 export const costFromImport = (importPrice: number) => Math.round(importPrice * 1.1);
@@ -19,47 +18,62 @@ export const costFromImport = (importPrice: number) => Math.round(importPrice * 
 const cleanQuery = (q: string) => q.replace(/[,()%*\\]/g, " ").trim().slice(0, 80);
 const money = (n?: number) => (n !== undefined && Number.isSafeInteger(n) && n >= 0 ? n : undefined);
 
-export async function listProducts(opts: {
-  q?: string; cat?: number; brand?: number; pmin?: number; pmax?: number; pmode?: PriceMode; status?: string; page?: number; withCost: boolean;
-}) {
+// Truy vấn SP đã áp bộ lọc, sắp theo tên. `columns`: các cột cần lấy (chuỗi select của Supabase).
+export async function filteredProducts(f: ProductFilter, columns: string) {
   const db = await createClient();
-  let query = db
-    .from("products")
-    .select("id, sku, name, price, sale_price, is_visible, category:categories(name), brand:brands(name), inventory(qty, min_qty, location), images:product_images(url, sort)", { count: "exact" })
-    .order("name");
-  const q = cleanQuery(opts.q ?? "");
+  let query = db.from("products").select(columns, { count: "exact" }).order("name").order("id");
+  const q = cleanQuery(f.q ?? "");
   if (q) {
     const plain = q.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d");
     query = query.ilike("search_text", `%${plain}%`);
   }
-  if (opts.cat) query = query.eq("category_id", opts.cat);
-  if (opts.brand) query = query.eq("brand_id", opts.brand);
+  if (f.cat) query = query.eq("category_id", f.cat);
+  if (f.brand) query = query.eq("brand_id", f.brand);
   // Khoảng giá: theo giá gốc, giá khuyến mãi (bỏ SP không có KM), hoặc một trong hai
-  const lo = money(opts.pmin), hi = money(opts.pmax);
+  const lo = money(f.pmin), hi = money(f.pmax);
   if (lo !== undefined || hi !== undefined) {
     const cond = (col: string) => [lo !== undefined && `${col}.gte.${lo}`, hi !== undefined && `${col}.lte.${hi}`].filter(Boolean).join(",");
-    if (opts.pmode === "km") query = query.not("sale_price", "is", null).or(`and(${cond("sale_price")})`);
-    else if (opts.pmode === "ca2") query = query.or(`and(${cond("price")}),and(${cond("sale_price")})`);
+    if (f.pmode === "km") query = query.not("sale_price", "is", null).or(`and(${cond("sale_price")})`);
+    else if (f.pmode === "ca2") query = query.or(`and(${cond("price")}),and(${cond("sale_price")})`);
     else query = query.or(`and(${cond("price")})`);
   }
-  if (opts.status === "show") query = query.eq("is_visible", true);
-  if (opts.status === "hide") query = query.eq("is_visible", false);
-  const page = Math.max(1, opts.page ?? 1);
-  const { data, count, error } = await query.range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+  if (f.status === "show") query = query.eq("is_visible", true);
+  if (f.status === "hide") query = query.eq("is_visible", false);
+  return { db, query };
+}
+
+// Giá nhập theo SP (chỉ gọi khi người xem có quyền view_cost)
+export async function importPrices(db: Awaited<ReturnType<typeof createClient>>, ids: number[]) {
+  const costs = new Map<number, number>();
+  for (let i = 0; i < ids.length; i += 500) {
+    const { data, error } = await db.from("product_costs").select("product_id, cost_price, import_price").in("product_id", ids.slice(i, i + 500));
+    if (error) throw error;
+    for (const x of data ?? []) costs.set(x.product_id, x.import_price ?? x.cost_price);
+  }
+  return costs;
+}
+
+export async function listProducts(f: ProductFilter, opts: { page: number; perPage: number; withCost: boolean }) {
+  const { db, query } = await filteredProducts(f, "id, sku, name, price, sale_price, is_visible, category:categories(name), brand:brands(name), inventory(qty, min_qty, location), images:product_images(url, sort)");
+  const page = Math.max(1, opts.page);
+  const { data, count, error } = await query.range((page - 1) * opts.perPage, page * opts.perPage - 1);
+  // Trang vượt quá số trang (link cũ, hoặc vừa xóa hết SP ở trang cuối) → Supabase báo PGRST103; hiện trang cuối thay vì lỗi.
+  if (error?.code === "PGRST103" && page > 1) {
+    const { count: total } = await (await filteredProducts(f, "id")).query.range(0, 0);
+    const last = Math.max(1, Math.ceil((total ?? 0) / opts.perPage));
+    if (last < page) return listProducts(f, { ...opts, page: last });
+  }
   if (error) throw error;
   type R = { id: number; sku: string; name: string; price: number; sale_price: number | null; is_visible: boolean; category: { name: string } | null; brand: { name: string } | null; inventory: { qty: number; min_qty: number; location: string } | null; images: { url: string; sort: number }[] };
   const rows = data as unknown as R[];
-  const costs = new Map<number, number>();
-  if (opts.withCost && rows.length) {
-    const { data: c } = await db.from("product_costs").select("product_id, cost_price, import_price").in("product_id", rows.map((r) => r.id));
-    for (const x of c ?? []) costs.set(x.product_id, x.import_price ?? x.cost_price);
-  }
+  const costs = opts.withCost && rows.length ? await importPrices(db, rows.map((r) => r.id)) : new Map<number, number>();
   const items: ProductRow[] = rows.map((r) => ({
     id: r.id, sku: r.sku, name: r.name, cat: r.category?.name ?? "", brand: r.brand?.name ?? "", price: r.price, salePrice: r.sale_price,
     stock: r.inventory?.qty ?? 0, min: r.inventory?.min_qty ?? 0, location: r.inventory?.location ?? "", visible: r.is_visible,
     cost: costs.get(r.id) ?? null, image: firstImage(r.images),
   }));
-  return { items, total: count ?? items.length, page, pages: Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE)) };
+  const total = count ?? items.length;
+  return { items, total, page, perPage: opts.perPage, pages: Math.max(1, Math.ceil(total / opts.perPage)) };
 }
 
 export async function listOptions() {
