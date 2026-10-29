@@ -7,7 +7,7 @@ import type { Cell } from "@/lib/excel/write-xlsx";
 
 // Xuất Excel danh sách SP theo đúng bộ lọc đang xem (không lọc = tất cả SP).
 // Cột đầu giữ đúng mẫu Nhập Excel để sửa xong nhập lại được; cột thêm ở cuối (Nhập Excel bỏ qua).
-// Giá nhập chỉ có khi người xuất có quyền view_cost (RLS product_costs cũng chặn ở cơ sở dữ liệu).
+// Cột giá nhập chỉ có khi withCost (nơi gọi quyết định: chỉ chủ shop); RLS product_costs vẫn chặn người thiếu quyền view_cost.
 const EXTRA_COLUMNS = ["Giá khuyến mãi", "Tồn kho", "Trạng thái", "Link ảnh"] as const;
 const COST_COLUMNS = new Set<string>(["Giá nhập", "Giá nhập + 10%"]);
 const BATCH = 1000; // Supabase trả tối đa 1000 dòng mỗi lần

@@ -4,6 +4,7 @@ import { requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { sanitizeHtml } from "@/lib/rich-text";
 import { costFromImport } from "@/lib/admin/products";
+import { logEvent } from "@/lib/admin/audit";
 import { parseProductFilter, type ProductSearchParams } from "@/lib/admin/products-params";
 import type { Cell } from "@/lib/excel/write-xlsx";
 
@@ -233,13 +234,22 @@ export async function getProductPreviews(ids: number[]) {
   return getPreviews(ids.map(Number));
 }
 
-// Xuất Excel theo đúng bộ lọc đang xem trên trang Sản phẩm (tham số URL); giá nhập chỉ khi có quyền view_cost
+// Xuất Excel theo đúng bộ lọc đang xem trên trang Sản phẩm (tham số URL); cột giá nhập chỉ có khi chủ shop xuất
 export async function exportProducts(sp: ProductSearchParams): Promise<{ ok: true; rows: Cell[][] } | { ok: false; error: string }> {
   const staff = await requireStaff();
+  // Giá nhập chỉ xuất ra file cho chủ shop; nhân viên có quyền xem giá nhập vẫn chỉ xem trên màn hình
+  const withCost = staff.role === "owner";
+  const filter = parseProductFilter(sp ?? {});
+  let rows: Cell[][];
   try {
     const { productExportSheet } = await import("@/lib/admin/product-export");
-    return { ok: true, rows: await productExportSheet(parseProductFilter(sp ?? {}), staff.perms.has("view_cost")) };
+    rows = await productExportSheet(filter, withCost);
   } catch {
     return { ok: false, error: "Không đọc được danh sách sản phẩm để xuất. Vui lòng thử lại." };
   }
+  // Mỗi lần xuất phải có trong nhật ký; không ghi được thì không trả file.
+  // Chữ tìm cắt 80 ký tự như lúc tìm thật, để chi tiết nhật ký không vượt giới hạn trong DB.
+  const logged = await logEvent(await createClient(), "export:products", `${rows.length - 1} SP`, { filter: { ...filter, q: filter.q?.slice(0, 80) }, with_cost: withCost });
+  if (!logged) return { ok: false, error: "Không ghi được nhật ký xuất file. Vui lòng thử lại." };
+  return { ok: true, rows };
 }

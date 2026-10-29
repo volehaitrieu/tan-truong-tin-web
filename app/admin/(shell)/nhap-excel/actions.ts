@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { finish, markDuplicates, type ImportRow } from "@/lib/excel/parse-products";
 import { htmlToText, sanitizeHtml, textToHtml } from "@/lib/rich-text";
 import { costFromImport } from "@/lib/admin/products";
+import { logEvent } from "@/lib/admin/audit";
 
 export type ImportResult =
   | { ok: true; added: number; pending: number; unchanged: number; skipped: number }
@@ -128,7 +129,10 @@ export async function importProducts(input: ImportRow[], defaultSub: string | nu
     if (error) return { ok: false, error: "Không lưu được bảng đối chiếu, vui lòng thử lại." };
   }
   revalidatePath("/", "layout");
-  return { ok: true, added: toAdd.length, pending: changes.length, unchanged, skipped: rows.length - good.length + (fresh.length - toAdd.length) };
+  const result = { added: toAdd.length, pending: changes.length, unchanged, skipped: rows.length - good.length + (fresh.length - toAdd.length) };
+  // Từng SP thêm/sửa đã có trigger ghi; đây là dòng tóm tắt cả lần nhập. Dữ liệu đã ghi nên lỗi nhật ký không chặn kết quả.
+  await logEvent(db, "import:products", `${input.length} dòng`, result);
+  return { ok: true, ...result };
 }
 
 // Xác nhận các thay đổi đã tick → ghi vào SP, xóa khỏi bảng chờ. Thay đổi chưa tick giữ nguyên.

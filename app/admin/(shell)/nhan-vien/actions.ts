@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { forgetStaff, requireStaff, STAFF_EMAIL_DOMAIN } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { logEvent } from "@/lib/admin/audit";
 
 export type AddStaffState = { ok?: boolean; error?: string; phone?: string; password?: string };
 const ROLES = ["order_staff", "stock_staff"] as const;
@@ -28,6 +29,8 @@ export async function addStaff(_: AddStaffState, form: FormData): Promise<AddSta
     await admin.auth.admin.deleteUser(data.user.id);
     return { error: "Không tạo được hồ sơ nhân viên." };
   }
+  // Tạo bằng khóa server nên trigger không biết ai làm → ghi nhật ký bằng phiên của người đang thêm
+  await logEvent(await createClient(), "insert:staff", phone, { name, role });
   revalidatePath("/admin/nhan-vien");
   return { ok: true, phone, password };
 }

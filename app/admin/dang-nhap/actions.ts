@@ -1,7 +1,9 @@
 "use server";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { forgetStaff, loginEmail } from "@/lib/auth";
+import { logEvent } from "@/lib/admin/audit";
 
 // id: giữ lại SĐT/email đã gõ khi đăng nhập sai (React xóa form sau mỗi lần gửi)
 export type LoginState = { error?: string; id?: string };
@@ -22,6 +24,12 @@ export async function login(_: LoginState, form: FormData): Promise<LoginState> 
     await supabase.auth.signOut();
     return { error: "Tài khoản chưa được cấp quyền hoặc đã bị khóa. Liên hệ chủ shop.", id };
   }
+  // Ghi nhật ký đăng nhập (máy nào, từ đâu); ghi lỗi cũng không chặn đăng nhập
+  const h = await headers();
+  await logEvent(supabase, "login", null, {
+    ip: h.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
+    device: h.get("user-agent")?.slice(0, 160) || null,
+  });
   forgetStaff();
   redirect("/admin");
 }
