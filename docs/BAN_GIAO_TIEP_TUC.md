@@ -56,8 +56,8 @@ Web bán hàng + trang quản trị kho/đơn cho cửa hàng điện nước, k
 - Lọc ngay khi gõ cho mọi ô tìm (`lib/use-url-params.ts`, `components/LiveSearchField.tsx`): Sản phẩm, Đơn hàng, trang Tìm kiếm web bán hàng; Tồn kho có ô tìm mới. Ô "Tìm nhanh" đầu trang quản trị: Enter → trang Sản phẩm.
 - Thanh đáy quản trị điện thoại: Tổng quan · Đơn hàng · Sản phẩm · Tồn kho · Thêm.
 - Sửa: tên tệp ảnh trên http://IP-LAN (không có crypto.randomUUID) giờ đúng dạng UUID; ảnh báo giá vẽ ảnh Supabase cần `crossOrigin` (trước báo "Không tạo được ảnh"); xóa sản phẩm dùng hộp xác nhận riêng (trình duyệt nhúng chặn `window.confirm`); khung chỉnh ảnh là `<dialog>` modal + khóa cuộn nền.
-- **Vercel:** dự án `trieuvolehai-2530/tan-truong-tin-web`, deploy **bằng tay qua `vercel` CLI** (không tự deploy từ GitHub). Có đủ 3 biến môi trường mã cần. `robots.txt` đang chặn mọi công cụ tìm kiếm.
-- **Quyền nhân viên:** `order_staff` (bán quầy, xử lý đơn), `stock_staff` (kiểm kho, xem giá nhập) — **chưa vai trò nhân viên nào có `edit_products`**, nên nhân viên chưa sửa SP/tải ảnh được cho tới khi chủ shop cấp quyền.
+- **Vercel:** dự án `trieuvolehai-2530/tan-truong-tin-web`, deploy **bằng tay**: `npx vercel deploy --prod --yes` (không tự deploy từ GitHub). Tên miền: tantruongtin.com. Deploy 29/10 = commit 33665d4; `main` đã khớp. Quay lại bản trước: `npx vercel rollback`. Có đủ 3 biến môi trường mã cần. `robots.txt` đang chặn mọi công cụ tìm kiếm.
+- **Quyền nhân viên:** `order_staff` (bán quầy, xử lý đơn), `stock_staff` (kiểm kho, xem giá nhập) — 29/10 chủ shop đã cấp `edit_products` cho `stock_staff` (gồm sửa, tạo, xóa SP, tải ảnh; không gồm sửa giá/tồn).
 
 ## 5. Việc còn dở — làm tiếp theo thứ tự
 
