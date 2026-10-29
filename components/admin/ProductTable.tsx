@@ -16,6 +16,8 @@ import { SELECTION_KEEP_ATTR, useProductSelection } from "@/components/admin/use
 
 // Danh sách SP: bấm dòng → khung chi tiết; tick nhiều SP → tải ảnh báo giá PNG.
 const box = "size-5 shrink-0 cursor-pointer accent-[var(--color-brand)]";
+// Nút thanh chọn điện thoại: Hủy · Sửa (chỉ khi chọn 1) · Tải · Xóa (cuối, màu đỏ để khó bấm nhầm)
+const barBtn = "inline-flex h-10 shrink-0 items-center gap-1 whitespace-nowrap rounded px-2.5 text-sm font-semibold";
 // Tải ảnh báo giá PNG: mỗi SP một ảnh vào thư mục Tải xuống (kéo thẳng vào Zalo)
 let busy = false;
 async function openQuote(ids: number[]) {
@@ -36,7 +38,7 @@ export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[];
   const [openId, setOpenId] = useState<number | null>(null);
   // Điện thoại: giữ yên dòng để chọn; desktop: ô tick. Cả hai dùng chung một danh sách đã chọn.
   const { picked, toggle, clear, remove, setMany, rowProps } = useProductSelection(setOpenId);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const close = useCallback(() => setOpenId(null), []);
   const all = items.length > 0 && items.every((p) => picked.has(p.id));
   const toggleAll = () => setMany(items.map((p) => p.id), !all);
@@ -45,36 +47,44 @@ export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[];
   const [saveIds, setSaveIds] = useState<number[] | null>(null);
   const requestDownload = (ids: number[]) => (ids.length > 1 && canPickFolder() ? setSaveIds(ids) : openQuote(ids));
   // Hỏi xác nhận bằng khung riêng: trình duyệt nhúng (khung xem của ứng dụng) chặn window.confirm, trả về "Hủy" ngay.
-  const [confirmDelete, setConfirmDelete] = useState<{ id: number; name: string } | null>(null);
-  const removeProduct = (id: number, name: string) => { if (deletingId === null) setConfirmDelete({ id, name }); };
-  const doRemove = async (id: number) => {
-    setConfirmDelete(null);
-    setDeletingId(id);
-    try {
-      const result = await deleteProduct(id);
-      if (!result.ok) { window.alert(result.error ?? "Không xóa được sản phẩm."); return; }
-      remove(id);
-      if (openId === id) setOpenId(null);
-      router.refresh();
-    } catch {
-      window.alert("Không xóa được sản phẩm. Vui lòng thử lại.");
-    } finally {
-      setDeletingId(null);
+  const [confirmIds, setConfirmIds] = useState<number[] | null>(null);
+  const requestDelete = (ids: number[]) => { if (!deleting && ids.length) setConfirmIds(ids); };
+  const nameOf = (id: number) => items.find((p) => p.id === id)?.name ?? `SP #${id}`;
+  // Xóa lần lượt từng SP bằng cùng một hành động máy chủ (kiểm quyền, kiểm đơn hàng, dọn ảnh cho từng SP).
+  // SP xóa được thì bỏ khỏi danh sách chọn; SP không xóa được thì báo tên và lý do.
+  const doDelete = async (ids: number[]) => {
+    setConfirmIds(null);
+    setDeleting(true);
+    const failed: string[] = [];
+    for (const id of ids) {
+      const name = nameOf(id);
+      try {
+        const result = await deleteProduct(id);
+        if (!result.ok) { failed.push(`${name}: ${result.error ?? "Không xóa được."}`); continue; }
+        remove(id);
+        if (openId === id) setOpenId(null);
+      } catch {
+        failed.push(`${name}: Mất kết nối, chưa xóa.`);
+      }
     }
+    setDeleting(false);
+    router.refresh();
+    if (failed.length) window.alert(`Chưa xóa được ${failed.length}/${ids.length} sản phẩm:\n${failed.join("\n")}`);
   };
+  const pickedIds = [...picked];
 
   return (
     <>
       {saveIds && <SaveFolderDialog ids={saveIds} onClose={() => setSaveIds(null)} />}
-      {confirmDelete && (
+      {confirmIds && (
         <div {...{ [SELECTION_KEEP_ATTR]: "" }} className="fixed inset-0 z-[80] grid place-items-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="xoa-sp-tieu-de" aria-describedby="xoa-sp-mo-ta">
-          <button type="button" aria-label="Đóng" onClick={() => setConfirmDelete(null)} className="absolute inset-0 bg-ink/40" />
+          <button type="button" aria-label="Đóng" onClick={() => setConfirmIds(null)} className="absolute inset-0 bg-ink/40" />
           <div className="relative w-full max-w-sm rounded-lg bg-white p-5 shadow-xl">
-            <h2 id="xoa-sp-tieu-de" className="font-semibold">Xóa “{confirmDelete.name}”?</h2>
+            <h2 id="xoa-sp-tieu-de" className="font-semibold">{confirmIds.length === 1 ? `Xóa “${nameOf(confirmIds[0])}”?` : `Xóa ${confirmIds.length} sản phẩm?`}</h2>
             <p id="xoa-sp-mo-ta" className="mt-2 text-sm text-ink-2">Dữ liệu ảnh, giá nhập, tồn kho và lịch sử nhập kho gắn với sản phẩm cũng sẽ bị xóa. Sản phẩm đã có trong đơn hàng sẽ được giữ lại.</p>
             <div className="mt-5 flex justify-end gap-2">
-              <button type="button" autoFocus onClick={() => setConfirmDelete(null)} className="h-10 rounded border border-line px-4 text-sm font-medium">Hủy</button>
-              <button type="button" onClick={() => void doRemove(confirmDelete.id)} className="h-10 rounded bg-danger px-4 text-sm font-semibold text-white">Xóa sản phẩm</button>
+              <button type="button" autoFocus onClick={() => setConfirmIds(null)} className="h-10 rounded border border-line px-4 text-sm font-medium">Hủy</button>
+              <button type="button" onClick={() => void doDelete(confirmIds)} className="h-10 rounded bg-danger px-4 text-sm font-semibold text-white">{confirmIds.length === 1 ? "Xóa sản phẩm" : `Xóa ${confirmIds.length} sản phẩm`}</button>
             </div>
           </div>
         </div>
@@ -89,7 +99,7 @@ export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[];
           <div className="ml-auto flex items-center gap-2">
             <span className="hidden text-sm text-ink-2 sm:inline">Đã chọn <b className="text-ink">{picked.size}</b></span>
             <button onClick={clear} className="h-9 rounded px-3 text-sm text-ink-2 hover:bg-white">Bỏ chọn</button>
-            <button onClick={() => requestDownload([...picked])} className="inline-flex h-9 items-center gap-1.5 rounded bg-brand px-3 text-sm font-semibold text-white hover:bg-brand-deep">
+            <button onClick={() => requestDownload(pickedIds)} className="inline-flex h-9 items-center gap-1.5 rounded bg-brand px-3 text-sm font-semibold text-white hover:bg-brand-deep">
               <Download className="size-4" aria-hidden />Tải {picked.size} SP
             </button>
           </div>
@@ -118,7 +128,7 @@ export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[];
                 <td className="px-3"><Badge tone={p.visible ? "ok" : "neutral"}>{p.visible ? "Hiển thị" : "Ẩn"}</Badge></td>
                 <td className="px-3" onClick={stop}>{canEdit && <div className="flex items-center gap-1">
                   <Link href={`/admin/san-pham/${p.id}`} aria-label={`Sửa ${p.name}`} title="Sửa" className="grid size-10 place-items-center rounded text-brand hover:bg-brand-tint"><Pencil className="size-4" /></Link>
-                  <button type="button" disabled={deletingId !== null} onClick={() => void removeProduct(p.id, p.name)} aria-label={`Xóa ${p.name}`} title="Xóa" className="inline-flex h-10 items-center gap-1 rounded px-2 text-danger hover:bg-[#fef2f2] disabled:opacity-50"><Trash2 className="size-4" aria-hidden /><span>Xóa</span></button>
+                  <button type="button" disabled={deleting} onClick={() => requestDelete([p.id])} aria-label={`Xóa ${p.name}`} title="Xóa" className="inline-flex h-10 items-center gap-1 rounded px-2 text-danger hover:bg-[#fef2f2] disabled:opacity-50"><Trash2 className="size-4" aria-hidden /><span>Xóa</span></button>
                 </div>}</td>
               </tr>
             ))}
@@ -141,10 +151,6 @@ export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[];
                 {!p.visible && <Badge>Ẩn</Badge>}
               </div>
             </div>
-            {canEdit && <div className="flex shrink-0 flex-col gap-1" onClick={stop} onPointerDown={stop}>
-              <Link href={`/admin/san-pham/${p.id}`} aria-label={`Sửa ${p.name}`} className="inline-flex h-10 items-center gap-1 rounded px-2 text-sm text-brand hover:bg-brand-tint"><Pencil className="size-4" aria-hidden />Sửa</Link>
-              <button type="button" disabled={deletingId !== null} onClick={() => void removeProduct(p.id, p.name)} className="inline-flex h-10 items-center gap-1 rounded px-2 text-sm text-danger hover:bg-[#fef2f2] disabled:opacity-50"><Trash2 className="size-4" aria-hidden />Xóa</button>
-            </div>}
           </li>
         ))}
       </ul>
@@ -152,12 +158,20 @@ export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[];
       {/* Thanh dính đáy (điện thoại), ngay trên thanh điều hướng; chỉ hiện khi đang chọn */}
       {picked.size > 0 && (
         <div {...{ [SELECTION_KEEP_ATTR]: "" }} role="region" aria-label="Sản phẩm đã chọn"
-          className="fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-30 flex items-center gap-2 border-t border-line bg-white px-3 py-2 md:hidden">
-          <span className="mr-auto text-sm">Đã chọn <b className="num">{picked.size}</b></span>
-          <button type="button" onClick={clear} className="h-10 shrink-0 whitespace-nowrap rounded border border-line px-3 text-sm font-medium">Hủy</button>
-          <button type="button" onClick={() => requestDownload([...picked])} className="inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded bg-brand px-3 text-sm font-semibold text-white">
-            <Download className="size-4" aria-hidden />Tải {picked.size} ảnh
+          className="fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-30 flex items-center gap-1.5 border-t border-line bg-white px-3 py-2 md:hidden">
+          <span className="mr-auto whitespace-nowrap text-sm"><span className="max-[399px]:sr-only">Đã chọn </span><b className="num">{picked.size}</b><span className="min-[400px]:hidden"> SP</span></span>
+          <button type="button" onClick={clear} className={barBtn + " border border-line"}>Hủy</button>
+          {canEdit && picked.size === 1 && (
+            <Link href={`/admin/san-pham/${pickedIds[0]}`} className={barBtn + " border border-line text-brand"}><Pencil className="size-4" aria-hidden />Sửa</Link>
+          )}
+          <button type="button" onClick={() => requestDownload(pickedIds)} className={barBtn + " bg-brand text-white"}>
+            <Download className="size-4" aria-hidden />Tải {picked.size}
           </button>
+          {canEdit && (
+            <button type="button" disabled={deleting} onClick={() => requestDelete(pickedIds)} className={barBtn + " border border-danger text-danger disabled:opacity-50"}>
+              <Trash2 className="size-4" aria-hidden />{deleting ? "Đang xóa…" : "Xóa"}
+            </button>
+          )}
         </div>
       )}
 
@@ -167,7 +181,7 @@ export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[];
           picked={picked.has(openId)}
           pickedCount={picked.size}
           onToggle={() => toggle(openId)}
-          onDownloadPicked={() => requestDownload([...picked])}
+          onDownloadPicked={() => requestDownload(pickedIds)}
           canEdit={canEdit}
           onClose={close}
         />
