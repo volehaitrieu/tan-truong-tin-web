@@ -2,19 +2,22 @@
 
 import { useActionState, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { TurnstileWidget, useCaptcha } from "@/components/TurnstileWidget";
 import { login, type LoginState } from "./actions";
 
 // Đăng nhập thật qua Supabase Auth (server action). Nhân viên gõ SĐT hoặc email.
+// Có ô xác minh Cloudflare (khi đã cấu hình): nút Đăng nhập mở khi ô hiện dấu ✓.
 export function LoginForm() {
   const [show, setShow] = useState(false);
   const [state, action, pending] = useActionState<LoginState, FormData>(login, {});
+  const captcha = useCaptcha();
   const error = state.error ?? "";
 
   const field =
     "h-12 w-full rounded-[var(--radius-ctl)] border bg-surface px-3 text-[15px] placeholder:text-ink-2/60 focus:border-brand";
 
   return (
-    <form action={action} noValidate className="space-y-4">
+    <form action={(fd) => { captcha.renew(); action(fd); }} noValidate className="space-y-4">
       <label className="block">
         <span className="mb-1.5 block text-sm font-medium">Số điện thoại hoặc email</span>
         <input name="id" key={state.id} defaultValue={state.id} maxLength={200} autoComplete="username" placeholder="Số điện thoại của bạn" className={`${field} border-line`} />
@@ -45,7 +48,8 @@ export function LoginForm() {
           </span>
         )}
       </label>
-      <button type="submit" disabled={pending} className="h-12 w-full rounded-[var(--radius-ctl)] bg-brand text-[15px] font-semibold text-white transition-colors hover:bg-brand-deep disabled:opacity-60">
+      {captcha.enabled && <TurnstileWidget key={captcha.round} onStatus={captcha.setStatus} />}
+      <button type="submit" disabled={pending || captcha.waiting} className="h-12 w-full rounded-[var(--radius-ctl)] bg-brand text-[15px] font-semibold text-white transition-colors hover:bg-brand-deep disabled:opacity-60">
         {pending ? "Đang đăng nhập…" : "Đăng nhập"}
       </button>
       <p className="text-center text-sm text-ink-2">Quên mật khẩu? Liên hệ chủ shop</p>

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { forgetStaff, loginEmail } from "@/lib/auth";
 import { logEvent } from "@/lib/admin/audit";
+import { CAPTCHA_FAILED, captchaOption, isCaptchaError } from "@/lib/turnstile";
 
 // id: giữ lại SĐT/email đã gõ khi đăng nhập sai (React xóa form sau mỗi lần gửi)
 export type LoginState = { error?: string; id?: string };
@@ -15,7 +16,8 @@ export async function login(_: LoginState, form: FormData): Promise<LoginState> 
   if (id.length > 200 || password.length > 200) return { error: "Số điện thoại/email hoặc mật khẩu chưa đúng." };
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signInWithPassword({ email: loginEmail(id), password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email: loginEmail(id), password, options: captchaOption(form) });
+  if (isCaptchaError(error)) return { error: CAPTCHA_FAILED, id };
   // Không nói rõ sai SĐT hay sai mật khẩu để tránh dò tài khoản
   if (error || !data.user) return { error: "Số điện thoại/email hoặc mật khẩu chưa đúng.", id };
 
