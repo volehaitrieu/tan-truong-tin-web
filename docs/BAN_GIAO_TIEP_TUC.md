@@ -1,6 +1,6 @@
 # Bàn giao tiếp tục — Tân Trường Tín
 
-**Cập nhật:** 28-10-2026 · **Người viết:** Claude Code · **Nhánh Git:** `codex/desktop-storefront-upgrade` (không phải `main`)
+**Cập nhật:** 30-10-2026 · **Người viết:** Claude Code · **Nhánh Git:** `codex/desktop-storefront-upgrade` (không phải `main`)
 
 Đây là **điểm bắt đầu duy nhất** cho bất kỳ công cụ AI nào tiếp tục dự án. Đọc hết tệp này trước, rồi mới mở các tài liệu khác.
 
@@ -56,14 +56,20 @@ Web bán hàng + trang quản trị kho/đơn cho cửa hàng điện nước, k
 - Lọc ngay khi gõ cho mọi ô tìm (`lib/use-url-params.ts`, `components/LiveSearchField.tsx`): Sản phẩm, Đơn hàng, trang Tìm kiếm web bán hàng; Tồn kho có ô tìm mới. Ô "Tìm nhanh" đầu trang quản trị: Enter → trang Sản phẩm.
 - Thanh đáy quản trị điện thoại: Tổng quan · Đơn hàng · Sản phẩm · Tồn kho · Thêm.
 - Sửa: tên tệp ảnh trên http://IP-LAN (không có crypto.randomUUID) giờ đúng dạng UUID; ảnh báo giá vẽ ảnh Supabase cần `crossOrigin` (trước báo "Không tạo được ảnh"); xóa sản phẩm dùng hộp xác nhận riêng (trình duyệt nhúng chặn `window.confirm`); khung chỉnh ảnh là `<dialog>` modal + khóa cuộn nền.
-- **Vercel:** dự án `trieuvolehai-2530/tan-truong-tin-web`, deploy **bằng tay**: `npx vercel deploy --prod --yes` (không tự deploy từ GitHub). Tên miền: tantruongtin.com. Deploy mới nhất 29/10 16:30 = commit 032c7c3 (chủ shop tự chạy lệnh; công cụ AI bị hệ thống quyền chặn deploy production, Vercel CLI cần `npx vercel login` trong Terminal của chủ shop). `main` đã cập nhật (fast-forward) khớp nhánh, chứa đúng mã đang chạy trên web. Vercel không nối Git nên đẩy `main` không tự deploy. Quay lại bản trước: `npx vercel rollback`. Có đủ 3 biến môi trường mã cần. `robots.txt` đang chặn mọi công cụ tìm kiếm.
+- **Vercel:** dự án `trieuvolehai-2530/tan-truong-tin-web`, deploy **bằng tay**: `npx vercel deploy --prod --yes` (không tự deploy từ GitHub). Tên miền: tantruongtin.com. Deploy mới nhất 30/10 ~00:40 = commit 8ad4257 của nhánh (chủ shop tự chạy lệnh ở Terminal; công cụ AI bị hệ thống quyền chặn deploy production). Theo chủ shop duyệt 30/10, `main` đã fast-forward khớp nhánh, chứa đúng mã đang chạy trên web (các commit sau 8ad4257 chỉ là tài liệu). Vercel không nối Git nên đẩy `main` không tự deploy. Quay lại bản trước: `npx vercel rollback`. Có đủ 4 biến môi trường mã cần (thêm `NEXT_PUBLIC_TURNSTILE_SITE_KEY` 30/10, loại Config, chỉ Production). `robots.txt` đang chặn mọi công cụ tìm kiếm.
 - **Quyền nhân viên:** `order_staff` (bán quầy, xử lý đơn), `stock_staff` (kiểm kho, xem giá nhập) — 29/10 chủ shop đã cấp `edit_products` cho `stock_staff` (gồm sửa, tạo, xóa SP, tải ảnh; không gồm sửa giá/tồn).
+
+### Bảo mật quản trị (29–30/10) — đã chạy trên web thật
+- **Nhật ký thao tác** (`audit_log`, trang `/admin/nhat-ky`, chỉ chủ shop xem, không ai sửa/xóa được): trigger ghi thêm/sửa/xóa SP, giá nhập, quyền, nhân viên, cài đặt; máy chủ web ghi đăng nhập (máy + IP), xuất/nhập Excel, thêm nhân viên qua hàm `public.log_event` (migration `20261029155212`, tệp repo cùng số). Đã thấy dòng "Đăng nhập" thật trên web.
+- **Xuất Excel:** cột giá nhập chỉ khi chủ shop xuất (NV kho vẫn xem giá nhập trên màn hình).
+- **Tự đăng xuất** khi không mở trang quản trị > 7 ngày (`proxy.ts`, cookie `ttt_last_seen`) — gói Supabase free không có sẵn.
+- **CAPTCHA Cloudflare Turnstile** ở Đăng nhập + Đổi mật khẩu (`lib/turnstile.ts`, `components/TurnstileWidget.tsx`). Ô xác minh Cloudflare "TTT dang nhap quan tri" (tài khoản Cloudflare của chủ shop), tên miền `tantruongtin.com` + `localhost`. **Supabase → Authentication → Attack Protection đã bật CAPTCHA (30/10 ~00:47)** với Secret Key (chỉ nằm ở Supabase; Site Key công khai ở Vercel + `.env.local`). Đã kiểm: gọi thẳng Supabase không mã / mã giả → `captcha_failed`; chủ shop đăng nhập lại trên điện thoại được. **Gỡ khẩn cấp:** tắt công tắc CAPTCHA ở Supabase (vd. Cloudflare sự cố). Mở bản thử qua IP Wi-Fi (192.168…) sẽ không đăng nhập được vì tên miền không khai; trình duyệt do công cụ tự động điều khiển có thể bị Cloudflare bắt bấm tay hoặc chặn.
 
 ## 5. Việc còn dở — làm tiếp theo thứ tự
 
 0. (29/10) Đã thêm: thanh chọn điện thoại Hủy · Sửa · Tải · Xóa (xóa nhiều), sửa lỗi không xóa được SP (migration `products_delete_policy`), Xuất Excel theo bộ lọc, chuyển trang số + chọn 20/50/100. Chờ chủ shop/nhân viên thử trên điện thoại thật. Hạn chế: Nhập Excel nhân giá ×1000 khi Ngành hàng "Quạt" và giá < 100.000đ (hiện 0 SP bị ảnh hưởng).
 
-1. **Chủ shop sẽ báo thêm lỗi** sau khi thử — hỏi chủ shop trước tiên.
+1. **Chủ shop sẽ báo thêm lỗi** sau khi thử — hỏi chủ shop trước tiên. Bảo mật còn chờ chủ shop quyết: **xác thực 2 lớp (TOTP) cho tài khoản chủ shop** (đã giải thích cách làm: ứng dụng Authenticator + chặn ở RLS theo aal2, chưa làm).
 2. (Đã xong 29/10) ~~Nút xóa sản phẩm~~, ~~khung chỉnh ảnh giữ tiêu điểm~~.
 3. Xóa các ảnh thử (ảnh chụp màn hình game/mạng xã hội) khỏi SP 361 và 366 trước khi cho khách xem.
 4. **Thử nén ảnh trên điện thoại thật** (Android, iPhone; ảnh HEIC, ảnh chụp dọc). Ảnh PNG 2,1 MB của SP 366 có thể xóa rồi tải lại.
