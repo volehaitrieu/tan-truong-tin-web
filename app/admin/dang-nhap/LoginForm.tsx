@@ -50,7 +50,7 @@ export function LoginForm() {
       </label>
       {captcha.enabled && <TurnstileWidget key={captcha.round} onStatus={captcha.setStatus} />}
       <button type="submit" disabled={pending || captcha.waiting} className="h-12 w-full rounded-[var(--radius-ctl)] bg-brand text-[15px] font-semibold text-white transition-colors hover:bg-brand-deep disabled:opacity-60">
-        {pending ? "Đang đăng nhập…" : "Đăng nhập"}
+        {pending ? "Đang đăng nhập…" : captcha.waiting ? "Đang xác minh…" : "Đăng nhập"}
       </button>
       <p className="text-center text-sm text-ink-2">Quên mật khẩu? Liên hệ chủ shop</p>
     </form>
