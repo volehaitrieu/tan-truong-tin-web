@@ -14,7 +14,7 @@ const slugify = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replac
 const str = (v: unknown, max: number) => (v == null ? null : String(v).replace(/\r/g, "").trim().slice(0, max) || null);
 
 // Các trường được so sánh khi SP đã có. Khóa = cột field trong bảng import_changes.
-// "qty" (tồn kho) cần migration 20261106000100_import_changes_qty.sql đã chạy, nếu chưa bảng đối chiếu sẽ từ chối dòng tồn.
+// "qty" (tồn kho) cần migration 20261106084208_import_changes_qty.sql đã chạy, nếu chưa bảng đối chiếu sẽ từ chối dòng tồn.
 type Field = "name" | "unit" | "price" | "import_price" | "category" | "industry" | "brand" | "location" | "min_qty" | "qty" | "spec" | "description" | "warranty" | "origin" | "made_in";
 
 type Db = Awaited<ReturnType<typeof createClient>>;
