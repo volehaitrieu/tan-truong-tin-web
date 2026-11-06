@@ -96,7 +96,7 @@ export function detectAndParse(
           line, sku: toSku(g("Mã hàng hóa")), name: g("Tên sản phẩm"), unit: g("Đơn vị tính") || "Cái", price: num(g("Giá bán")) * scale,
           cost: g("Giá nhập") ? num(g("Giá nhập")) * scale : null, minQty: g("Tồn tối thiểu") ? num(g("Tồn tối thiểu")) : null,
           sub, industry: opt("Ngành hàng"), brand: opt("Thương hiệu"), spec: opt("Thông số"), attributes: {}, warranty: opt("Bảo hành"), origin: opt("Xuất xứ"),
-          location: opt("Vị trí"), qty: g("Tồn") ? num(g("Tồn")) : null, madeIn: opt("Sản xuất tại"), description: opt("Mô tả"), raw, errors: [],
+          location: opt("Vị trí"), qty: g("Tồn") ? Number(g("Tồn").replace(/\s/g, "").replace(",", ".")) : null, madeIn: opt("Sản xuất tại"), description: opt("Mô tả"), raw, errors: [],
         });
         if (cat && !sub) row.errors.push(`Không tìm thấy danh mục “${cat}”`);
         if (row.minQty !== null && (!Number.isSafeInteger(row.minQty) || row.minQty < 0)) row.errors.push("Tồn tối thiểu không phải số");

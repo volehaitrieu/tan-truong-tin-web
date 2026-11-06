@@ -9,16 +9,16 @@ import { formatVnd } from "@/lib/shop";
 
 type Sub = { slug: string; name: string; parent: string };
 const STEPS = ["1 · Chọn file", "2 · Xem trước & kiểm lỗi", "3 · Xác nhận"];
-const WIDTHS = [22, 36, 12, 14, 14, 16, 18, 22, 24, 16, 12, 14, 36, 44, 18, 14, 14];
+const WIDTHS = [22, 36, 12, 14, 14, 16, 18, 22, 24, 16, 12, 8, 14, 36, 44, 18, 14, 14];
 
 // File mẫu: sheet SanPham (2 dòng ví dụ, cột Giá nhập + 10% có công thức), Hướng dẫn, Danh mục
 function downloadTemplate(subs: Sub[]) {
   const ex = (r: number, v: Cell[]): Cell[] => v.map((x, i) => (i === 5 ? { formula: `IF(E${r}="","",ROUND(E${r}*1.1,0))` } : x));
   const rows: Cell[][] = [
     [...TEMPLATE_COLUMNS],
-    ex(2, ["QUATDUNG-SENKO-DD1602", "Quạt đứng Senko DD1602 47W", "Cái", 520000, 410000, null, "Quạt", "Đồ gia dụng", "Quạt đứng", "Senko", "Kho 1", 2,
+    ex(2, ["QUATDUNG-SENKO-DD1602", "Quạt đứng Senko DD1602 47W", "Cái", 520000, 410000, null, "Quạt", "Đồ gia dụng", "Quạt đứng", "Senko", "Kho 1", 5, 2,
       "Công suất: 47W\nSải cánh: 40cm\nĐiều khiển: nút nhấn", "Quạt đứng Senko chạy êm, gió mạnh.\nThân thép sơn tĩnh điện, bền.", "12 tháng", "Việt Nam", "Việt Nam"]),
-    ex(3, ["AMSIEUTOC-PANA-17", "Ấm siêu tốc Panasonic 1.7L", "Cái", 650000, 520000, null, "Ấm siêu tốc", "Đồ gia dụng", "Ấm siêu tốc", "Panasonic", "Kệ A2", 3,
+    ex(3, ["AMSIEUTOC-PANA-17", "Ấm siêu tốc Panasonic 1.7L", "Cái", 650000, 520000, null, "Ấm siêu tốc", "Đồ gia dụng", "Ấm siêu tốc", "Panasonic", "Kệ A2", 8, 3,
       "Dung tích: 1.7 lít\nCông suất: 2200W", "Đun sôi nhanh, tự ngắt khi cạn nước.", "12 tháng theo hãng", "Nhật Bản", "Malaysia"]),
   ];
   const guide: Cell[][] = [
@@ -30,6 +30,7 @@ function downloadTemplate(subs: Sub[]) {
     ["Danh mục con", "Tên danh mục con có trong sheet “Danh mục”; đây là giá trị dùng để gắn sản phẩm vào web."],
     ["Ngành hàng", "Nhóm sản phẩm như Quạt hoặc Ấm siêu tốc. Các giá trị đã nhập sẽ tự hiện thành thẻ ngành hàng ở trang chủ."],
     ["Thông số, Mô tả", "Mỗi dòng một nội dung (trong ô Excel bấm Alt + Enter để xuống dòng). Thông số dạng “Tên: giá trị” hiện thành bảng."],
+    ["Tồn", "Số hàng đang có, là số nguyên từ 0 đến 100.000; ô trống = giữ nguyên; cần quyền chỉnh tồn. Sản phẩm mới: tồn đầu kỳ. Sản phẩm đã có: tick xác nhận để đặt đúng số tồn mới."],
     ["Ô để trống", "Với sản phẩm đã có: ô trống = giữ nguyên thông tin cũ trên web."],
   ];
   downloadBlob(buildXlsx([
@@ -46,7 +47,7 @@ function downloadErrors(bad: ImportRow[]) {
     const raw = r.raw ?? {
       "Mã hàng hóa": r.sku, "Tên sản phẩm": r.name, "Đơn vị tính": r.unit, "Giá bán": Number.isFinite(r.price) ? String(r.price) : "",
       "Giá nhập": r.cost != null && Number.isFinite(r.cost) ? String(r.cost) : "", "Ngành hàng": r.industry ?? "", "Danh mục": "", "Danh mục con": "", "Thương hiệu": r.brand ?? "",
-      "Tồn tối thiểu": r.minQty != null ? String(r.minQty) : "", "Thông số": r.spec ?? "", "Bảo hành": r.warranty ?? "", "Xuất xứ": r.origin ?? "",
+      "Tồn": r.qty != null ? String(r.qty) : "", "Tồn tối thiểu": r.minQty != null ? String(r.minQty) : "", "Thông số": r.spec ?? "", "Bảo hành": r.warranty ?? "", "Xuất xứ": r.origin ?? "",
     } as Record<string, string>;
     rows.push([...TEMPLATE_COLUMNS.map((c, ci) => (ci === 5 ? { formula: `IF(E${i + 2}="","",ROUND(E${i + 2}*1.1,0))` } : raw[c] ?? "")), `Dòng ${r.line}: ${r.errors.join("; ")}`]);
   });
@@ -130,7 +131,7 @@ export function ImportClient({ subs, brands }: { subs: Sub[]; brands: string[] }
           </div>
           <div className="mt-3 max-h-[60vh] overflow-auto rounded border border-line">
             <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-ground text-left text-xs text-ink-2"><tr>{["Dòng", "SKU", "Tên", "Đơn vị", "Giá bán", "Ngành hàng", "Danh mục", "Tình trạng"].map((h) => <th key={h} className="px-2 py-2 font-semibold">{h}</th>)}</tr></thead>
+              <thead className="sticky top-0 bg-ground text-left text-xs text-ink-2"><tr>{["Dòng", "SKU", "Tên", "Đơn vị", "Giá bán", "Tồn", "Ngành hàng", "Danh mục", "Tình trạng"].map((h) => <th key={h} className="px-2 py-2 font-semibold">{h}</th>)}</tr></thead>
               <tbody>
                 {visible.map((r) => (
                   <tr key={r.line} className={`border-t border-line ${r.errors.length ? "bg-[#fef2f2]" : ""}`}>
@@ -139,6 +140,7 @@ export function ImportClient({ subs, brands }: { subs: Sub[]; brands: string[] }
                     <td className="px-2">{r.name}</td>
                     <td className="px-2">{r.unit}</td>
                     <td className="num px-2">{Number.isFinite(r.price) ? formatVnd(r.price) : "—"}</td>
+                    <td className="num px-2">{r.qty == null ? "Giữ nguyên" : Number.isFinite(r.qty) ? r.qty.toLocaleString("vi-VN") : "Không hợp lệ"}</td>
                     <td className="px-2">{r.industry ?? "—"}</td>
                     <td className="px-2 text-ink-2">{r.sub ? subName.get(r.sub) : defaultSub ? subName.get(defaultSub) : "—"}</td>
                     <td className="px-2">{r.errors.length ? <span className="text-danger">{r.errors.join(", ")}</span> : <span className="text-ok">OK</span>}</td>
@@ -148,7 +150,7 @@ export function ImportClient({ subs, brands }: { subs: Sub[]; brands: string[] }
             </table>
             {visible.length === 300 && <p className="p-2 text-xs text-ink-2">Chỉ hiện 300 dòng đầu.</p>}
           </div>
-          <p className="mt-3 text-[13px] text-ink-2">Mã mới được thêm ngay. Mã đã có: thông tin khác với web hiện ở bảng “Thay đổi chờ xác nhận” để bạn tick từng mục. Số tồn không thay đổi.</p>
+          <p className="mt-3 text-[13px] text-ink-2">Mã mới được thêm ngay. Mã đã có: thông tin khác với web hiện ở bảng “Thay đổi chờ xác nhận” để bạn tick từng mục. Cột Tồn: sản phẩm mới dùng làm tồn đầu kỳ; sản phẩm đã có cần tick xác nhận để đặt đúng số tồn mới. Ô trống giữ nguyên, số 0 đặt hết hàng. Cần quyền chỉnh tồn kho.</p>
           <button disabled={pending || rows.length - bad.length <= 0} onClick={() => start(async () => setResult(await importProducts(rows.filter((r) => !r.errors.length), defaultSub || null)))}
             className="mt-3 h-12 rounded bg-brand px-5 font-semibold text-white disabled:opacity-50">{pending ? "Đang nhập…" : `Nhập ${rows.length - bad.length} dòng hợp lệ`}</button>
           {result && !result.ok && <p role="alert" className="mt-2 text-sm text-danger">{result.error}</p>}
@@ -157,6 +159,9 @@ export function ImportClient({ subs, brands }: { subs: Sub[]; brands: string[] }
       {result?.ok && (
         <p role="status" className="mt-4 rounded-lg bg-brand-tint p-4 text-sm">
           Đã nhập xong: <b>{result.added}</b> sản phẩm mới, <b>{result.pending}</b> thay đổi chờ xác nhận (bảng phía trên), {result.unchanged} sản phẩm không đổi, {result.skipped} dòng bỏ qua.
+          <span className="mt-2 block">Đã ghi tồn đầu kỳ cho {result.stockSet} sản phẩm mới.</span>
+          {result.stockFailed > 0 && <span className="mt-2 block" role="alert">Chưa ghi được tồn cho {result.stockFailed} sản phẩm mới. Sản phẩm đã được tạo; hãy nhập lại file và xác nhận mục Tồn kho trong bảng đối chiếu.</span>}
+          {result.stockIgnored && <span className="mt-2 block" role="alert">Đã bỏ qua cột Tồn vì bạn chưa có quyền chỉnh tồn kho.</span>}
         </p>
       )}
     </>

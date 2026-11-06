@@ -1,8 +1,17 @@
-# Nhập Excel đọc cột Tồn — việc đang làm dở (nhánh `feature/nhap-excel-ton-kho`, cắt từ `main` 05becd5)
+# Nhập Excel đọc cột Tồn — trạng thái 06/11/2026
 
-**Nhánh này CHƯA chạy được `tsc`: ĐỪNG deploy.** Hướng dẫn đầy đủ nằm ở nhánh `worktree-website-v2`: `docs/website-v2/BAN_GIAO_2026-11-06.md` (mục 0 quy tắc, mục 3 việc dở). Tóm tắt:
+Đã hoàn tất mã trên nhánh `feature/nhap-excel-ton-kho`.
 
-Quyết định chủ shop: SP đã có → số Tồn trong file là tồn MỚI; hiện "cũ → mới" ở bảng "Thay đổi chờ xác nhận" để tick; ô trống = giữ nguyên; ghi lịch sử nhập kho; SP mới → tồn đầu kỳ. Đặt tồn qua hàm DB `adjust_stock` (đòi quyền `adjust_stock`), không ghi thẳng bảng `inventory`.
+- ReviewTable: nhãn Tồn kho (đặt đúng số này).
+- ImportClient: thêm Tồn vào mẫu, hướng dẫn, file lỗi, xem trước và kết quả nhập.
+- product-export: xuất cột Tồn theo mẫu chuẩn, bỏ Tồn kho dư.
+- parse-products: không làm tròn tồn lẻ; báo lỗi số không nguyên.
+- Migration: `supabase/migrations/20261106000100_import_changes_qty.sql` chỉ được viết, CHƯA chạy.
+- Kiểm tra: `npx next typegen`, `npx tsc --noEmit` đạt; `npx eslint` 0 lỗi, 4 cảnh báo cũ ngoài phạm vi. `node --test scripts/check-import-stock.mjs` đạt 3/3 nhóm ca với dòng giả, không dùng Excel/giá nhập thật.
+- Build chưa chạy vì không có `.env.local`. Chưa thử nhập/ghi kho thật hoặc giao diện trình duyệt.
 
-Đã sửa: `lib/excel/parse-products.ts`, `app/admin/(shell)/nhap-excel/actions.ts`.
-Còn lại: (1) `ReviewTable.tsx` thêm nhãn `qty`; (2) `ImportClient.tsx` (độ rộng cột, 2 dòng ví dụ thêm Tồn trước Tồn tối thiểu, hướng dẫn, `downloadErrors`, cột xem trước, câu "Số tồn không thay đổi.", thông báo kết quả `stockSet/stockFailed/stockIgnored`); (3) `lib/admin/product-export.ts` (bỏ "Tồn kho" khỏi `EXTRA_COLUMNS`, thêm khóa "Tồn"); (4) tạo `supabase/migrations/20261106000100_import_changes_qty.sql` nới `import_changes_field_check` thêm `'qty'` (KHÔNG chạy khi chưa hỏi chủ shop; chạy migration TRƯỚC rồi mới deploy mã; sau khi `apply_migration` đổi tên tệp cho khớp phiên bản hệ thống trả về); (5) `npx tsc --noEmit`, `npx eslint`, `npm run build`, thử bộ đọc với file Excel có cột Tồn. Chủ shop tự deploy: `npx vercel deploy --prod --yes`.
+Quyết định nghiệp vụ: sản phẩm đã có cần tick xác nhận tồn mới; ô trống giữ nguyên; 0 đặt hết hàng; sản phẩm mới dùng tồn đầu kỳ. Tồn ghi qua `adjust_stock`, cần quyền chỉnh tồn; không cập nhật trực tiếp `inventory.qty`.
+
+Còn lại do chủ shop quyết: chạy migration TRƯỚC rồi deploy, sau đó thử file nhỏ và kiểm lịch sử kho. Không chạy migration/deploy khi chưa có yêu cầu. Giới hạn đã chấp nhận trong bàn giao: đơn hàng đồng thời giữa lúc đọc tồn và chỉnh tồn có thể gây lệch.
+
+Bàn giao gốc: `origin/worktree-website-v2:docs/website-v2/BAN_GIAO_2026-11-06.md`, mục 0 và 3. Chi tiết đợt này ở `docs/MENTOR_LOG.md`.
