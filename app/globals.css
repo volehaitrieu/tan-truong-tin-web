@@ -110,7 +110,10 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-brand); 
   --color-ink-2: #6b655e;
   --color-ink-3: #6b655e;
   --color-ok: #3e9b6a;
+  --color-ask: #6b655e;
   background: var(--color-ground);
+  /* Chữ không gắn màu riêng (tiêu đề, nhãn…) kế thừa từ body = ink cũ; đặt lại theo ink mới của trang */
+  color: var(--color-ink);
 }
 .store:has([data-theme-v2]) .bg-white { background-color: var(--color-surface); }
 .store:has([data-theme-v2]) main a.bg-white { background-color: var(--color-sunk); }
@@ -150,6 +153,27 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-brand); 
 @media (min-width: 768px) {
   .anim-sheet { animation-name: sheet-left; }
   .anim-sheet-out { animation-name: sheet-right; }
+}
+
+/* Đầu trang điện thoại: bấm tìm kiếm thì ô phóng dài ra, ép tên cửa hàng biến mất dần và nút Tài khoản thu nhỏ (HeaderSearchToggle đặt body[data-search-open]). */
+@media (max-width: 639px) {
+  .hdr-logo { flex: 1 1 0%; min-width: 0; overflow: hidden; white-space: nowrap; transition: flex 300ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 220ms ease; }
+  .hdr-search { flex: 0 0 44px; width: 44px; transition: flex 300ms cubic-bezier(0.2, 0.8, 0.2, 1), width 300ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .hdr-acct-dot { transition: width 300ms cubic-bezier(0.2, 0.8, 0.2, 1), height 300ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+  body[data-search-open] .hdr-logo { flex: 0 1 0%; opacity: 0; visibility: hidden; transition: flex 300ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 220ms ease, visibility 0s linear 300ms; pointer-events: none; }
+  body[data-search-open] .hdr-search { flex: 1 1 0%; width: auto; }
+  body[data-search-open] .hdr-acct-dot { width: 36px; height: 36px; }
+}
+
+/* Thanh mua dính ở trang chi tiết đang hiện (BuyBox đặt data-buybar): đẩy nút Zalo/Gọi và thông báo lên trên thanh đó. */
+body[data-buybar] .float-actions { bottom: calc(148px + env(safe-area-inset-bottom)); }
+body[data-buybar] .buy-toast { bottom: calc(env(safe-area-inset-bottom) + 150px); }
+/* chừa chỗ cuối trang để thanh mua không che dòng chân trang cuối */
+body[data-buybar] .store { padding-bottom: calc(140px + env(safe-area-inset-bottom)); }
+@media (min-width: 768px) {
+  body[data-buybar] .store { padding-bottom: 76px; }
+  body[data-buybar] .float-actions { bottom: 96px; }
+  body[data-buybar] .buy-toast { bottom: 96px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

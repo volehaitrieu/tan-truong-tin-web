@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Minus, Package, Plus, Trash2 } from "lucide-react";
 import { cartProducts } from "@/app/(store)/actions";
 import type { Product } from "@/lib/mock/store";
@@ -87,7 +87,7 @@ export function useCartLines(): { rows: CartRow[]; lines: CartLine[] } | null {
 function Toast({ text }: { text: string | null }) {
   if (!text) return null;
   return (
-    <div role="status" aria-live="polite" className="fixed bottom-[calc(env(safe-area-inset-bottom)+84px)] left-1/2 z-[70] w-[min(92vw,420px)] -translate-x-1/2 rounded-md bg-brand-deep px-4 py-3 text-sm font-medium text-white shadow-lg md:bottom-8">
+    <div role="status" aria-live="polite" className="buy-toast fixed bottom-[calc(env(safe-area-inset-bottom)+84px)] left-1/2 z-[70] w-[min(92vw,420px)] -translate-x-1/2 rounded-md bg-brand-deep px-4 py-3 text-sm font-medium text-white shadow-lg md:bottom-8">
       Đã thêm vào giỏ: {text}
     </div>
   );
@@ -112,7 +112,7 @@ export function AddToCartButton({ sku, name, available = true }: { sku: string; 
           addToCart(sku);
           setToast(name);
         }}
-        className={`mt-3 h-11 w-full rounded-md text-sm font-semibold transition-colors duration-150 ${available ? "bg-brand text-white hover:bg-brand-deep" : "bg-gold text-gold-ink hover:bg-gold-hover"}`}
+        className={`mt-3 flex h-11 w-full items-center justify-center rounded-full text-sm font-semibold transition duration-150 active:scale-[0.98] ${available ? "bg-brand text-white hover:bg-brand-deep" : "border border-brand bg-white text-brand hover:bg-brand-tint"}`}
       >
         {available ? "Thêm vào giỏ" : "Đặt trước"}
       </button>
@@ -121,10 +121,37 @@ export function AddToCartButton({ sku, name, available = true }: { sku: string; 
   );
 }
 
-// Trang chi tiết: chọn số lượng + thêm vào giỏ
-export function BuyBox({ sku, name, available }: { sku: string; name: string; available: boolean }) {
+// Trang chi tiết: chọn số lượng + thêm vào giỏ. Có priceText thì thêm thanh mua dính ở đáy,
+// chỉ hiện khi hàng nút gốc đã cuộn khuất phía trên (cùng số lượng với ô chọn bên trên).
+export function BuyBox({ sku, name, available, priceText, unit }: { sku: string; name: string; available: boolean; priceText?: string; unit?: string }) {
   const [qty, setQty] = useState(1);
   const [toast, setToast] = useToast();
+  const actionsRef = useRef<HTMLDivElement>(null);
+  const [barOn, setBarOn] = useState(false);
+  useEffect(() => {
+    const el = actionsRef.current;
+    if (!el || !priceText) return;
+    // Hiện thanh khi hàng nút gốc đã cuộn khuất hẳn phía trên màn hình (đọc vị trí mỗi lần cuộn; nhẹ, không gây vẽ lại nếu giá trị không đổi)
+    const update = () => setBarOn(el.getBoundingClientRect().bottom < 0);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, [priceText]);
+  useEffect(() => {
+    if (!barOn) return;
+    document.body.dataset.buybar = "1";
+    return () => {
+      delete document.body.dataset.buybar;
+    };
+  }, [barOn]);
+  const add = () => {
+    addToCart(sku, qty);
+    setToast(`${name} × ${qty}`);
+  };
   return (
     <>
       <div className="mt-5 flex items-center gap-3">
@@ -145,21 +172,29 @@ export function BuyBox({ sku, name, available }: { sku: string; name: string; av
           </button>
         </div>
       </div>
-      <div className="mt-4 flex flex-wrap gap-3">
+      <div ref={actionsRef} className="mt-4 flex flex-wrap gap-3">
         <button
           type="button"
-          onClick={() => {
-            addToCart(sku, qty);
-            setToast(`${name} × ${qty}`);
-          }}
-          className={`flex h-12 flex-1 items-center justify-center rounded-md px-5 font-bold transition-colors duration-150 sm:flex-none ${available ? "bg-brand text-white hover:bg-brand-deep" : "bg-gold text-gold-ink"}`}
+          onClick={add}
+          className={`flex h-12 flex-1 items-center justify-center rounded-full px-5 font-bold transition duration-150 active:scale-[0.98] sm:flex-none ${available ? "bg-brand text-white hover:bg-brand-deep" : "border border-brand bg-white text-brand"}`}
         >
           {available ? "Thêm vào giỏ" : "Đặt trước"}
         </button>
-        <a href="https://zalo.me/0948732064" className="flex h-12 items-center rounded-md border border-brand bg-white px-5 font-semibold text-brand hover:bg-brand-tint">
+        <a href="https://zalo.me/0948732064" className="flex h-12 items-center rounded-full border border-brand bg-white px-5 font-semibold text-brand hover:bg-brand-tint">
           Chat Zalo
         </a>
       </div>
+      {priceText && (
+        <div inert={!barOn} aria-hidden={!barOn} className={`fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-[45] flex items-center gap-3 border-t border-line bg-surface px-5 py-2.5 transition-[transform,visibility] duration-200 md:bottom-0 ${barOn ? "visible translate-y-0" : "invisible translate-y-full"}`}>
+          <div className="min-w-0 flex-1">
+            <b className="num block truncate text-xl font-extrabold leading-tight">{priceText}</b>
+            <span className="block text-xs text-ink-2">{available ? "Còn hàng" : "Liên hệ"}{unit ? ` · / ${unit.toLowerCase()}` : ""}</span>
+          </div>
+          <button type="button" onClick={add} className={`flex h-12 shrink-0 items-center justify-center rounded-full px-7 font-bold transition duration-150 active:scale-[0.98] ${available ? "bg-brand text-white hover:bg-brand-deep" : "border-2 border-brand bg-surface text-brand hover:bg-brand-tint"}`}>
+            {available ? "Thêm vào giỏ" : "Đặt trước"}{qty > 1 && <span className="num ml-1.5 font-semibold">× {qty}</span>}
+          </button>
+        </div>
+      )}
       <Toast text={toast} />
     </>
   );
@@ -169,7 +204,7 @@ export function CartCount() {
   const rows = useCart();
   const count = rows?.reduce((sum, r) => sum + r.quantity, 0) ?? 0;
   return count > 0 ? (
-    <span className="num absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-gold px-1 text-[11px] font-bold text-gold-ink">{count}</span>
+    <span className="num absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-danger px-1 text-[11px] font-bold text-white">{count}</span>
   ) : null;
 }
 
@@ -204,7 +239,7 @@ export function CartPanel() {
             </Link>
             <div className="min-w-0 flex-1">
               <Link href={`/san-pham/${sku}`} className="line-clamp-2 text-sm font-semibold hover:text-brand">{p.name}</Link>
-              <p className="num mt-1 font-bold text-danger">{formatVnd(p.price)} <span className="text-xs font-normal text-ink-2">/ {p.unit.toLowerCase()}</span></p>
+              <p className="num mt-1 font-bold text-ink">{formatVnd(p.price)} <span className="text-xs font-normal text-ink-2">/ {p.unit.toLowerCase()}</span></p>
               {!p.stock && <p className="mt-1 text-xs text-ask">Liên hệ · shop sẽ gọi báo thời gian có hàng</p>}
               <div className="mt-2 flex items-center gap-2">
                 <div className="flex items-center rounded-md border border-line">

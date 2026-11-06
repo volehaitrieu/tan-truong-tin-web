@@ -173,7 +173,7 @@ export function CheckoutForm({ innerFee, freeFrom }: { innerFee: number | null; 
             <input type="radio" name="pay" disabled className="size-5" />
             <QrCode className="size-5 text-brand" aria-hidden />
             <b className="flex-1 text-[15px]">Chuyển khoản VietQR</b>
-            <span className="rounded-full bg-gold-tint px-2 py-0.5 text-xs font-medium text-gold-ink">Sắp có</span>
+            <span className="rounded-full border border-line bg-sunk px-2 py-0.5 text-xs font-medium text-ink-2">Sắp có</span>
           </label>
         </fieldset>
       </div>
@@ -191,7 +191,7 @@ export function CheckoutForm({ innerFee, freeFrom }: { innerFee: number | null; 
         <p className="mt-3 flex justify-between border-t border-line pt-3 text-sm">Tiền hàng <b className="num">{formatVnd(total)}</b></p>
         <p className="mt-1.5 flex justify-between text-sm">Phí ship <span className="num text-ink-2">{fee === null ? "Báo khi xác nhận đơn" : formatVnd(fee)}</span></p>
         {method === "inner" && fee !== 0 && freeFrom !== null && <p className="mt-1 text-xs text-ok">Miễn phí ship nội thành cho đơn từ {formatVnd(freeFrom)}</p>}
-        <p className="mt-3 flex items-baseline justify-between text-base font-bold">Tạm tính <span className="num text-xl text-danger">{formatVnd(total + (fee ?? 0))}</span></p>
+        <p className="mt-3 flex items-baseline justify-between text-base font-bold">Tạm tính <span className="num text-xl text-ink">{formatVnd(total + (fee ?? 0))}</span></p>
         {serverError && <p role="alert" className="mt-3 rounded-md bg-[#fef2f2] p-3 text-sm text-danger">{serverError}</p>}
         <button type="submit" disabled={sending} className="mt-4 h-12 w-full rounded-md bg-brand font-bold text-white hover:bg-brand-deep disabled:opacity-60">{sending ? "Đang gửi đơn…" : "Đặt hàng"}</button>
         <p className="mt-2 text-center text-xs text-ink-2">Shop sẽ gọi xác nhận đơn trước khi giao.</p>

@@ -1,15 +1,11 @@
 "use server";
-import { getProducts, searchCatalog } from "@/lib/catalog";
+import { getProducts } from "@/lib/catalog";
 import { createPublicClient } from "@/lib/supabase/public";
 import type { Product } from "@/lib/mock/store";
 
 // Hàm server cho trang bán hàng. Mọi kiểm tra tiền/số lượng nằm trong hàm Postgres (place_order…);
 // ở đây chỉ chặn dữ liệu quá khổ trước khi gửi đi.
-
-export async function suggest(q: string) {
-  if (typeof q !== "string" || !q.trim() || q.length > 100) return [];
-  return (await searchCatalog(q)).slice(0, 5).map((p) => ({ sku: p.sku, name: p.name, brand: p.brand }));
-}
+// (Gợi ý tìm kiếm không còn là server action: xem app/api/goi-y/route.ts và lib/suggest.ts.)
 
 // Thông tin SP cho các món trong giỏ (giá luôn lấy từ DB, không tin giá lưu ở trình duyệt)
 export async function cartProducts(skus: string[]): Promise<Product[]> {

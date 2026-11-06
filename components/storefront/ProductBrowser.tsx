@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { Phone, SlidersHorizontal, X } from "lucide-react";
+import { ChevronDown, Phone, SlidersHorizontal, X } from "lucide-react";
 import { ProductCard } from "@/components/storefront/ProductCard";
 import { discountPct, HOME_PAGE_SIZE, PAGE_SIZE, type Category, type Product } from "@/lib/mock/store";
 
@@ -27,6 +27,27 @@ const SORTS = [
   ["ten", "Tên A–Z"],
 ] as const;
 const URL_FILTERS = ["cat", "sub", "industry", "brand", "price", "state"];
+
+// Nút "Xem tiếp N sản phẩm" kèm vòng tiến độ (đã hiện / tổng), theo thiết kế Stitch v2.
+// Nút "Xem thêm N sản phẩm" kèm vòng tiến độ (đã hiện / tổng), theo thiết kế Stitch v2. Chỉ tải khi chủ động bấm.
+function MoreButton({ shown, total, next, onClick }: { shown: number; total: number; next: number; onClick: () => void }) {
+  const done = Math.round((shown / total) * 100);
+  return (
+    <button type="button" onClick={onClick} className="mt-6 flex h-12 w-full items-center justify-between rounded-full bg-brand px-4 font-semibold text-white shadow-md transition hover:bg-brand-deep active:scale-[0.98]">
+      <span className="flex items-center gap-3">
+        <span className="relative grid size-7 shrink-0 place-items-center" aria-hidden>
+          <svg viewBox="0 0 36 36" className="size-7 -rotate-90">
+            <circle cx="18" cy="18" r="15.9155" fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3.5" />
+            <circle cx="18" cy="18" r="15.9155" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeDasharray={`${done}, 100`} />
+          </svg>
+          <span className="num absolute text-[9px] font-bold leading-none">{done}%</span>
+        </span>
+        Xem thêm {next} sản phẩm
+      </span>
+      <ChevronDown className="size-5" aria-hidden />
+    </button>
+  );
+}
 
 type Group = { key: string; title: string; options: { id: string; label: string }[]; test: (p: Product, id: string) => boolean };
 type Picked = Record<string, string[]>;
@@ -122,10 +143,9 @@ export function ProductBrowser({ products, categories, fixedCat, showSort = true
     return by[sort] ? [...list].sort(by[sort]) : list;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [products, picked, sort, groups]);
-  const [salePrice, setSalePrice] = useState<string | null>(null);
-  const [allPrice, setAllPrice] = useState<string | null>(null);
-  const saleHomeProducts = products.filter((product) => product.old && (!salePrice || PRICES.find((range) => range.id === salePrice)?.test(product.price)));
-  const allHomeProducts = products.filter((product) => !allPrice || PRICES.find((range) => range.id === allPrice)?.test(product.price));
+  const saleHomeProducts = products.filter((product) => product.old);
+  const [saleShown, setSaleShown] = useState(pageSize);
+  const allHomeProducts = products;
 
   const toggle = (key: string, id: string) => {
     const group = groups.find((item) => item.key === key);
@@ -158,37 +178,23 @@ export function ProductBrowser({ products, categories, fixedCat, showSort = true
     };
   }, [sheet]);
 
-  const homePriceFilter = (value: string | null, setValue: (value: string | null) => void, section: string) => (
-    <fieldset className="mb-3">
-      <legend className="mb-2 text-sm font-semibold">Khoảng giá · {section}</legend>
-      <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label={`Lọc khoảng giá ${section}`}>
-        {[{ id: "all", label: "Tất cả" }, ...PRICES].map((range) => {
-          const selected = range.id === "all" ? value === null : value === range.id;
-          return <button key={range.id} type="button" aria-pressed={selected} onClick={() => { setValue(range.id === "all" || selected ? null : range.id); setPagination({ key: navigationKey, count: pageSize }); }} className={`min-h-10 shrink-0 rounded-full border px-4 text-[13px] font-medium transition-colors ${selected ? "border-brand bg-brand text-white" : "border-line bg-surface hover:border-brand hover:bg-brand-tint"}`}>{range.label}</button>;
-        })}
-      </div>
-    </fieldset>
-  );
-
   if (showSale) {
     return (
       <div className="min-w-0">
         <section className="mb-8" aria-labelledby="h-giam-gia">
-          {homePriceFilter(salePrice, setSalePrice, "sản phẩm giảm giá")}
-          <h2 id="h-giam-gia" className="mb-4 text-[22px] font-extrabold sm:text-[26px]">Sản phẩm đang giảm giá ({saleHomeProducts.length})</h2>
-          {saleHomeProducts.length ? <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{saleHomeProducts.map((p) => <ProductCard key={p.sku} p={p} />)}</div> : <p className="rounded-md bg-surface p-5 text-sm text-ink-2">Không có sản phẩm giảm giá trong khoảng này.</p>}
+          <h2 id="h-giam-gia" className="mb-3 text-lg font-bold sm:text-[22px]">Sản phẩm đang giảm giá ({saleHomeProducts.length})</h2>
+          {saleHomeProducts.length ? <><div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{saleHomeProducts.slice(0, saleShown).map((p) => <ProductCard key={p.sku} p={p} />)}</div>{saleHomeProducts.length > saleShown && <MoreButton shown={saleShown} total={saleHomeProducts.length} next={Math.min(pageSize, saleHomeProducts.length - saleShown)} onClick={() => setSaleShown(saleShown + pageSize)} />}</> : <p className="rounded-xl border border-line bg-surface p-5 text-sm text-ink-2">Hiện chưa có sản phẩm giảm giá.</p>}
         </section>
         <section aria-labelledby="h-tat-ca">
-          {homePriceFilter(allPrice, setAllPrice, "tất cả sản phẩm")}
-          <h2 id="h-tat-ca" className="mb-4 text-[22px] font-extrabold sm:text-[26px]">Tất cả sản phẩm ({allHomeProducts.length})</h2>
+          <h2 id="h-tat-ca" className="mb-3 text-lg font-bold sm:text-[22px]">Tất cả sản phẩm ({allHomeProducts.length})</h2>
           {allHomeProducts.length ? (
             <>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
                 {allHomeProducts.slice(0, shown).map((p) => <ProductCard key={p.sku} p={p} />)}
               </div>
-              {allHomeProducts.length > shown && <button type="button" onClick={() => setPagination({ key: navigationKey, count: shown + pageSize })} className="mx-auto mt-6 flex h-11 items-center rounded-md border border-brand bg-surface px-6 font-semibold text-brand hover:bg-brand-tint">Xem thêm {Math.min(pageSize, allHomeProducts.length - shown)} / {allHomeProducts.length} sản phẩm</button>}
+              {allHomeProducts.length > shown && <MoreButton shown={shown} total={allHomeProducts.length} next={Math.min(pageSize, allHomeProducts.length - shown)} onClick={() => setPagination({ key: navigationKey, count: shown + pageSize })} />}
             </>
-          ) : <p className="rounded-md bg-surface p-5 text-sm text-ink-2">Không có sản phẩm trong khoảng giá này.</p>}
+          ) : <p className="rounded-xl border border-line bg-surface p-5 text-sm text-ink-2">Chưa có sản phẩm.</p>}
         </section>
       </div>
     );
@@ -266,11 +272,7 @@ export function ProductBrowser({ products, categories, fixedCat, showSort = true
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {results.slice(0, shown).map((p) => <ProductCard key={p.sku} p={p} />)}
             </div>
-            {results.length > shown && (
-              <button type="button" onClick={() => setPagination({ key: navigationKey, count: shown + pageSize })} className="mx-auto mt-6 flex h-11 items-center rounded-md border border-brand bg-surface px-6 font-semibold text-brand hover:bg-brand-tint">
-                Xem thêm {Math.min(pageSize, results.length - shown)} / {results.length} sản phẩm
-              </button>
-            )}
+            {results.length > shown && <MoreButton shown={shown} total={results.length} next={Math.min(pageSize, results.length - shown)} onClick={() => setPagination({ key: navigationKey, count: shown + pageSize })} />}
           </>
         ) : (
           <div className="rounded-md bg-surface px-5 py-10 text-center">
@@ -296,8 +298,8 @@ export function ProductBrowser({ products, categories, fixedCat, showSort = true
             </div>
             <div className="overflow-y-auto px-4 py-3">{panel}</div>
             <div className="flex gap-2 border-t border-line p-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
-              <button type="button" onClick={clearFilters} className="h-12 rounded-md border border-line px-4 font-medium">Xóa lọc</button>
-              <button type="button" onClick={() => setSheet(false)} className="h-12 flex-1 rounded-md bg-brand font-bold text-white">Xem {results.length} sản phẩm</button>
+              <button type="button" onClick={clearFilters} className="h-12 rounded-full border border-line px-5 font-medium">Xóa lọc</button>
+              <button type="button" onClick={() => setSheet(false)} className="h-12 flex-1 rounded-full bg-brand font-bold text-white">Xem {results.length} sản phẩm</button>
             </div>
           </div>
         </div>

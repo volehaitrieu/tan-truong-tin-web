@@ -25,6 +25,8 @@ export default async function CategoryPage({ params }: PageProps<"/danh-muc/[slu
   const products = all.filter((p) => p.cat === cat.slug);
   return (
     <>
+      {/* Đã áp bảng màu mới (cờ data-theme-v2, xem globals.css) */}
+      <div hidden data-theme-v2 />
       <Breadcrumb items={[{ label: "Sản phẩm", href: "/danh-muc" }, { label: cat.name }]} />
       <h1 className="mb-4 text-[28px] font-extrabold sm:text-[34px]">{cat.name}</h1>
       {cat.subs.length > 0 && (

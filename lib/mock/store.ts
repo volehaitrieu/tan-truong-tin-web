@@ -38,5 +38,6 @@ export const discountPct = (p: Product) => (p.old ? Math.round((1 - p.price / p.
 
 // Số sản phẩm mỗi lượt "Xem thêm". Khung chờ máy chủ và lưới client dùng chung để không nhảy layout.
 // Trang chủ lưới 5 cột trên desktop nên lấy 15 (3 hàng đủ); các trang có cột lọc lưới 4 cột nên lấy 12.
-export const PAGE_SIZE = 12;
-export const HOME_PAGE_SIZE = 15;
+// Mỗi lần chỉ hiện 8 sản phẩm; lướt tới đâu tải thêm tới đó (ProductBrowser).
+export const PAGE_SIZE = 8;
+export const HOME_PAGE_SIZE = 8;

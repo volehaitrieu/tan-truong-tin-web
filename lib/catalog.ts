@@ -124,10 +124,14 @@ export async function getProduct(sku: string) {
   return (await getProducts()).find((p) => p.sku.toLowerCase() === sku.toLowerCase());
 }
 
-export async function searchCatalog(q: string) {
+export function matchProducts(products: Product[], q: string) {
   const words = normalize(q).split(/\s+/).filter(Boolean).slice(0, 8);
-  return (await getProducts()).filter((p) => {
+  return products.filter((p) => {
     const hay = normalize(`${p.name} ${p.brand} ${p.sku} ${p.industry} ${p.sub}`);
     return words.every((w) => hay.includes(w));
   });
+}
+
+export async function searchCatalog(q: string) {
+  return matchProducts(await getProducts(), q);
 }

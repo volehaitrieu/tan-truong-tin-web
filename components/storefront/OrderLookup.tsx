@@ -66,7 +66,7 @@ export function OrderLookup({ initialCode = "" }: { initialCode?: string }) {
             <div className="flex justify-between"><dt className="text-ink-2">Tiền hàng</dt><dd className="num">{formatVnd(order.subtotal)}</dd></div>
             <div className="flex justify-between"><dt className="text-ink-2">Phí ship</dt><dd className="num">{order.shipping_fee == null ? "Báo khi xác nhận" : formatVnd(order.shipping_fee)}</dd></div>
             <div className="flex justify-between"><dt className="text-ink-2">Mã vận đơn</dt><dd>{order.tracking_code || "Chưa có"}</dd></div>
-            <div className="flex justify-between pt-1 text-base font-bold"><dt>Tổng cộng</dt><dd className="num text-danger">{formatVnd(order.subtotal + (order.shipping_fee ?? 0))}{order.shipping_fee == null && " + ship"}</dd></div>
+            <div className="flex justify-between pt-1 text-base font-bold"><dt>Tổng cộng</dt><dd className="num text-ink">{formatVnd(order.subtotal + (order.shipping_fee ?? 0))}{order.shipping_fee == null && " + ship"}</dd></div>
           </dl>
         </section>
       )}

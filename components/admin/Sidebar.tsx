@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isActive, visibleNav } from "@/lib/admin-nav";
@@ -16,7 +15,7 @@ export function Sidebar({ perms }: { perms: Permission[] }) {
         <span className="hidden xl:block">
           <Logo size={34} subtitle="Quản trị cửa hàng" tone="light" />
         </span>
-        <Image src="/brand/logo-trong-suot.png" alt="Tân Trường Tín" width={34} height={34} className="mx-auto xl:hidden" />
+        <span className="mx-auto text-sm font-bold tracking-tight xl:hidden" aria-label="Tân Trường Tín">TTT</span>
       </div>
       <nav aria-label="Menu quản trị" className="flex-1 overflow-y-auto px-2 py-2">
         <ul className="space-y-0.5">

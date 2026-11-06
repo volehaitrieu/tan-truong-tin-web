@@ -5,20 +5,20 @@ import { HOME_PAGE_SIZE, PAGE_SIZE, type Category, type Product } from "@/lib/mo
 
 function ProductBrowserFallback({ products, showSale }: { products: Product[]; showSale: boolean }) {
   const initialProducts = products.slice(0, showSale ? HOME_PAGE_SIZE : PAGE_SIZE);
-  const saleProducts = products.filter((product) => product.old);
+  const saleProducts = products.filter((product) => product.old).slice(0, HOME_PAGE_SIZE);
   if (showSale) {
     const prices = ["Tất cả", "Dưới 100.000₫", "100.000₫ – 500.000₫", "500.000₫ – 1.000.000₫", "Trên 1.000.000₫"];
-    const priceRow = (label: string) => <div className="mb-3"><p className="mb-2 text-sm font-semibold">Khoảng giá · {label}</p><div className="flex gap-2 overflow-hidden">{prices.map((price, i) => <span key={price} className={`shrink-0 rounded-full border px-4 py-2 text-[13px] ${i === 0 ? "border-brand bg-brand text-white" : "border-line bg-surface"}`}>{price}</span>)}</div></div>;
+    const priceRow = (label: string) => <div className="mb-3"><p className="mb-2 text-sm font-semibold">Khoảng giá · {label}</p><div className="flex flex-wrap gap-2">{prices.map((price, i) => <span key={price} className={`rounded-full border px-4 py-2 text-[13px] ${i === 0 ? "border-brand bg-brand text-white" : "border-line bg-surface"}`}>{price}</span>)}</div></div>;
     return (
       <div className="min-w-0">
         <section className="mb-8" aria-labelledby="h-giam-gia">
-          {priceRow("sản phẩm giảm giá")}
-          <h2 id="h-giam-gia" className="mb-4 text-[22px] font-extrabold sm:text-[26px]">Sản phẩm đang giảm giá ({saleProducts.length})</h2>
+                    {priceRow("sản phẩm giảm giá")}
+          <h2 id="h-giam-gia" className="mb-4 text-lg font-bold sm:text-[22px]">Sản phẩm đang giảm giá ({saleProducts.length})</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{saleProducts.map((product) => <ProductCard key={product.sku} p={product} />)}</div>
         </section>
         <section aria-labelledby="h-tat-ca">
-          {priceRow("tất cả sản phẩm")}
-          <h2 id="h-tat-ca" className="mb-4 text-[22px] font-extrabold sm:text-[26px]">Tất cả sản phẩm ({products.length})</h2>
+                    {priceRow("tất cả sản phẩm")}
+          <h2 id="h-tat-ca" className="mb-4 text-lg font-bold sm:text-[22px]">Tất cả sản phẩm ({products.length})</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{initialProducts.map((product) => <ProductCard key={product.sku} p={product} />)}</div>
         </section>
       </div>

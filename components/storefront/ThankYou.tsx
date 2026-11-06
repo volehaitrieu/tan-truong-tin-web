@@ -58,7 +58,7 @@ export function ThankYou() {
 
       <div className="mt-4 flex items-center gap-4 rounded-md bg-white p-5">
         <span className="grid size-20 shrink-0 place-items-center rounded-md bg-sunk text-ink-2"><QrCode className="size-10" aria-hidden /></span>
-        <p className="text-sm text-ink-2"><b className="text-ink">Chuyển khoản VietQR</b> <span className="rounded-full bg-gold-tint px-2 py-0.5 text-xs font-medium text-gold-ink">Sắp có</span><br />Hiện shop nhận tiền mặt khi giao/nhận hàng.</p>
+        <p className="text-sm text-ink-2"><b className="text-ink">Chuyển khoản VietQR</b> <span className="rounded-full border border-line bg-sunk px-2 py-0.5 text-xs font-medium text-ink-2">Sắp có</span><br />Hiện shop nhận tiền mặt khi giao/nhận hàng.</p>
       </div>
 
       <div className="mt-5 flex flex-wrap justify-center gap-3">

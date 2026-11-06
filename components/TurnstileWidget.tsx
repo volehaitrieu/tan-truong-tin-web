@@ -39,6 +39,8 @@ export function TurnstileWidget({ onStatus }: { onStatus: (status: CaptchaStatus
     const set = (t: string, status: CaptchaStatus) => { setToken(t); report.current(status); };
     widget.current = window.turnstile.render(box.current, {
       sitekey: TURNSTILE_SITE_KEY, theme: "light", size: "flexible", "response-field": false,
+      // Chỉ hiện ô khi Cloudflare cần khách tương tác (đa số lần đăng nhập không thấy ô); nghi ngờ thì vẫn có ô để tự xác minh.
+      appearance: "interaction-only",
       callback: (t: string) => set(t, "ready"),
       // Hết hạn / quá giờ: Cloudflare tự lấy mã mới → chờ. Lỗi: Cloudflare tự thử lại, trong lúc đó vẫn cho gửi.
       "expired-callback": () => set("", "waiting"), "timeout-callback": () => set("", "waiting"), "error-callback": () => set("", "failed"),
@@ -55,7 +57,8 @@ export function TurnstileWidget({ onStatus }: { onStatus: (status: CaptchaStatus
   return (
     <div>
       <Script src={API} onReady={mount} onError={() => { setLoadFailed(true); report.current("failed"); }} />
-      <div ref={box} className="min-h-[65px]" />
+      {/* Không đặt chiều cao tối thiểu: khi ô đang ẩn (interaction-only) không chừa khoảng trống */}
+      <div ref={box} />
       <input type="hidden" name={CAPTCHA_FIELD} value={token} />
       {loadFailed && <p role="alert" className="mt-1.5 text-sm text-danger">Không tải được ô xác minh. Kiểm tra mạng rồi tải lại trang.</p>}
     </div>

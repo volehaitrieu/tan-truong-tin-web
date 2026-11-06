@@ -2,6 +2,7 @@
 import { createClient as createSupabase } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/auth";
+import { passwordProblem } from "@/lib/password-rule";
 import { CAPTCHA_FAILED, captchaOption, isCaptchaError } from "@/lib/turnstile";
 
 export type PwState = { ok?: boolean; error?: string };
@@ -12,7 +13,9 @@ export async function changePassword(_: PwState, form: FormData): Promise<PwStat
   const current = String(form.get("current") ?? "");
   const next = String(form.get("next") ?? "");
   const again = String(form.get("again") ?? "");
-  if (next.length < 8 || next.length > 72) return { error: "Mật khẩu mới cần 8–72 ký tự." };
+  if (next.length > 72) return { error: "Mật khẩu mới tối đa 72 ký tự." };
+  const weak = passwordProblem(next);
+  if (weak) return { error: weak.replace("Mật khẩu", "Mật khẩu mới") };
   if (next !== again) return { error: "Hai lần nhập mật khẩu mới chưa khớp." };
   if (next === current) return { error: "Mật khẩu mới phải khác mật khẩu cũ." };
   const db = await createClient();

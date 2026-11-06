@@ -26,6 +26,8 @@ export default async function PolicyPage() {
     : BODY[id];
   return (
     <article className="mx-auto max-w-[760px]">
+      {/* Đã áp bảng màu mới (cờ data-theme-v2, xem globals.css) */}
+      <div hidden data-theme-v2 />
       <h1 className="text-[28px] font-extrabold sm:text-[34px]">Chính sách & giới thiệu</h1>
       <nav aria-label="Mục lục" className="mt-4 flex flex-wrap gap-2">
         {POLICIES.map(([id, label]) => (
@@ -37,7 +39,7 @@ export default async function PolicyPage() {
           <section key={id} id={id} className="scroll-mt-32 border-b border-line py-6 last:border-0">
             <h2 className="flex flex-wrap items-center gap-2 text-xl font-bold">
               {label}
-              {body(id).pending && <span className="rounded-full bg-gold-tint px-2 py-0.5 text-xs font-medium text-gold-ink">Chờ chủ shop</span>}
+              {body(id).pending && <span className="rounded-full border border-line bg-sunk px-2 py-0.5 text-xs font-medium text-ink-2">Chờ chủ shop</span>}
             </h2>
             <p className="mt-2 whitespace-pre-line text-[15px] leading-7 text-ink-2">{body(id).text}</p>
             {id === "gioi-thieu" && (

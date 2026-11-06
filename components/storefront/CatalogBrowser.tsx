@@ -24,6 +24,15 @@ const countBy = (names: string[]) => {
   return [...map].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "vi"));
 };
 
+// "Phổ biến" ở trang Tất cả: xếp lần lượt từng ngành một (Quạt, Ấm, Quạt, Ấm…) để khách thấy cả hai ngành ngay màn đầu.
+// Trong mỗi ngành giữ nguyên thứ tự gốc; hết ngành nhỏ thì phần còn lại của ngành lớn nối tiếp. Sản phẩm chưa có ngành xếp cuối.
+function interleaveByIndustry(list: Product[], order: string[]) {
+  const lanes = order.map((name) => list.filter((p) => p.industry.trim() === name));
+  const out: Product[] = [];
+  for (let i = 0; lanes.some((lane) => i < lane.length); i++) for (const lane of lanes) if (i < lane.length) out.push(lane[i]);
+  return [...out, ...list.filter((p) => !order.includes(p.industry.trim()))];
+}
+
 // Trang /danh-muc. Không chọn ngành: chỉ có chip ngành + sắp xếp. Chọn một ngành (?industry=Quạt):
 // thêm nút "Bộ lọc" (thương hiệu, khoảng giá). Mọi lựa chọn nằm trên địa chỉ trang; áp dụng bộ lọc dùng
 // replace để nút quay lại của điện thoại không phải bấm nhiều lần.
@@ -75,8 +84,8 @@ export function CatalogBrowser({ products }: { products: Product[] }) {
     if (sort === "gia-tang") return [...list].sort((a, b) => a.price - b.price);
     if (sort === "gia-giam") return [...list].sort((a, b) => b.price - a.price);
     if (sort === "ten") return [...list].sort((a, b) => a.name.localeCompare(b.name, "vi"));
-    return list;
-  }, [scope, applied, sort]);
+    return industry ? list : interleaveByIndustry(list, industries.map((i) => i.name));
+  }, [scope, applied, sort, industry, industries]);
 
   const replaceParams = (change: (params: URLSearchParams) => void) => {
     const params = new URLSearchParams(serialized);
