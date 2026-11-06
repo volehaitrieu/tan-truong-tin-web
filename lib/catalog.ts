@@ -1,5 +1,10 @@
 import "server-only";
 import { cache } from "react";
+
+// Ảnh cho ô Danh mục con trong tấm Danh mục: đặt file vào public/shop/danh-muc/<slug>.png
+const SUBCATEGORY_TILE_IMAGES: Record<string, string> = {
+  quat: "/shop/danh-muc/quat.png",
+};
 import { createPublicClient } from "@/lib/supabase/public";
 import { normalize, type Category, type Product } from "@/lib/mock/store";
 import { parseSpecs, sanitizeHtml } from "@/lib/rich-text";
@@ -37,13 +42,47 @@ export const getCategories = cache(async (): Promise<Category[]> => {
   const [rows, products] = await Promise.all([getCategoryRows(), getProducts()]);
   return rows
     .filter((c) => c.parent_id === null)
-    .map((c) => ({
-      slug: c.slug,
-      name: c.name,
-      icon: (c.icon ?? "home") as Category["icon"],
-      subs: rows.filter((s) => s.parent_id === c.id).map((s) => s.name),
-      count: products.filter((p) => p.cat === c.slug).length,
-    }));
+    .map((c) => {
+      const inCategory = products.filter((p) => p.cat === c.slug);
+      const subcategories = rows
+        .filter((s) => s.parent_id === c.id)
+        .map((s) => ({
+          slug: s.slug,
+          name: s.name,
+          count: inCategory.filter((p) => p.sub === s.name).length,
+        }))
+        .filter((s) => s.count > 0);
+      return {
+        slug: c.slug,
+        name: c.slug === "gia-dung" ? "Đồ gia dụng" : c.name,
+        icon: (c.icon ?? "home") as Category["icon"],
+        subs: subcategories.map((s) => s.name),
+        subcategories,
+        count: inCategory.length,
+      };
+    })
+    .filter((c) => c.count > 0);
+});
+
+export type CategoryMenuChild = { slug: string; name: string; count: number; image?: string };
+export type CategoryMenuTab = { slug: string; name: string; icon: Category["icon"]; count: number; children: CategoryMenuChild[] };
+
+// A compact root category → child category list for the mobile menu.
+export const getCategoryMenu = cache(async (): Promise<CategoryMenuTab[]> => {
+  const [categories, products] = await Promise.all([getCategories(), getProducts()]);
+  return categories
+    .map((category) => {
+      const inCategory = products.filter((product) => product.cat === category.slug);
+      const children = (category.subcategories ?? []).flatMap((subcategory) => {
+        const inSubcategory = inCategory.filter((product) => product.sub === subcategory.name);
+        if (!inSubcategory.length) return [];
+        // Ảnh ô riêng (PNG nền trong, chủ shop cung cấp) ưu tiên hơn ảnh sản phẩm đầu tiên.
+        const image = SUBCATEGORY_TILE_IMAGES[subcategory.slug] ?? inSubcategory.find((product) => product.image !== "/ai/hardware-hero.jpg")?.image;
+        return [{ slug: subcategory.slug, name: subcategory.name, count: inSubcategory.length, ...(image ? { image } : {}) }];
+      });
+      return { slug: category.slug, name: category.name, icon: category.icon, count: category.count, children };
+    })
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "vi"));
 });
 
 async function attributeLabels() {
@@ -58,6 +97,7 @@ function toProduct(r: Row, labels: Map<string, { label: string; unit?: string }>
   const specs = parseSpecs(r.spec_line ?? "");
   let sub = cats.find((c) => c.id === r.category_id);
   let top = sub;
+  let classification = "";
   // Keep the storefront's category filter at the root + first child level,
   // even when a product is assigned to a deeper leaf such as "Quạt treo tường".
   while (top && top.parent_id) {
@@ -69,6 +109,7 @@ function toProduct(r: Row, labels: Map<string, { label: string; unit?: string }>
       top = parent;
       break;
     }
+    if (!classification) classification = top.name;
     top = parent;
   }
   return {
@@ -78,6 +119,7 @@ function toProduct(r: Row, labels: Map<string, { label: string; unit?: string }>
     industry: r.industry ?? "",
     cat: top?.slug ?? "",
     sub: sub && sub.parent_id === top?.id ? sub.name : "",
+    classification,
     price: sale ? r.sale_price! : r.price,
     old: sale ? r.price : undefined,
     unit: r.unit,

@@ -25,7 +25,7 @@ export function ShopBanner() {
           <p className="mt-1.5 text-[11.5px] leading-snug text-[#d8dce4]">Mở {SHOP.hours} hằng ngày</p>
         </div>
         <div className="flex items-center gap-2">
-          <Link href={`/danh-muc?industry=${encodeURIComponent("Quạt")}`} className="inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-brand px-[13px] text-[13px] font-semibold text-white hover:bg-brand-deep active:scale-[0.98]">Xem quạt</Link>
+          <Link href="/danh-muc/quat" className="inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-brand px-[13px] text-[13px] font-semibold text-white hover:bg-brand-deep active:scale-[0.98]">Xem quạt</Link>
           <a href="tel:0948732064" aria-label={`Gọi shop ${SHOP.phone}`} className="grid size-11 shrink-0 place-items-center rounded-full border-[1.5px] border-white bg-white text-brand hover:bg-brand-tint active:scale-[0.98]">
             <Phone className="size-5" aria-hidden />
           </a>

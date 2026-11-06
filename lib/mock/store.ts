@@ -6,6 +6,7 @@ export type Category = {
   name: string;
   icon: "wrench" | "plug" | "cable" | "bulb" | "fan" | "drill" | "bolt" | "home";
   subs: string[];
+  subcategories?: { slug: string; name: string; count: number }[];
   count: number; // số mặt hàng hiển thị trên ô danh mục (mẫu)
 };
 
@@ -16,6 +17,7 @@ export type Product = {
   industry: string;
   cat: string; // slug danh mục
   sub: string;
+  classification?: string;
   price: number;
   old?: number; // giá gốc khi đang khuyến mãi
   unit: string;

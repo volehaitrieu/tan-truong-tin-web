@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ChevronRight, Clock, CookingPot, Fan, House, MapPin, Phone, Store } from "lucide-react";
+import { ArrowRight, ChevronRight, Clock, CookingPot, Fan, MapPin, Phone, Store } from "lucide-react";
 import { BrandRotator } from "@/components/storefront/BrandRotator";
 import { ShopBanner } from "@/components/storefront/ShopBanner";
 import { CategoryIcon } from "@/components/storefront/CategoryIcon";
@@ -17,8 +17,6 @@ export default async function Home() {
   for (const p of PRODUCTS) if (p.brand) brandCounts.set(p.brand, (brandCounts.get(p.brand) ?? 0) + 1);
   const BRANDS = [...brandCounts].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "vi"));
   const INDUSTRIES = [...new Set(PRODUCTS.map((p) => p.industry.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "vi"));
-  // Hai tên danh mục con chủ shop đã cung cấp trong Excel; sau khi nhập, dùng các tên thực có trên sản phẩm.
-  const MENU_SUBS = INDUSTRIES.length ? INDUSTRIES : ["Quạt", "Ấm siêu tốc"];
   return (
     <>
       {/* Đánh dấu trang đã áp bảng màu mới (xem khối .store:has([data-theme-v2]) trong globals.css) */}
@@ -40,15 +38,12 @@ export default async function Home() {
               <div aria-label="Danh mục con Đồ gia dụng" className="invisible absolute left-full top-0 z-20 w-[560px] rounded-xl border border-line bg-surface p-4 opacity-0 shadow-lg transition-opacity duration-150 group-hover/item:visible group-hover/item:opacity-100 group-focus-within/item:visible group-focus-within/item:opacity-100">
                 <b className="text-sm">Danh mục con</b>
                 <div className="mt-3 grid grid-cols-3 gap-2">
-                  {MENU_SUBS.map((sub) => {
-                    const Icon = /quạt/i.test(sub) ? Fan : /ấm|bếp/i.test(sub) ? CookingPot : House;
-                    const count = PRODUCTS.filter((p) => p.industry.trim() === sub).length;
-                    // Chưa có sản phẩm mang ngành này: mở danh mục con cùng tên trong Đồ gia dụng (Quạt, Ấm siêu tốc theo migration 20261027000100).
-                    const fallbackHref = `/danh-muc/${c.slug}?sub=${encodeURIComponent(sub)}`;
-                    return <Link key={sub} href={count ? `/danh-muc?industry=${encodeURIComponent(sub)}` : fallbackHref} className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border border-line bg-white px-3 py-3 text-center transition-colors hover:border-brand hover:bg-brand-tint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
+                  {(c.subcategories ?? []).map((sub) => {
+                    const Icon = /quạt/i.test(sub.name) ? Fan : CookingPot;
+                    return <Link key={sub.slug} href={`/danh-muc/${sub.slug}`} className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border border-line bg-white px-3 py-3 text-center transition-colors hover:border-brand hover:bg-brand-tint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
                       <span className="grid size-10 place-items-center rounded-full bg-sunk text-brand"><Icon className="size-5" aria-hidden /></span>
-                      <span className="text-[13px] font-semibold leading-4">{sub}</span>
-                      <span className="num text-xs text-ink-2">{count ? `${count} sản phẩm` : "Xem sản phẩm"}</span>
+                      <span className="text-[13px] font-semibold leading-4">{sub.name}</span>
+                      <span className="num text-xs text-ink-2">{sub.count} sản phẩm</span>
                     </Link>;
                   })}
                 </div>

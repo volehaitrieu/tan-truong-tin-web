@@ -1,13 +1,14 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { House, Map, MapPin, MessageCircle, Phone, ReceiptText, ShoppingCart, UserRound } from "lucide-react";
+import { House, Map, MapPin, ReceiptText, ShoppingCart, UserRound } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { StoreSearch } from "@/components/storefront/StoreSearch";
 import { HeaderSearchToggle } from "@/components/storefront/HeaderSearchToggle";
 import { CartCount } from "@/components/storefront/CartControls";
 import { CategoryDrawer } from "@/components/storefront/CategoryDrawer";
+import { FloatActions } from "@/components/storefront/FloatActions";
+import { getCategoryMenu } from "@/lib/catalog";
 import { SHOP } from "@/lib/shop";
-import { getCategories } from "@/lib/catalog";
 
 export const POLICIES = [
   ["doi-tra", "Đổi trả"],
@@ -19,7 +20,7 @@ export const POLICIES = [
 ] as const;
 
 export async function StoreShell({ children }: { children: ReactNode }) {
-  const categories = await getCategories();
+  const categoryMenu = await getCategoryMenu();
   return (
     <div className="store flex min-h-screen flex-col pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0">
       <header className="sticky top-0 z-30 border-b border-line bg-ground/90 backdrop-blur-xl">
@@ -105,19 +106,12 @@ export async function StoreShell({ children }: { children: ReactNode }) {
       </footer>
 
       {/* Nút nổi Zalo + Gọi */}
-      <div className="float-actions fixed bottom-[calc(76px+env(safe-area-inset-bottom))] right-3 z-40 flex flex-col gap-2 md:bottom-6 md:right-6">
-        <a href="https://zalo.me/0948732064" aria-label="Nhắn Zalo cho shop" className="grid size-12 place-items-center rounded-full border border-line bg-white text-brand shadow-[var(--shadow-soft)] hover:bg-brand-tint">
-          <MessageCircle className="size-6" aria-hidden />
-        </a>
-        <a href="tel:0948732064" aria-label="Gọi shop" className="grid size-12 place-items-center rounded-full bg-brand text-white shadow-[var(--shadow-float)] hover:bg-brand-deep">
-          <Phone className="size-6" aria-hidden />
-        </a>
-      </div>
+      <FloatActions />
 
       {/* Thanh đáy điện thoại */}
       <nav aria-label="Điều hướng nhanh" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-line bg-ground/90 pb-[env(safe-area-inset-bottom)] text-[11px] text-ink-2 backdrop-blur-xl md:hidden">
         <Link href="/" className="flex h-16 flex-col items-center justify-center gap-1 hover:text-brand"><House className="size-5" aria-hidden />Trang chủ</Link>
-        <CategoryDrawer categories={categories} />
+        <CategoryDrawer menu={categoryMenu} />
         <Link href="/gio-hang" className="flex h-16 flex-col items-center justify-center gap-1 hover:text-brand">
           <span className="relative"><ShoppingCart className="size-5" aria-hidden /><CartCount /></span>Giỏ hàng
         </Link>

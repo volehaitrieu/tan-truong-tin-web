@@ -1,59 +1,94 @@
 "use client";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import { ChevronRight, LayoutGrid, X } from "lucide-react";
-import type { Category } from "@/lib/mock/store";
-import { CategoryIcon } from "@/components/storefront/CategoryIcon";
 
-// Tab "Danh mục" trên thanh đáy điện thoại: mở ngăn kéo từ bên trái.
-export function CategoryDrawer({ categories }: { categories: Category[] }) {
-  const [open, setOpen] = useState(false);
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { usePathname, useRouter } from "next/navigation";
+import { LayoutGrid } from "lucide-react";
+import { CategoryOverlay } from "@/components/storefront/CategoryOverlay";
+import type { CategoryMenuTab } from "@/lib/catalog";
+
+export function CategoryDrawer({ menu }: { menu: CategoryMenuTab[] }) {
   const pathname = usePathname();
-  const [lastPath, setLastPath] = useState(pathname);
-  if (pathname !== lastPath) {
-    setLastPath(pathname);
-    setOpen(false);
-  }
+  const router = useRouter();
+  const active = pathname === "/danh-muc" || pathname.startsWith("/danh-muc/");
+  const [isOpen, setIsOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const openerRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const historyEntryRef = useRef(false);
+  const timerRef = useRef<number | null>(null);
+  const openRef = useRef(false);
+  const closingRef = useRef(false);
+
+  const finishClose = useCallback((href?: string) => {
+    if (closingRef.current) return;
+    closingRef.current = true;
+    setClosing(true);
+    const delay = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 160;
+    timerRef.current = window.setTimeout(() => {
+      openRef.current = false;
+      closingRef.current = false;
+      setIsOpen(false);
+      setClosing(false);
+      if (href) {
+        const state = { ...window.history.state };
+        delete state.__tttCategoryOverlay;
+        window.history.replaceState(state, "", window.location.href);
+        router.push(href);
+      } else {
+        openerRef.current?.focus();
+      }
+      timerRef.current = null;
+    }, delay);
+  }, [router]);
+
   useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [open]);
+    function onPopState() {
+      if (!historyEntryRef.current || !openRef.current) return;
+      historyEntryRef.current = false;
+      finishClose();
+    }
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [finishClose]);
+
+  useEffect(() => () => { if (timerRef.current !== null) window.clearTimeout(timerRef.current); }, []);
+
+  function openMenu() {
+    if (openRef.current) return;
+    openRef.current = true;
+    closingRef.current = false;
+    setClosing(false);
+    setIsOpen(true);
+    window.history.pushState({ ...window.history.state, __tttCategoryOverlay: true }, "", window.location.href);
+    historyEntryRef.current = true;
+  }
+
+  function closeMenu() {
+    if (historyEntryRef.current) window.history.back();
+    else finishClose();
+  }
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} aria-expanded={open} className="flex h-16 flex-col items-center justify-center gap-1 hover:text-brand">
-        <LayoutGrid className="size-5" aria-hidden />Danh mục
+      <button
+        ref={openerRef}
+        type="button"
+        aria-current={active ? "page" : undefined}
+        aria-expanded={isOpen}
+        aria-haspopup="dialog"
+        onClick={openMenu}
+        className={`flex h-16 flex-col items-center justify-center gap-1 ${active ? "font-semibold text-ink" : "hover:text-brand"}`}
+      >
+        <LayoutGrid className="size-5" aria-hidden="true" />Danh mục
       </button>
-      {open && (
-        <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Danh mục hàng hóa">
-          <button type="button" aria-label="Đóng" onClick={() => setOpen(false)} className="absolute inset-0 bg-ink/40" />
-          <div className="absolute inset-y-0 left-0 flex w-[min(86vw,340px)] flex-col bg-white pt-[env(safe-area-inset-top)] shadow-xl">
-            <div className="flex items-center justify-between border-b border-line px-4 py-2">
-              <b className="text-base">Danh mục hàng hóa</b>
-              <button type="button" onClick={() => setOpen(false)} aria-label="Đóng danh mục" className="grid size-11 place-items-center text-ink-2"><X className="size-5" /></button>
-            </div>
-            <ul className="flex-1 overflow-y-auto py-1 text-left text-[15px] text-ink">
-              {categories.map((c) => (
-                <li key={c.slug}>
-                  <Link href={`/danh-muc/${c.slug}`} className="flex min-h-12 items-center gap-3 px-4 hover:bg-brand-tint">
-                    <span className="grid size-9 place-items-center rounded-full bg-brand-tint text-brand"><CategoryIcon icon={c.icon} className="size-[18px]" /></span>
-                    <span className="flex-1">{c.name}</span>
-                    <ChevronRight className="size-4 text-ink-2" aria-hidden />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            <Link href="/danh-muc" className="m-4 flex h-11 items-center justify-center rounded-md border border-brand font-semibold text-brand">Xem tất cả sản phẩm</Link>
-          </div>
-        </div>
-      )}
+      {isOpen && typeof document !== "undefined" ? createPortal(<CategoryOverlay
+        menu={menu}
+        closing={closing}
+        closeButtonRef={closeButtonRef}
+        onClose={closeMenu}
+        onNavigate={(href) => finishClose(href)}
+      />, document.body) : null}
     </>
   );
 }

@@ -53,6 +53,44 @@ type Group = { key: string; title: string; options: { id: string; label: string 
 type Picked = Record<string, string[]>;
 type Sort = (typeof SORTS)[number][0];
 
+const CONTROL_FILTERS = [
+  { id: "control:remote", label: "Có Remote" },
+  { id: "control:three-buttons", label: "3 nút tốc độ" },
+  { id: "control:two-pull-cords", label: "2 dây giật" },
+  { id: "control:one-pull-cord", label: "1 dây giật" },
+];
+
+function controlOptions(product: Product) {
+  const rows = product.specs.filter(([key]) => key === "Điều khiển" || key === "Remote");
+  const values = rows.map(([, value]) => value.trim()).filter(Boolean);
+  const normalized = values.map((value) => value.toLocaleLowerCase("vi"));
+  const matches: string[] = [];
+  if (rows.some(([key, value]) => {
+    const normalizedValue = value.toLocaleLowerCase("vi");
+    return (key === "Remote" && /remote|điều khiển từ xa|^có$/i.test(normalizedValue) && !/không|chưa có/i.test(normalizedValue))
+      || (key === "Điều khiển" && /remote|điều khiển từ xa|có điều khiển/i.test(normalizedValue) && !/không|không có/i.test(normalizedValue));
+  })) matches.push("control:remote");
+  if (normalized.some((value) => /nút nhấn 3 tốc độ/i.test(value))) matches.push("control:three-buttons");
+  if (normalized.some((value) => /(?:2|hai) dây (?:giật|kéo)/i.test(value))) matches.push("control:two-pull-cords");
+  if (!matches.includes("control:two-pull-cords") && normalized.some((value) => /(?:dây giật|kéo dây điều khiển tốc độ|nút kéo 3 tốc độ)/i.test(value))) {
+    matches.push("control:one-pull-cord");
+  }
+  const grouped = new Set(["control:remote", "control:three-buttons", "control:two-pull-cords", "control:one-pull-cord"]);
+  const matchedRaw = new Set<string>();
+  if (matches.includes("control:remote")) {
+    rows.filter(([key, value]) => (key === "Remote" && /remote|điều khiển từ xa|^có$/i.test(value) && !/không|chưa có/i.test(value)) || /remote|điều khiển từ xa|có điều khiển/i.test(value)).forEach(([, value]) => matchedRaw.add(value.trim()));
+  }
+  if (matches.includes("control:three-buttons")) rows.filter(([, value]) => /nút nhấn 3 tốc độ/i.test(value)).forEach(([, value]) => matchedRaw.add(value.trim()));
+  if (matches.includes("control:two-pull-cords")) rows.filter(([, value]) => /(?:2|hai) dây (?:giật|kéo)/i.test(value)).forEach(([, value]) => matchedRaw.add(value.trim()));
+  if (matches.includes("control:one-pull-cord")) rows.filter(([, value]) => /(?:dây giật|kéo dây điều khiển tốc độ|nút kéo 3 tốc độ)/i.test(value)).forEach(([, value]) => matchedRaw.add(value.trim()));
+  const raw = rows.map(([, value]) => value.trim()).filter((value) => value && !matchedRaw.has(value));
+  return [...new Set([...matches, ...raw])].filter((value) => !grouped.has(value) || CONTROL_FILTERS.some((option) => option.id === value));
+}
+
+function controlLabel(id: string) {
+  return CONTROL_FILTERS.find((option) => option.id === id)?.label ?? id;
+}
+
 function paramKey(key: string) {
   return key.startsWith("spec:") ? `spec.${key.slice(5)}` : key;
 }
@@ -75,14 +113,30 @@ export function ProductBrowser({ products, categories, fixedCat, showSort = true
     if (!fixedCat)
       g.push({ key: "cat", title: "Danh mục", options: categories.map((c) => ({ id: c.slug, label: c.name })), test: (p, id) => p.cat === id });
     const industries = uniq(products.map((p) => p.industry.trim()).filter(Boolean));
-    if (industries.length) g.push({ key: "industry", title: "Ngành hàng", options: industries, test: (p, id) => p.industry.trim() === id });
+    if (industries.length > 1) g.push({ key: "industry", title: "Ngành hàng", options: industries, test: (p, id) => p.industry.trim() === id });
     const subs = fixedCat ? (categories.find((c) => c.slug === fixedCat)?.subs ?? []).filter((sub) => products.some((p) => p.sub === sub)) : [...new Set(products.map((p) => p.sub))];
-    g.push({ key: "sub", title: "Danh mục con", options: subs.map((s) => ({ id: s, label: s })), test: (p, id) => p.sub === id });
+    if (subs.length > 1) g.push({ key: "sub", title: "Danh mục con", options: subs.map((s) => ({ id: s, label: s })), test: (p, id) => p.sub === id });
     g.push({ key: "brand", title: "Thương hiệu", options: uniq(products.map((p) => p.brand).filter(Boolean)), test: (p, id) => p.brand === id });
     g.push({ key: "price", title: "Khoảng giá", options: PRICES, test: (p, id) => PRICES.find((x) => x.id === id)!.test(p.price) });
     if (fixedCat) {
+      const isFanList = products.length > 0 && products.every((product) => product.sub === "Quạt");
+      const hasFanTypes = isFanList && products.some((product) => product.classification);
+      if (hasFanTypes) {
+        const types = uniq(products.map((product) => product.classification ?? "").filter(Boolean));
+        g.push({ key: "spec:Loại quạt", title: "Loại quạt", options: types, test: (p, id) => p.classification === id });
+      }
+      if (isFanList) {
+        const controls = [...new Set(products.flatMap(controlOptions))];
+        g.push({
+          key: "spec:Điều khiển",
+          title: "Điều khiển",
+          options: controls.map((id) => ({ id, label: controlLabel(id) })),
+          test: (p, id) => controlOptions(p).includes(id),
+        });
+      }
       const all = [...new Set(products.flatMap((p) => p.specs.map(([k]) => k)))];
-      const keys = [...SPEC_PRIORITY.filter((k) => all.includes(k)), ...all.filter((k) => !SPEC_PRIORITY.includes(k))].slice(0, 4);
+      const omit = new Set([...(hasFanTypes ? ["Loại quạt"] : []), ...(isFanList ? ["Điều khiển", "Remote"] : [])]);
+      const keys = [...SPEC_PRIORITY.filter((k) => all.includes(k) && !omit.has(k)), ...all.filter((k) => !SPEC_PRIORITY.includes(k) && !omit.has(k))].slice(0, 4);
       for (const k of keys)
         g.push({
           key: `spec:${k}`,
@@ -169,6 +223,7 @@ export function ProductBrowser({ products, categories, fixedCat, showSort = true
     return options.slice(6).some((option) => option.id === id);
   });
   const moreBrands = (brandExpansion?.key === navigationKey && brandExpansion.expanded) || hiddenBrandSelected;
+  const quickBrands = fixedCat ? groups.find((group) => group.key === "brand")?.options ?? [] : [];
 
   useEffect(() => {
     if (!sheet) return;
@@ -205,10 +260,13 @@ export function ProductBrowser({ products, categories, fixedCat, showSort = true
       {groups.map((g) => {
         const base = filter(g.key);
         const opts = g.key === "brand" && !moreBrands ? g.options.slice(0, 6) : g.options;
-        if (g.options.length === 0) return null;
+        if (g.options.length === 0 && g.key !== "spec:Điều khiển") return null;
         return (
           <fieldset key={g.key} className="border-t border-line py-3 first:border-0 first:pt-0">
             <legend className="mb-1 text-sm font-semibold">{g.title}</legend>
+            {g.key === "spec:Điều khiển" && products.some((product) => controlOptions(product).length === 0) && (
+              <p className="mb-2 text-xs leading-relaxed text-ink-2">Một số sản phẩm chưa có thông tin điều khiển.</p>
+            )}
             {opts.map((o) => {
               const n = base.filter((p) => g.test(p, o.id)).length;
               const on = picked[g.key]?.includes(o.id) ?? false;
@@ -239,12 +297,20 @@ export function ProductBrowser({ products, categories, fixedCat, showSort = true
       </aside>
 
       <div className="min-w-0">
+        {fixedCat && (
+          <div className="mb-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] md:hidden" aria-label="Lọc nhanh theo thương hiệu">
+            <button type="button" onClick={() => setSheet(true)} aria-expanded={sheet} className="flex h-11 shrink-0 items-center gap-2 rounded-full border border-line bg-surface px-4 text-sm font-semibold">
+              <SlidersHorizontal className="size-4" aria-hidden />Lọc{active.length > 0 && <span className="num">({active.length})</span>}
+            </button>
+            {quickBrands.map(({ id, label }) => {
+              const on = picked.brand?.includes(id) ?? false;
+              return <button key={id} type="button" aria-pressed={on} onClick={() => toggle("brand", id)} className={`h-11 shrink-0 rounded-full px-4 text-sm font-medium transition-colors duration-150 ${on ? "bg-brand text-white" : "bg-sunk text-ink hover:bg-brand-tint"}`}>{label}</button>;
+            })}
+          </div>
+        )}
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm text-ink-2">Tìm thấy <b className="num text-ink">{results.length}</b> sản phẩm</p>
           <div className="flex items-center gap-2">
-            <button type="button" onClick={() => setSheet(true)} className="flex h-11 items-center gap-2 rounded-md border border-line bg-surface px-3 text-sm font-medium md:hidden">
-              <SlidersHorizontal className="size-4" aria-hidden />Bộ lọc{active.length > 0 && <span className="num">({active.length})</span>}
-            </button>
             {showSort && (
               <>
                 <label className="sr-only" htmlFor="sort">Sắp xếp</label>
@@ -298,8 +364,8 @@ export function ProductBrowser({ products, categories, fixedCat, showSort = true
             </div>
             <div className="overflow-y-auto px-4 py-3">{panel}</div>
             <div className="flex gap-2 border-t border-line p-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
-              <button type="button" onClick={clearFilters} className="h-12 rounded-full border border-line px-5 font-medium">Xóa lọc</button>
-              <button type="button" onClick={() => setSheet(false)} className="h-12 flex-1 rounded-full bg-brand font-bold text-white">Xem {results.length} sản phẩm</button>
+              <button type="button" onClick={clearFilters} className="h-12 rounded-full border border-line px-5 font-medium">Bỏ chọn</button>
+              <button type="button" onClick={() => setSheet(false)} className="h-12 flex-1 rounded-full bg-brand font-bold text-white">Xem {results.length} kết quả</button>
             </div>
           </div>
         </div>

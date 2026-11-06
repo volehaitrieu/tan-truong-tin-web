@@ -210,14 +210,39 @@ export function CartCount() {
 
 export function CartPanel() {
   const cart = useCartLines();
-  if (cart === null) return <p className="mt-5 rounded-md bg-white p-5 text-sm text-ink-2">Đang tải giỏ hàng…</p>;
+  const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
+  const [undo, setUndo] = useState<{ row: CartRow; name: string } | null>(null);
+  const [notice, setNotice] = useState("");
+  useEffect(() => {
+    if (!undo) return;
+    const timer = window.setTimeout(() => setUndo(null), 5000);
+    return () => window.clearTimeout(timer);
+  }, [undo]);
+  useEffect(() => {
+    if (!cart || cart.rows.length === cart.lines.length) return;
+    const live = new Set(cart.lines.map((line) => line.sku));
+    const removed = cart.rows.filter((row) => !live.has(row.sku));
+    const next = cart.rows.filter((row) => live.has(row.sku));
+    write(next);
+    window.setTimeout(() => setNotice(`${removed.length} món không còn bán đã được bỏ khỏi giỏ`), 0);
+  }, [cart]);
+  if (cart === null) return <div className="mt-5 space-y-4" aria-label="Đang tải giỏ hàng"><ul className="divide-y divide-line rounded-xl bg-white">{[0, 1].map((i) => <li key={i} className="flex gap-3 p-4"><div className="size-20 animate-pulse rounded-lg bg-sunk" /><div className="flex-1 space-y-3 py-2"><div className="h-4 w-3/4 animate-pulse rounded bg-sunk" /><div className="h-4 w-1/3 animate-pulse rounded bg-sunk" /><div className="h-10 w-40 animate-pulse rounded bg-sunk" /></div></li>)}</ul><div className="fixed inset-x-0 bottom-16 z-40 h-24 animate-pulse border-t border-line bg-sunk lg:hidden" /></div>;
   const { rows, lines } = cart;
   const total = lines.reduce((s, l) => s + l.product.price * l.quantity, 0);
-  const setQty = (sku: string, q: number) => write(q <= 0 ? rows.filter((r) => r.sku !== sku) : rows.map((r) => (r.sku === sku ? { ...r, quantity: q } : r)));
+  const setQty = (sku: string, q: number) => write(q <= 0 ? rows.filter((r) => r.sku !== sku) : rows.map((r) => (r.sku === sku ? { ...r, quantity: Math.max(1, Math.min(999, q)) } : r)));
+  const remove = (sku: string) => {
+    const row = rows.find((item) => item.sku === sku);
+    const line = lines.find((item) => item.sku === sku);
+    if (!row) return;
+    setUndo({ row, name: line?.product.name ?? "sản phẩm" });
+    setQty(sku, 0);
+    setConfirmRemove(null);
+    setNotice(`Đã xóa ${line?.product.name ?? "sản phẩm"}.`);
+  };
 
   if (lines.length === 0)
     return (
-      <div className="mt-5 rounded-md bg-white px-5 py-12 text-center">
+      <div className="mt-5 rounded-xl bg-white px-5 py-12 text-center">
         <span className="mx-auto grid size-20 place-items-center rounded-full bg-brand-tint text-brand">
           <Package className="size-10" />
         </span>
@@ -230,8 +255,9 @@ export function CartPanel() {
     );
 
   return (
-    <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_340px]">
-      <ul className="divide-y divide-line rounded-md bg-white">
+    <div className="mt-5 grid gap-5 pb-36 lg:grid-cols-[1fr_340px] lg:pb-0">
+      {(notice || undo) && <div className="fixed bottom-[calc(64px+env(safe-area-inset-bottom))] left-1/2 z-[70] flex w-[min(92vw,420px)] -translate-x-1/2 items-center justify-between gap-3 rounded-xl bg-brand-deep px-4 py-3 text-sm font-medium text-white shadow-lg" role="status" aria-live="polite">{undo ? <>Đã xóa {undo.name}<button type="button" className="min-h-11 shrink-0 px-2 underline" onClick={() => { const current = read().filter((row) => row.sku !== undo.row.sku); write([...current, undo.row]); setUndo(null); setNotice("Đã khôi phục sản phẩm."); }}>Hoàn tác</button></> : <>{notice}<button type="button" aria-label="Đóng thông báo" className="min-h-11 px-2" onClick={() => setNotice("")}>×</button></>}</div>}
+      <ul className="divide-y divide-line rounded-xl bg-white">
         {lines.map(({ sku, quantity, product: p }) => (
           <li key={sku} className="flex gap-3 p-4">
             <Link href={`/san-pham/${sku}`} className="relative size-20 shrink-0 overflow-hidden rounded bg-sunk">
@@ -239,29 +265,36 @@ export function CartPanel() {
             </Link>
             <div className="min-w-0 flex-1">
               <Link href={`/san-pham/${sku}`} className="line-clamp-2 text-sm font-semibold hover:text-brand">{p.name}</Link>
-              <p className="num mt-1 font-bold text-ink">{formatVnd(p.price)} <span className="text-xs font-normal text-ink-2">/ {p.unit.toLowerCase()}</span></p>
-              {!p.stock && <p className="mt-1 text-xs text-ask">Liên hệ · shop sẽ gọi báo thời gian có hàng</p>}
-              <div className="mt-2 flex items-center gap-2">
+              {(p.brand || p.sub || p.classification) && <p className="mt-1 text-xs text-ink-2">{[p.brand, p.classification || p.sub].filter(Boolean).join(" · ")}</p>}
+              <p className="num mt-1 text-xs text-ink-2">{formatVnd(p.price)} / {p.unit.toLowerCase()}</p>
+              {!p.stock && <p className="mt-1 text-xs font-medium text-ask">Đặt trước — shop gọi báo ngày có hàng</p>}
+              <div className="mt-2 flex flex-wrap items-center gap-2">
                 <div className="flex items-center rounded-md border border-line">
-                  <button onClick={() => setQty(sku, quantity - 1)} className="grid size-11 place-items-center" aria-label="Giảm số lượng"><Minus className="size-4" /></button>
-                  <span className="num w-8 text-center">{quantity}</span>
-                  <button onClick={() => setQty(sku, quantity + 1)} className="grid size-11 place-items-center" aria-label="Tăng số lượng"><Plus className="size-4" /></button>
+                  <button type="button" onClick={() => quantity === 1 ? setConfirmRemove(sku) : setQty(sku, quantity - 1)} className="grid size-11 place-items-center" aria-label="Giảm số lượng"><Minus className="size-4" /></button>
+                  <input key={`${sku}-${quantity}`} aria-label={`Số lượng ${p.name}`} inputMode="numeric" defaultValue={quantity} onBlur={(event) => { const n = Number.parseInt(event.currentTarget.value, 10); const next = Number.isFinite(n) ? Math.max(1, Math.min(999, n)) : quantity; event.currentTarget.value = String(next); if (next !== quantity) setQty(sku, next); }} className="num h-11 w-12 border-x border-line text-center outline-none focus:border-brand" />
+                  <button type="button" onClick={() => setQty(sku, Math.min(999, quantity + 1))} className="grid size-11 place-items-center" aria-label="Tăng số lượng"><Plus className="size-4" /></button>
                 </div>
-                <button onClick={() => setQty(sku, 0)} className="ml-auto inline-flex min-h-11 items-center gap-1 px-2 text-sm text-ink-2 hover:text-danger">
+                <button type="button" onClick={() => remove(sku)} className="ml-auto inline-flex min-h-11 items-center gap-1 px-2 text-sm text-ink-2 hover:text-danger">
                   <Trash2 className="size-4" />Xóa
                 </button>
               </div>
+              {confirmRemove === sku && <p className="mt-2 flex flex-wrap items-center gap-2 text-sm" role="group" aria-label="Xác nhận xóa món"><span>Xóa món này?</span><button type="button" onClick={() => remove(sku)} className="min-h-10 rounded-full bg-danger px-3 font-semibold text-white">Xóa</button><button type="button" onClick={() => setConfirmRemove(null)} className="min-h-10 rounded-full border border-line px-3">Giữ</button></p>}
+              <p className="num mt-2 text-right text-sm font-bold text-danger">Thành tiền　{formatVnd(p.price * quantity)}</p>
             </div>
           </li>
         ))}
       </ul>
-      <aside className="h-fit rounded-md bg-white p-4 lg:sticky lg:top-28">
+      <aside className="h-fit rounded-xl bg-white p-4 lg:sticky lg:top-28">
         <h2 className="font-bold">Tóm tắt đơn hàng</h2>
         <p className="mt-4 flex justify-between text-sm">Tiền hàng <b className="num">{formatVnd(total)}</b></p>
         <p className="mt-2 text-xs text-ink-2">Phí ship tính ở bước sau</p>
-        <Link href="/thanh-toan" className="mt-5 flex h-12 items-center justify-center rounded-md bg-brand font-bold text-white hover:bg-brand-deep">Đặt hàng</Link>
-        <Link href="/danh-muc" className="mt-2 flex h-11 items-center justify-center text-sm font-semibold text-brand">Mua thêm</Link>
+        <Link href="/thanh-toan" className="mt-5 flex h-12 items-center justify-center rounded-full bg-brand font-bold text-white hover:bg-brand-deep">Đặt hàng</Link>
+        <Link href="/danh-muc" className="mt-2 flex h-11 items-center justify-center text-sm font-semibold text-brand">Mua thêm sản phẩm →</Link>
       </aside>
+      <div className="fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-40 border-t border-line bg-surface px-4 py-3 shadow-[var(--shadow-soft)] lg:hidden">
+        <p className="flex justify-between text-sm font-medium">Tiền hàng <b className="num text-base">{formatVnd(total)}</b></p><p className="mt-0.5 text-xs text-ink-2">Phí ship tính ở bước sau</p>
+        <div className="mt-2 flex gap-2"><a href="https://zalo.me/0948732064" className="flex h-12 shrink-0 items-center rounded-full border border-brand px-4 text-sm font-semibold text-brand">Zalo</a><Link href="/thanh-toan" className="flex h-12 flex-1 items-center justify-center rounded-full bg-brand font-bold text-white">Đặt hàng</Link></div>
+      </div>
     </div>
   );
 }
