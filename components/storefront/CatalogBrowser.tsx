@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
-import { Breadcrumb } from "@/components/storefront/Breadcrumb";
 import { FilterSheet } from "@/components/storefront/FilterSheet";
 import { ProductCard } from "@/components/storefront/ProductCard";
 import { boundsOf, clamp, matchProducts, priceLabel, type Draft } from "@/components/storefront/priceFilter";
@@ -121,10 +120,6 @@ export function CatalogBrowser({ products }: { products: Product[] }) {
 
   return (
     <>
-      {/* Điện thoại đã có nút quay lại của máy; dòng đường dẫn chỉ hiện từ máy tính trở lên */}
-      <div className="hidden md:block">
-        <Breadcrumb items={industry ? [{ label: "Tất cả sản phẩm", href: "/danh-muc" }, { label: industry }] : [{ label: "Tất cả sản phẩm" }]} />
-      </div>
       <h1 className="text-[28px] font-extrabold leading-tight sm:text-[34px]">{title}</h1>
       <p className="mt-1.5 text-[15px] text-ink-2"><span className="num">{scope.length}</span> sản phẩm</p>
 

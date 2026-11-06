@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Banknote, ChevronDown, ChevronRight, FileText, ShieldCheck, Store, Truck } from "lucide-react";
-import { Breadcrumb } from "@/components/storefront/Breadcrumb";
 import { BuyBox } from "@/components/storefront/CartControls";
 import { ProductCard, ProductImage, StockBadge } from "@/components/storefront/ProductCard";
 import { getCategories, getProduct, getProducts } from "@/lib/catalog";
@@ -56,7 +55,6 @@ export default async function ProductPage({ params }: PageProps<"/san-pham/[sku]
     <>
       {/* Đã áp bảng màu mới (cờ data-theme-v2, xem globals.css) */}
       <div hidden data-theme-v2 />
-      <Breadcrumb items={[{ label: cat.name, href: `/danh-muc/${cat.slug}` }, { label: p.name }]} />
       <div className="grid gap-6 md:grid-cols-2 lg:gap-10">
         <div>
           <div className="relative aspect-square overflow-hidden rounded-3xl bg-sunk">

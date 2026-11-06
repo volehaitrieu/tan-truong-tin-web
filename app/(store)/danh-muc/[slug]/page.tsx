@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Breadcrumb } from "@/components/storefront/Breadcrumb";
 import Link from "next/link";
 import { ProductBrowserShell } from "@/components/storefront/ProductBrowserShell";
 import { getCategories, getProducts } from "@/lib/catalog";
@@ -27,7 +26,6 @@ export default async function CategoryPage({ params }: PageProps<"/danh-muc/[slu
     <>
       {/* Đã áp bảng màu mới (cờ data-theme-v2, xem globals.css) */}
       <div hidden data-theme-v2 />
-      <Breadcrumb items={[{ label: "Sản phẩm", href: "/danh-muc" }, { label: cat.name }]} />
       <h1 className="mb-4 text-[28px] font-extrabold sm:text-[34px]">{cat.name}</h1>
       {cat.subs.length > 0 && (
         <nav aria-label={`Danh mục con của ${cat.name}`} className="mb-5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">

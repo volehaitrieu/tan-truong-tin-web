@@ -4,6 +4,8 @@
 
 Đây là **điểm bắt đầu duy nhất** cho bất kỳ công cụ AI nào tiếp tục dự án. Đọc hết tệp này trước, rồi mới mở các tài liệu khác.
 
+> **MỚI 06/11/2026 (nhánh `worktree-website-v2`):** Website v2 + nhập tồn kho từ Excel. Đọc `docs/website-v2/BAN_GIAO_2026-11-06.md` TRƯỚC (có cả việc dở "Nhập Excel đọc cột Tồn" ở nhánh `feature/nhap-excel-ton-kho`, và 114 dòng tồn đã ghi vào DB thật kèm lệnh hoàn tác).
+
 ---
 
 ## 1. Dự án là gì
