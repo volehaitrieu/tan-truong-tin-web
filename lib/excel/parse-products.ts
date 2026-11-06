@@ -5,14 +5,17 @@ export type ImportRow = {
   line: number; sku: string; name: string; unit: string; price: number; cost: number | null; minQty: number | null;
   sub: string | null; industry: string | null; brand: string | null; spec: string | null; attributes: Record<string, string>;
   warranty: string | null; origin: string | null; errors: string[];
-  // Chỉ mẫu chuẩn TTT: vị trí, sản xuất tại, mô tả (chữ thường, mỗi dòng một đoạn), ô gốc để xuất lại file lỗi
-  location?: string | null; madeIn?: string | null; description?: string | null; raw?: Record<string, string>;
+  // Chỉ mẫu chuẩn TTT: vị trí, tồn (số hàng đang có; null = ô trống, giữ nguyên), sản xuất tại, mô tả (chữ thường, mỗi dòng một đoạn), ô gốc để xuất lại file lỗi
+  location?: string | null; qty?: number | null; madeIn?: string | null; description?: string | null; raw?: Record<string, string>;
 };
+
+// Số tồn tối đa mỗi lần đặt: khớp giới hạn của hàm adjust_stock trong cơ sở dữ liệu (±100.000).
+export const MAX_STOCK = 100_000;
 
 // Cột của file Excel mẫu (mẫu chuẩn TTT). Giá tính bằng đồng.
 export const TEMPLATE_COLUMNS = [
   "Mã hàng hóa", "Tên sản phẩm", "Đơn vị tính", "Giá bán", "Giá nhập", "Giá nhập + 10%", "Ngành hàng", "Danh mục", "Danh mục con", "Thương hiệu",
-  "Vị trí", "Tồn tối thiểu", "Thông số", "Mô tả", "Bảo hành", "Xuất xứ", "Sản xuất tại",
+  "Vị trí", "Tồn", "Tồn tối thiểu", "Thông số", "Mô tả", "Bảo hành", "Xuất xứ", "Sản xuất tại",
 ] as const;
 export const TEMPLATE_SHEET = "SanPham";
 
@@ -93,7 +96,7 @@ export function detectAndParse(
           line, sku: toSku(g("Mã hàng hóa")), name: g("Tên sản phẩm"), unit: g("Đơn vị tính") || "Cái", price: num(g("Giá bán")) * scale,
           cost: g("Giá nhập") ? num(g("Giá nhập")) * scale : null, minQty: g("Tồn tối thiểu") ? num(g("Tồn tối thiểu")) : null,
           sub, industry: opt("Ngành hàng"), brand: opt("Thương hiệu"), spec: opt("Thông số"), attributes: {}, warranty: opt("Bảo hành"), origin: opt("Xuất xứ"),
-          location: opt("Vị trí"), madeIn: opt("Sản xuất tại"), description: opt("Mô tả"), raw, errors: [],
+          location: opt("Vị trí"), qty: g("Tồn") ? num(g("Tồn")) : null, madeIn: opt("Sản xuất tại"), description: opt("Mô tả"), raw, errors: [],
         });
         if (cat && !sub) row.errors.push(`Không tìm thấy danh mục “${cat}”`);
         if (row.minQty !== null && (!Number.isSafeInteger(row.minQty) || row.minQty < 0)) row.errors.push("Tồn tối thiểu không phải số");
@@ -168,6 +171,7 @@ export function finish(r: ImportRow): ImportRow {
   if (!Number.isSafeInteger(r.price) || r.price <= 0) e.push(Number.isNaN(r.price) ? "Giá bán không phải số" : "Giá bán bằng 0");
   else if (r.price > 500_000_000) e.push("Giá quá lớn");
   if (r.cost !== null && (!Number.isSafeInteger(r.cost) || r.cost < 0)) e.push("Giá nhập không phải số");
+  if (r.qty != null && (!Number.isSafeInteger(r.qty) || r.qty < 0 || r.qty > MAX_STOCK)) e.push("Tồn phải là số nguyên từ 0 đến 100.000");
   if (!r.unit || r.unit.length > 20) e.push("Đơn vị lạ");
   r.unit = r.unit ? r.unit.charAt(0).toUpperCase() + r.unit.slice(1).toLowerCase() : r.unit;
   return { ...r, errors: e };
