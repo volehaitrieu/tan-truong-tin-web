@@ -49,38 +49,26 @@ type Group = { key: string; title: string; options: { id: string; label: string 
 type Picked = Record<string, string[]>;
 type Sort = (typeof SORTS)[number][0];
 
+// Bộ lọc Điều khiển thống nhất (chủ shop chốt 08/11): 6 lựa chọn. Quạt có nhiều kiểu (vd. nút nhấn + remote) hiện ở mọi ô liên quan.
+// Các giá trị không rõ ("Cơ", "Đang cập nhật"…) không tạo ô riêng.
 const CONTROL_FILTERS = [
-  { id: "control:remote", label: "Có Remote" },
-  { id: "control:three-buttons", label: "3 nút tốc độ" },
-  { id: "control:two-pull-cords", label: "2 dây giật" },
-  { id: "control:one-pull-cord", label: "1 dây giật" },
-];
+  { id: "control:remote", label: "Remote", test: /remote|điều khiển từ xa/ },
+  { id: "control:push-button", label: "Nút nhấn", test: /nút nhấn|nút bấm|phím bấm/ },
+  { id: "control:knob", label: "Núm vặn", test: /núm vặn|núm xoay|nút xoay/ },
+  { id: "control:one-pull-cord", label: "Dây giật", test: /dây giật|giật dây|kéo dây|nút kéo/ },
+  { id: "control:two-pull-cords", label: "2 dây giật", test: /(?:2|hai) dây (?:giật|kéo)/ },
+  { id: "control:wall-box", label: "Hộp số gắn tường", test: /hộp số/ },
+] as const;
 
 function controlOptions(product: Product) {
-  const rows = product.specs.filter(([key]) => key === "Điều khiển" || key === "Remote");
-  const values = rows.map(([, value]) => value.trim()).filter(Boolean);
-  const normalized = values.map((value) => value.toLocaleLowerCase("vi"));
-  const matches: string[] = [];
-  if (rows.some(([key, value]) => {
-    const normalizedValue = value.toLocaleLowerCase("vi");
-    return (key === "Remote" && /remote|điều khiển từ xa|^có$/i.test(normalizedValue) && !/không|chưa có/i.test(normalizedValue))
-      || (key === "Điều khiển" && /remote|điều khiển từ xa|có điều khiển/i.test(normalizedValue) && !/không|không có/i.test(normalizedValue));
-  })) matches.push("control:remote");
-  if (normalized.some((value) => /nút nhấn 3 tốc độ/i.test(value))) matches.push("control:three-buttons");
-  if (normalized.some((value) => /(?:2|hai) dây (?:giật|kéo)/i.test(value))) matches.push("control:two-pull-cords");
-  if (!matches.includes("control:two-pull-cords") && normalized.some((value) => /(?:dây giật|kéo dây điều khiển tốc độ|nút kéo 3 tốc độ)/i.test(value))) {
-    matches.push("control:one-pull-cord");
-  }
-  const grouped = new Set(["control:remote", "control:three-buttons", "control:two-pull-cords", "control:one-pull-cord"]);
-  const matchedRaw = new Set<string>();
-  if (matches.includes("control:remote")) {
-    rows.filter(([key, value]) => (key === "Remote" && /remote|điều khiển từ xa|^có$/i.test(value) && !/không|chưa có/i.test(value)) || /remote|điều khiển từ xa|có điều khiển/i.test(value)).forEach(([, value]) => matchedRaw.add(value.trim()));
-  }
-  if (matches.includes("control:three-buttons")) rows.filter(([, value]) => /nút nhấn 3 tốc độ/i.test(value)).forEach(([, value]) => matchedRaw.add(value.trim()));
-  if (matches.includes("control:two-pull-cords")) rows.filter(([, value]) => /(?:2|hai) dây (?:giật|kéo)/i.test(value)).forEach(([, value]) => matchedRaw.add(value.trim()));
-  if (matches.includes("control:one-pull-cord")) rows.filter(([, value]) => /(?:dây giật|kéo dây điều khiển tốc độ|nút kéo 3 tốc độ)/i.test(value)).forEach(([, value]) => matchedRaw.add(value.trim()));
-  const raw = rows.map(([, value]) => value.trim()).filter((value) => value && !matchedRaw.has(value));
-  return [...new Set([...matches, ...raw])].filter((value) => !grouped.has(value) || CONTROL_FILTERS.some((option) => option.id === value));
+  const values = product.specs
+    .filter(([key]) => key === "Điều khiển" || key === "Remote")
+    .map(([key, value]) => (key === "Remote" && /^có$/i.test(value.trim()) ? "remote" : value))
+    // Bỏ phần phủ định ("…, không có remote") để không tính nhầm là có remote.
+    .map((value) => value.toLocaleLowerCase("vi").replace(/,?\s*(?:không có|không|chưa có)\s*(?:remote|điều khiển từ xa)/g, ""));
+  const ids = CONTROL_FILTERS.filter((option) => values.some((value) => option.test.test(value))).map((option) => option.id as string);
+  // "2 dây giật" đã gồm dây giật: không tính thêm "Dây giật" cho cùng quạt.
+  return ids.includes("control:two-pull-cords") ? ids.filter((id) => id !== "control:one-pull-cord") : ids;
 }
 
 function controlLabel(id: string) {
@@ -122,7 +110,7 @@ export function ProductBrowser({ products, categories, showSort = true, showSale
     const isFanList = products.length > 0 && products.every((product) => product.sub === "Quạt");
     if (isFanList) {
       const controls = [...new Set(products.flatMap(controlOptions))];
-      g.push({ key: "spec:Điều khiển", title: "Điều khiển", options: controls.map((id) => ({ id, label: controlLabel(id) })), test: (p, id) => controlOptions(p).includes(id) });
+      g.push({ key: "spec:Điều khiển", title: "Điều khiển", options: CONTROL_FILTERS.filter((option) => controls.includes(option.id)).map((option) => ({ id: option.id, label: controlLabel(option.id) })), test: (p, id) => controlOptions(p).includes(id) });
     }
     g.push({ key: "price", title: "Khoảng giá", options: PRICES, test: (p, id) => PRICES.find((x) => x.id === id)!.test(p.price) });
     g.push({ key: "brand", title: "Thương hiệu", options: uniq(products.map((p) => p.brand).filter(Boolean)), test: (p, id) => p.brand === id });
@@ -304,7 +292,8 @@ export function ProductBrowser({ products, categories, showSort = true, showSale
           <legend className="mb-1 text-sm font-semibold">{g.title}</legend>
           {g.key === "spec:Điều khiển" && products.some((p) => controlOptions(p).length === 0) && <p className="mb-2 text-xs leading-relaxed text-ink-2">Một số sản phẩm chưa có thông tin điều khiển.</p>}
           {g.key === "price" && <PriceRange min={bounds.min} max={bounds.max} step={PRICE_STEP} lo={displayedPrice.lo} hi={displayedPrice.hi} error={priceError} onChange={changePrice} onCommit={commitPrice} onError={setPriceError} loRef={loRef} hiRef={hiRef} />}
-          {(g.key === "brand" ? g.options.slice(0, 6) : g.options).map(option)}
+          {/* Khoảng giá chỉ dùng thanh kéo + hai ô nhập (đã bỏ 4 ô tick, chủ shop yêu cầu 08/11). */}
+          {g.key !== "price" && (g.key === "brand" ? g.options.slice(0, 6) : g.options).map(option)}
           {g.key === "brand" && g.options.length > 6 && <>
             <div inert={!moreBrands} className={`grid transition-[grid-template-rows] duration-200 motion-reduce:transition-none ${moreBrands ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}><div className="min-h-0 overflow-hidden">{g.options.slice(6).map(option)}</div></div>
             <button type="button" aria-expanded={moreBrands} onClick={() => setBrandExpansion({ key: pathname, expanded: !moreBrands })} className="min-h-11 text-sm font-medium text-brand">{moreBrands ? "Thu gọn" : "Xem thêm"}</button>
