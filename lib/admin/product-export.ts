@@ -1,8 +1,9 @@
 import "server-only";
 import { costFromImport, filteredProducts, importPrices } from "@/lib/admin/products";
 import type { ProductFilter } from "@/lib/admin/products-params";
-import { TEMPLATE_COLUMNS } from "@/lib/excel/parse-products";
+import { TEMPLATE_COLUMNS, EXPORT_GROUPS, normalizeExportGroups } from "@/lib/excel/parse-products";
 import { htmlToText } from "@/lib/rich-text";
+import { isMissingTable } from "@/lib/admin/classifications";
 import type { Cell } from "@/lib/excel/write-xlsx";
 
 // Xuất Excel danh sách SP theo đúng bộ lọc đang xem (không lọc = tất cả SP).
@@ -22,9 +23,18 @@ type Row = {
 const COLUMNS = "id, sku, name, unit, price, sale_price, is_visible, industry, spec_line, description, warranty, origin, made_in, category_id, "
   + "brand:brands(name), inventory(qty, min_qty, location), images:product_images(url, sort, is_illustration)";
 
-async function fetchAll(f: ProductFilter) {
+async function fetchAll(f: ProductFilter, ids?: number[]) {
   const rows: Row[] = [];
-  const { db, query } = await filteredProducts(f, COLUMNS);
+  const { db, query } = await filteredProducts(ids ? {} : f, COLUMNS);
+  if (ids) {
+    for (let i = 0; i < ids.length; i += 500) {
+      const { data, error } = await db.from("products").select(COLUMNS).in("id", ids.slice(i, i + 500)).order("name").order("id");
+      if (error) throw error;
+      rows.push(...(data as unknown as Row[]));
+    }
+    rows.sort((a, b) => a.name.localeCompare(b.name, "vi") || a.id - b.id);
+    return { db, rows };
+  }
   for (let from = 0; ; from += BATCH) {
     const { data, error } = await query.range(from, from + BATCH - 1);
     if (error) throw error;
@@ -33,23 +43,37 @@ async function fetchAll(f: ProductFilter) {
   }
 }
 
-export async function productExportSheet(f: ProductFilter, withCost: boolean): Promise<Cell[][]> {
-  const { db, rows } = await fetchAll(f);
-  const costs = withCost && rows.length ? await importPrices(db, rows.map((r) => r.id)) : new Map<number, number>();
+export async function productExportSheet(f: ProductFilter, withCost: boolean, groups: string[], ids?: number[]): Promise<Cell[][]> {
+  const selected = normalizeExportGroups(groups, withCost);
+  const { db, rows } = await fetchAll(f, ids);
+  const costs = withCost && selected.includes("cost") && rows.length ? await importPrices(db, rows.map((r) => r.id)) : new Map<number, number>();
   const { data: cats, error } = await db.from("categories").select("id, parent_id, name");
   if (error) throw error;
   const catById = new Map((cats ?? []).map((c) => [c.id, c]));
-  const columns = [...TEMPLATE_COLUMNS.filter((c) => withCost || !COST_COLUMNS.has(c)), ...EXTRA_COLUMNS];
+  // Nhiều Phân loại (bảng liên kết): xuất "A; B" sắp theo tiếng Việt để nhập lại được. Bảng chưa có → dùng cách cũ.
+  const links = new Map<number, string[]>();
+  if (selected.includes("category")) {
+    for (let i = 0; i < rows.length; i += 500) {
+      const { data, error: linkError } = await db.from("product_classifications").select("product_id, classification_id").in("product_id", rows.slice(i, i + 500).map((r) => r.id));
+      if (isMissingTable(linkError)) break;
+      if (linkError) throw linkError;
+      for (const l of data ?? []) { const name = catById.get(l.classification_id)?.name; if (name) links.set(l.product_id, [...(links.get(l.product_id) ?? []), name]); }
+    }
+  }
+  const allowed = new Set<string>(EXPORT_GROUPS.filter((group) => selected.includes(group.id)).flatMap((group) => [...group.columns]));
+  const columns = [...TEMPLATE_COLUMNS, ...EXTRA_COLUMNS].filter((column) => allowed.has(column) && (withCost || !COST_COLUMNS.has(column)));
 
   const cells = (r: Row): Record<(typeof columns)[number], Cell> => {
     const cost = costs.get(r.id) ?? null;
     // SP gắn vào danh mục con → "Danh mục" là danh mục cha; SP gắn thẳng danh mục cha → để trống "Danh mục con"
     const cat = r.category_id ? catById.get(r.category_id) : undefined;
     const parent = cat?.parent_id ? catById.get(cat.parent_id) : undefined;
+    const root = parent?.parent_id ? catById.get(parent.parent_id) : undefined;
     return {
       "Mã hàng hóa": r.sku, "Tên sản phẩm": r.name, "Đơn vị tính": r.unit, "Giá bán": r.price,
       "Giá nhập": cost, "Giá nhập + 10%": cost === null ? null : costFromImport(cost),
-      "Ngành hàng": r.industry, "Danh mục": parent?.name ?? cat?.name ?? null, "Danh mục con": parent && cat ? cat.name : null,
+      "Ngành hàng": r.industry, "Danh mục": root?.name ?? parent?.name ?? cat?.name ?? null, "Danh mục con": root ? parent?.name ?? null : parent && cat ? cat.name : null,
+      "Phân loại": links.has(r.id) ? links.get(r.id)!.sort((a, b) => a.localeCompare(b, "vi")).join("; ") : root ? cat?.name ?? null : null,
       "Thương hiệu": r.brand?.name ?? null, "Vị trí": r.inventory?.location ?? null, "Tồn tối thiểu": r.inventory?.min_qty ?? null,
       "Thông số": r.spec_line, "Mô tả": r.description ? htmlToText(r.description) : null,
       "Bảo hành": r.warranty, "Xuất xứ": r.origin, "Sản xuất tại": r.made_in,

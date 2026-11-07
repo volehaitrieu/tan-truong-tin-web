@@ -10,7 +10,7 @@ export const revalidate = 60;
 
 export default async function CategoryIndex({ searchParams }: PageProps<"/danh-muc">) {
   const params = await searchParams;
-  const filterKeys = new Set(["industry", "brand", "price", "state", "sort", "cat", "sub"]);
+  const filterKeys = new Set(["industry", "brand", "price", "state", "sort", "cat", "sub", "classification", "min", "max"]);
   const hasCatalogFilters = Object.keys(params).some((key) => filterKeys.has(key) || key.startsWith("spec."));
   if (hasCatalogFilters) {
     const [products, categories] = await Promise.all([getProducts(), getCategories()]);

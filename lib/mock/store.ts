@@ -17,7 +17,8 @@ export type Product = {
   industry: string;
   cat: string; // slug danh mục
   sub: string;
-  classification?: string;
+  classification?: string; // các Phân loại nối bằng ", " (hiển thị gọn ở giỏ hàng)
+  classifications?: string[]; // một SP có thể thuộc nhiều Phân loại (bộ lọc HOẶC)
   price: number;
   old?: number; // giá gốc khi đang khuyến mãi
   unit: string;

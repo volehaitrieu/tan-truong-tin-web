@@ -19,11 +19,14 @@ type Row = {
   category_id: number | null; industry: string | null;
   brand: { name: string } | null;
   images: { url: string; sort: number }[];
+  links?: { classification_id: number }[];
 };
 const SELECT =
   "sku, name, unit, price, sale_price, sale_from, sale_to, spec_line, attributes, warranty, origin, made_in, description, in_stock, " +
-  "category_id, industry, brand:brands(name), images:product_images(url, sort)";
-const SELECT_BEFORE_INDUSTRY = SELECT.replace("category_id, industry,", "category_id,");
+  "category_id, industry, brand:brands(name), images:product_images(url, sort), links:product_classifications(classification_id)";
+// Trước khi chạy migration nhiều Phân loại (bảng product_classifications chưa có) / migration Ngành hàng.
+const SELECT_BEFORE_LINKS = SELECT.replace(", links:product_classifications(classification_id)", "");
+const SELECT_BEFORE_INDUSTRY = SELECT_BEFORE_LINKS.replace("category_id, industry,", "category_id,");
 
 // Bảng danh mục (id → tên, slug, danh mục cha) — tra trong bộ nhớ thay vì nhúng bảng tự tham chiếu
 type CatRow = { id: number; parent_id: number | null; name: string; slug: string; icon: string | null; sort: number };
@@ -119,7 +122,13 @@ function toProduct(r: Row, labels: Map<string, { label: string; unit?: string }>
     industry: r.industry ?? "",
     cat: top?.slug ?? "",
     sub: sub && sub.parent_id === top?.id ? sub.name : "",
-    classification,
+    ...(() => {
+      // Nhiều Phân loại từ bảng liên kết; chưa có liên kết thì dùng Phân loại cấp 3 kiểu cũ (nếu SP còn gắn thẳng vào đó).
+      const linked = (r.links ?? []).map((l) => cats.find((c) => c.id === l.classification_id)?.name).filter((n): n is string => !!n)
+        .sort((a, b) => a.localeCompare(b, "vi"));
+      const classifications = linked.length ? linked : classification ? [classification] : [];
+      return { classifications, classification: classifications.join(", ") };
+    })(),
     price: sale ? r.sale_price! : r.price,
     old: sale ? r.price : undefined,
     unit: r.unit,
@@ -133,7 +142,8 @@ function toProduct(r: Row, labels: Map<string, { label: string; unit?: string }>
         const l = labels.get(k);
         return [l?.label ?? k, `${v}${l?.unit ? " " + l.unit : ""}`] as [string, string];
       }).filter(([label]) => !specs.rows.some(([n]) => n.toLowerCase() === label.toLowerCase())),
-      ...specs.rows,
+      // Thông số cũ có thể còn dòng Bảo hành/Xuất xứ/Sản xuất tại: bỏ để không lặp với trường riêng.
+      ...specs.rows.filter(([n]) => !(["bảo hành", "xuất xứ", "sản xuất tại"].includes(n.toLowerCase()) && (n.toLowerCase() === "bảo hành" ? r.warranty : n.toLowerCase() === "xuất xứ" ? r.origin : r.made_in))),
       ...(r.origin ? [["Xuất xứ", r.origin] as [string, string]] : []),
       ...(r.made_in ? [["Sản xuất tại", r.made_in] as [string, string]] : []),
     ],
@@ -151,6 +161,11 @@ export const getProducts = cache(async (): Promise<Product[]> => {
   ]);
   let data = initial.data;
   let error = initial.error;
+  if (error && /product_classifications/i.test(`${error.message} ${error.details ?? ""} ${error.hint ?? ""}`)) {
+    const before = await createPublicClient().from("products").select(SELECT_BEFORE_LINKS).order("name").limit(5000);
+    data = before.data as typeof data;
+    error = before.error;
+  }
   // Keep the storefront readable while the industry migration is waiting to be applied.
   if (error && /column products\.industry does not exist/i.test(error.message)) {
     const legacy = await createPublicClient().from("products").select(SELECT_BEFORE_INDUSTRY).order("name").limit(5000);

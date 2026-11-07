@@ -4,17 +4,21 @@ import { ProductThumb } from "@/components/admin/ProductCell";
 import { applyChanges } from "./actions";
 
 export type PendingChange = {
-  id: number; field: string; oldValue: string | null; newValue: string;
+  id: number; field: string; oldValue: string | null; newValue: string; newNote?: string;
   productId: number; sku: string; name: string; image: string | null;
 };
 
 const LABEL: Record<string, string> = {
-  name: "Tên sản phẩm", unit: "Đơn vị tính", price: "Giá bán", import_price: "Giá nhập", category: "Danh mục", industry: "Ngành hàng", brand: "Thương hiệu",
+  name: "Tên sản phẩm", unit: "Đơn vị tính", price: "Giá bán", import_price: "Giá nhập", category: "Danh mục con", classifications: "Phân loại", industry: "Ngành hàng", brand: "Thương hiệu",
   location: "Vị trí", qty: "Tồn kho (đặt đúng số này)", min_qty: "Tồn tối thiểu", spec: "Thông số", description: "Mô tả", warranty: "Bảo hành", origin: "Xuất xứ", made_in: "Sản xuất tại",
 };
 const MONEY = new Set(["price", "import_price"]);
 const show = (field: string, v: string | null) =>
   v == null || v === "" ? <span className="text-ink-2">(trống)</span> : MONEY.has(field) && /^\d+$/.test(v) ? `${Number(v).toLocaleString("vi-VN")}₫` : v;
+
+// Nhãn nhỏ cạnh giá trị mới, vd. "1 loại mới" = Phân loại sẽ được tạo khi xác nhận.
+const NewNote = ({ text }: { text?: string }) =>
+  text ? <span className="ml-1.5 inline-block rounded bg-gold-tint px-1.5 text-xs font-medium text-gold-ink">{text}</span> : null;
 
 // Bảng đối chiếu thay đổi khi nhập Excel: mỗi thay đổi một ô tick. Xác nhận → ghi; chưa tick → còn lại trong bảng.
 export function ReviewTable({ changes }: { changes: PendingChange[] }) {
@@ -64,7 +68,7 @@ export function ReviewTable({ changes }: { changes: PendingChange[] }) {
                   <td className="px-3 py-2">{first && <span className="flex items-center gap-2"><ProductThumb src={c.image} size={36} /><span><b className="block">{c.name}</b><small className="num text-xs text-ink-2">Mã: {c.sku}</small></span></span>}</td>
                   <td className="whitespace-nowrap px-3 py-2 font-medium">{LABEL[c.field] ?? c.field}</td>
                   <td className="max-w-72 whitespace-pre-line px-3 py-2 text-ink-2 line-through decoration-ink-2/40">{show(c.field, c.oldValue)}</td>
-                  <td className="max-w-72 whitespace-pre-line px-3 py-2 font-medium text-brand">{show(c.field, c.newValue)}</td>
+                  <td className="max-w-72 whitespace-pre-line px-3 py-2 font-medium text-brand">{show(c.field, c.newValue)}<NewNote text={c.newNote} /></td>
                 </tr>
               );
             })}
@@ -81,7 +85,7 @@ export function ReviewTable({ changes }: { changes: PendingChange[] }) {
                   <span className="min-w-0">
                     <b className="block">{LABEL[c.field] ?? c.field}</b>
                     <span className="block whitespace-pre-line text-ink-2"><span className="text-xs">Cũ: </span>{show(c.field, c.oldValue)}</span>
-                    <span className="block whitespace-pre-line font-medium text-brand"><span className="text-xs">Mới: </span>{show(c.field, c.newValue)}</span>
+                    <span className="block whitespace-pre-line font-medium text-brand"><span className="text-xs">Mới: </span>{show(c.field, c.newValue)}<NewNote text={c.newNote} /></span>
                   </span>
                 </label>
               </li>

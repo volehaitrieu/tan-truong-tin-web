@@ -98,6 +98,14 @@ export function ProductForm({ product: p, options, canPrice, canCost, canAdjustS
               <Field label="Danh mục">
                 <select className={input} value={f.categoryId} onChange={set("categoryId")}><option value="">—</option>{options.categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
               </Field>
+              {/* Mẫu F1: Phân loại chỉ xem; đổi bằng Nhập Excel (cột Phân loại, nhiều loại ngăn bằng dấu ;). */}
+              {p && <div className="sm:col-span-2">
+                <p className="text-sm font-medium">Phân loại</p>
+                {p.classifications.length
+                  ? <ul className="mt-1.5 flex flex-wrap gap-1.5">{p.classifications.map((c) => <li key={c} className="rounded-full bg-brand-tint px-2.5 py-0.5 text-xs font-medium text-brand">{c}</li>)}</ul>
+                  : <p className="mt-1 text-sm text-ink-2">Chưa có Phân loại.</p>}
+                <p className="mt-1.5 text-xs text-ink-2">Đổi Phân loại bằng Nhập Excel (cột Phân loại, nhiều loại ngăn bằng dấu ;).</p>
+              </div>}
               <Field label="Thương hiệu">
                 <select className={input} value={f.brandId} onChange={set("brandId")}><option value="">—</option>{options.brands.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
               </Field>

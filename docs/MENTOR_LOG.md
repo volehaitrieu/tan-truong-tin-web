@@ -475,3 +475,29 @@
 - Promote sang tên miền chính bị auto-review từ chối vì cần xác nhận rõ thao tác đổi website đang chạy. Đã hỏi chủ shop; CHƯA promote. Không thử ghi kho thật.
 - Việc tiếp theo đã được chốt trong lịch sử: mẫu menu Danh mục điện thoại + trang từng danh mục cho shop duyệt trước mã; gán Phân loại và đổi Gia dụng → Đồ gia dụng cùng đợt; sau đó giỏ hàng/thanh toán, tra cứu, báo giá, cảm ơn, chính sách/giới thiệu, tài khoản. Không bịa chính sách/giá/thuộc tính. Worktree website-v2 đang có lib/ui-effects.ts và public/shop/ chưa theo dõi: giữ nguyên.
 - Cập nhật cuối: chủ shop xác nhận rõ “Đồng ý chuyển tantruongtin.com sang bản mới ngay”. Promote thành công; vercel inspect tantruongtin.com xác nhận đúng dpl_9jnuLWbGfHWT8bLoCGGXu8tJhA5c READY. Trang chủ HTTP 200, nhập Excel HTTP 307 tới /admin/dang-nhap. Không cần deploy lại; mã sau bản build chỉ đổi chú thích version migration và tài liệu.
+
+## 07/11/2026 — Cột Phân loại + Xuất Excel chọn cột (Claude Code)
+- Chủ shop duyệt thiết kế, chọn Mẫu C (bảng chọn cột theo nhóm) + Mẫu 2 (chip Phân loại). Gộp `feature/nhap-excel-ton-kho` vào website-v2 (a0a84e6).
+- Codex viết mã; Claude Code rà: tsc + ESLint đạt, logic đúng bàn giao (xem `docs/website-v2/viec/phan-loai/4_RA_SOAT.md`).
+- Chưa xem giao diện: máy chủ thử cổng 3000 treo, cần chủ shop tắt PID 20076. Chưa commit, chưa ghi Supabase.
+
+## 07/11/2026 — Bộ lọc gọn + thanh đáy + tấm Danh mục (Codex → Claude Code)
+- Chủ shop chọn Mẫu 2 + màu hệ thống. Codex làm phần lớn rồi hết hạn mức; Claude Code sửa nốt lỗi ESLint (ref khi vẽ) và lỗi thanh giá co theo hãng.
+- Đã kiểm 375px trên localhost:3000, tsc + ESLint đạt (xem `docs/website-v2/viec/loc-va-thanh-day/4_RA_SOAT.md`). Chưa commit.
+- Đợt 2 cùng ngày: nút kéo K3, nút Lọc lắc nhẹ L2, bảng Lọc chỉ 4 nhóm + ô tick C1, khung chờ ảnh A1, thẻ sản phẩm trồi lên, ảnh mặt tiền thật ở "Ghé cửa hàng". tsc + ESLint đạt, đã xem 375px. Chưa commit.
+- Nút Lọc lặp lắc mỗi 4 giây tới khi khách dùng bộ lọc. Kiểm file quạt có cột Phân loại (100 dòng, 7 phân loại, không lỗi); chủ shop tự nhập.
+
+## 07/11/2026 — Đối chiếu thông số 100 quạt (Claude Code)
+- Tra mã model trong tên 100 quạt (ưu tiên trang hãng: lifan.com.vn, quatchinghai.com, senko.com.vn, hali-fan.vn, airportvn.com; sau đó meta.vn, Điện Máy Xanh). 84 tìm thấy, 16 không có mã/không tìm thấy (tô cam).
+- File mới `Downloads/Kho-App-Quat-doi-chieu-2026-11-07.xlsx` (không ghi đè file gốc): thêm cột Tên sản phẩm trên mạng, Hướng dẫn sử dụng, Nguồn, Ghi chú đối chiếu; Thông số cập nhật + 3 dòng Bảo hành/Xuất xứ/Sản xuất tại ở cuối; 3 cột đó để trống; bỏ cột Tồn/Tồn tối thiểu để không ghi đè tồn kho. 15 mẫu Senko tô hồng: hãng ghi bảo hành 24 tháng, file cũ 12 tháng — chủ shop chốt.
+- Mã: `lib/excel/parse-products.ts` `splitServiceLines` tách 3 dòng đó từ Thông số vào trường riêng khi nhập; `lib/catalog.ts` không hiện lặp các dòng đó trong bảng thông số. tsc + ESLint đạt. Chưa nhập thật, chưa commit.
+- Hướng dẫn sử dụng: không hãng nào đăng sách hướng dẫn → soạn theo cách dùng chung của từng loại quạt; web chưa có chỗ hiển thị cột này.
+- Chủ shop chốt: bảo hành Senko giữ 12 tháng (miễn phí động cơ) như file cũ; file đối chiếu đã tạo lại, hết dòng tô hồng.
+- File cuối `Downloads/Kho-App-Quat-ket-qua-2026-11-07.xlsx`: dùng tên trên mạng (đã chuẩn hóa: bỏ ghi chú nguồn trong ngoặc, ChingHai/Lifan thống nhất, chữ thường), cột Tên cũ (shop); Phân loại (1 loại chính, web nhận được) + Phân loại (nhiều) chờ nâng cấp hệ thống. 19 dòng tô xanh dương chờ chủ shop chốt (quạt lỡ Senko, tên mới mất chữ lửng/công nghiệp).
+
+## 07/11/2026 tối — Rà việc Codex (Claude Code)
+- Đọc chat Codex 18:07–20:48: file tên + điều khiển (outputs/quat-dieu-khien-20261107, 76 tên có nhãn, 24 giữ tên) và kế hoạch nhiều phân loại (chủ shop đã duyệt). Kiểm: chỉ đổi Tên/Nguồn/Ghi chú; 4 nguồn tra bổ sung đúng. Thiếu: 16 dòng chưa có dòng "Điều khiển" trong Thông số. Biên bản: `docs/website-v2/viec/phan-loai-nhieu/1b_RA_SOAT_CLAUDE.md`. Chưa sửa mã/dữ liệu.
+
+## 07/11/2026 tối — Nhiều Phân loại: mã + file quạt cuối (Claude Code)
+- Chủ shop chọn N2/P1/F1. Viết migration (chưa chạy), nhập/đối chiếu/xác nhận/xuất nhiều Phân loại, bộ lọc HOẶC, form chỉ xem. tsc + ESLint + 6/6 kiểm thử đạt; trang Quạt vẫn chạy khi chưa có bảng mới. Chi tiết: `docs/website-v2/viec/phan-loai-nhieu/3_DA_LAM.md`.
+- File `Downloads/Kho-App-Quat-cuoi-2026-11-07.xlsx`: 8 Phân loại chuẩn SEO (bỏ "lỡ nhựa/lỡ công nghiệp"), 100/100 có dòng Điều khiển (18 "Đang cập nhật"). Chưa commit, chưa ghi Supabase.

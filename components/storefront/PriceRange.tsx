@@ -1,11 +1,13 @@
 "use client";
 
-import { useRef, useState, type RefObject } from "react";
+import { useId, useRef, useState, type RefObject } from "react";
 import { clamp, fmtNumber } from "@/components/storefront/priceFilter";
 
 export type PriceError = { which: "lo" | "hi"; text: string; msg: string };
 
 type Props = {
+  compact?: boolean;
+  onCommit?: (lo: number, hi: number) => void;
   min: number;
   max: number;
   step: number;
@@ -22,7 +24,9 @@ const THUMB = 44; // vùng chạm của nút kéo (px)
 const HALF = THUMB / 2;
 
 // Hai ô nhập giá + thanh kéo hai đầu. Nhập số, kéo chuột/ngón tay hoặc dùng phím mũi tên đều cho cùng một kết quả.
-export function PriceRange({ min, max, step, lo, hi, error, onChange, onError, loRef, hiRef }: Props) {
+export function PriceRange({ min, max, step, lo, hi, error, onChange, onError, loRef, hiRef, compact = false, onCommit }: Props) {
+  const id = useId();
+  const pending = useRef<[number, number] | null>(null);
   const railRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ which: "lo" | "hi"; x: number; ambiguous: boolean } | null>(null);
   const [dragging, setDragging] = useState<"lo" | "hi" | null>(null);
@@ -30,7 +34,7 @@ export function PriceRange({ min, max, step, lo, hi, error, onChange, onError, l
 
   const span = Math.max(1, max - min);
   const frac = (v: number) => (v - min) / span;
-  const snap = (v: number) => clamp(Math.round(v / step) * step, min, max);
+  const snap = (v: number) => v <= min ? min : v >= max ? max : clamp(Math.round(v / step) * step, min, max);
 
   const valueAt = (clientX: number) => {
     const rect = railRef.current?.getBoundingClientRect();
@@ -41,12 +45,13 @@ export function PriceRange({ min, max, step, lo, hi, error, onChange, onError, l
   const setThumb = (which: "lo" | "hi", raw: number) => {
     const v = snap(raw);
     onError(null);
-    if (which === "lo") onChange(clamp(v, min, hi), hi);
-    else onChange(lo, clamp(v, lo, max));
+    const next: [number, number] = which === "lo" ? [clamp(v, min, hi), hi] : [lo, clamp(v, lo, max)];
+    pending.current = next;
+    onChange(...next);
   };
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.button > 0) return;
+    if (e.button > 0 || max <= min) return;
     // Đang gõ dở trong ô giá thì chốt giá đã gõ trước, rồi mới kéo (pointerdown bên dưới không làm ô mất focus).
     if (document.activeElement instanceof HTMLInputElement) document.activeElement.blur();
     const thumb =(e.target as HTMLElement).closest<HTMLElement>("[data-thumb]");
@@ -75,6 +80,7 @@ export function PriceRange({ min, max, step, lo, hi, error, onChange, onError, l
   const endDrag = () => {
     drag.current = null;
     setDragging(null);
+    if (pending.current) { onCommit?.(...pending.current); pending.current = null; }
   };
 
   const onKeyDown = (which: "lo" | "hi") => (e: React.KeyboardEvent) => {
@@ -114,7 +120,9 @@ export function PriceRange({ min, max, step, lo, hi, error, onChange, onError, l
       return;
     }
     onError(null);
-    onChange(which === "lo" ? v : lo, which === "hi" ? v : hi);
+    const next: [number, number] = [which === "lo" ? v : lo, which === "hi" ? v : hi];
+    onChange(...next);
+    onCommit?.(...next);
   };
 
   const field = (which: "lo" | "hi", label: string, id: string, ref: RefObject<HTMLInputElement | null>) => {
@@ -130,7 +138,7 @@ export function PriceRange({ min, max, step, lo, hi, error, onChange, onError, l
             autoComplete="off"
             value={shown(which)}
             aria-invalid={bad}
-            aria-describedby={bad ? "price-error" : undefined}
+            aria-describedby={bad ? `${id}-price-error` : undefined}
             onFocus={(e) => {
               setEdit({ which, text: error?.which === which ? error.text : fmtNumber(which === "lo" ? lo : hi) });
               e.currentTarget.select();
@@ -167,11 +175,15 @@ export function PriceRange({ min, max, step, lo, hi, error, onChange, onError, l
         aria-valuemax={which === "lo" ? hi : max}
         aria-valuenow={value}
         aria-valuetext={`${fmtNumber(value)} đồng`}
+        disabled={max <= min}
         onKeyDown={onKeyDown(which)}
-        className="absolute top-0 size-11 touch-none"
+        onKeyUp={endDrag}
+        onBlur={() => { if (!drag.current && pending.current) { onCommit?.(...pending.current); pending.current = null; } }}
+        className="group absolute top-0 size-11 touch-none rounded-full focus-visible:outline-2 focus-visible:outline-offset-[-6px] focus-visible:outline-brand"
         style={{ left: `calc(${HALF}px + (100% - ${THUMB}px) * ${frac(value)})`, marginLeft: -HALF }}
       >
-        <span className={`absolute left-2 top-2 size-7 rounded-full border-2 border-brand transition-[transform,background-color] duration-100 ${active ? "scale-[1.18] bg-sunk" : "bg-surface"}`} />
+        {/* Mẫu K3: vòng đen 18px lõi trắng; vùng chạm vẫn 44px. */}
+        <span className={`absolute left-[13px] top-[13px] size-[18px] rounded-full border-[5px] border-brand bg-surface transition-transform duration-150 ease-out motion-reduce:transition-none motion-reduce:transform-none ${active ? "scale-125" : "group-hover:scale-110"}`} />
         {active && (
           <span className="anim-bubble num pointer-events-none absolute bottom-[calc(100%-4px)] left-1/2 whitespace-nowrap rounded-lg bg-brand px-2.5 py-1 text-xs font-bold text-white">
             {fmtNumber(value)} ₫
@@ -183,28 +195,28 @@ export function PriceRange({ min, max, step, lo, hi, error, onChange, onError, l
 
   return (
     <div>
-      <div className="grid grid-cols-2 gap-2.5">
-        {field("lo", "Giá thấp nhất", "price-lo", loRef)}
-        {field("hi", "Giá cao nhất", "price-hi", hiRef)}
-      </div>
-      {error && <p id="price-error" role="alert" className="mt-2 text-[13px] leading-snug text-danger">{error.msg}</p>}
+      {!compact && <div className="grid grid-cols-2 gap-2.5">
+        {field("lo", "Giá thấp nhất", `${id}-price-lo`, loRef)}
+        {field("hi", "Giá cao nhất", `${id}-price-hi`, hiRef)}
+      </div>}
+      {error && <p id={`${id}-price-error`} role="alert" className="mt-2 text-[13px] leading-snug text-danger">{error.msg}</p>}
       <div
         ref={railRef}
-        className="relative mt-9 h-11 touch-none select-none"
+        className={`relative h-11 touch-none select-none ${compact ? "mt-1" : "mt-9"}`}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
       >
-        <div className="absolute top-5 h-1 rounded-full bg-line" style={{ left: HALF, right: HALF }} />
-        <div className="absolute top-5 h-1 rounded-full bg-brand" style={{ left: `calc(${HALF}px + (100% - ${THUMB}px) * ${frac(lo)})`, right: `calc(${HALF}px + (100% - ${THUMB}px) * ${1 - frac(hi)})` }} />
+        <div className="absolute top-[20.5px] h-[3px] rounded-full bg-line" style={{ left: HALF, right: HALF }} />
+        <div className="absolute top-[20.5px] h-[3px] rounded-full bg-brand" style={{ left: `calc(${HALF}px + (100% - ${THUMB}px) * ${frac(lo)})`, right: `calc(${HALF}px + (100% - ${THUMB}px) * ${1 - frac(hi)})` }} />
         {thumb("lo")}
         {thumb("hi")}
       </div>
-      <div className="num flex justify-between text-xs text-ink-2">
+      {!compact && <div className="num flex justify-between text-xs text-ink-2">
         <span>{fmtNumber(min)} ₫</span>
         <span>{fmtNumber(max)} ₫</span>
-      </div>
+      </div>}
     </div>
   );
 }

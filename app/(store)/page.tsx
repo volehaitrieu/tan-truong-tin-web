@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { ArrowRight, ChevronRight, Clock, CookingPot, Fan, MapPin, Phone, Store } from "lucide-react";
+import { ArrowRight, ChevronRight, Clock, CookingPot, Fan, MapPin, Phone } from "lucide-react";
 import { BrandRotator } from "@/components/storefront/BrandRotator";
 import { ShopBanner } from "@/components/storefront/ShopBanner";
+import { FadeImage } from "@/components/storefront/FadeImage";
 import { CategoryIcon } from "@/components/storefront/CategoryIcon";
 import { ProductBrowserShell } from "@/components/storefront/ProductBrowserShell";
 import { getCategories, getProducts } from "@/lib/catalog";
@@ -96,8 +97,8 @@ export default async function Home() {
             <a href="https://www.google.com/maps/search/?api=1&query=379+%C4%91%C6%B0%E1%BB%9Dng+2%2F4+Nha+Trang" target="_blank" rel="noopener" className="inline-flex h-12 items-center justify-center rounded-full border border-brand bg-white px-6 font-semibold text-brand hover:bg-brand-tint">Chỉ đường</a>
           </div>
         </div>
-        <div className="grid aspect-[16/9] place-items-center border-t border-line bg-white p-6 text-center text-sm text-ink-2 sm:border-l sm:border-t-0">
-          <span><Store className="mx-auto mb-2 size-8 text-brand" aria-hidden />Ảnh mặt tiền cửa hàng<br />chờ chủ shop gửi ảnh</span>
+        <div className="relative aspect-[4/3] overflow-hidden bg-sunk sm:aspect-auto sm:min-h-full">
+          <FadeImage src="/shop/mat-tien.webp" alt="Mặt tiền cửa hàng Tân Trường Tín, 379 đường 2/4, Nha Trang" sizes="(min-width: 640px) 50vw, 100vw" />
         </div>
       </section>
     </>

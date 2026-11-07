@@ -43,8 +43,8 @@ export function CategoryIndexClient({ menu, onNavigate }: Props) {
   if (!selected) return <p className="px-4 py-8 text-center text-sm text-ink-2">Danh mục đang được cập nhật.</p>;
 
   return (
-    <div className="flex min-h-0 flex-1 gap-2 bg-[#F2F4F7]">
-      <div role="tablist" aria-label="Danh mục" aria-orientation="vertical" className="w-[100px] shrink-0 self-stretch overflow-y-auto rounded-b-2xl bg-[#EAECF0]">
+    <div className="flex min-h-0 flex-1 gap-2 bg-ground">
+      <div role="tablist" aria-label="Danh mục" aria-orientation="vertical" className="w-[100px] shrink-0 self-stretch overflow-y-auto rounded-b-2xl bg-sunk">
         {menu.map((category, index) => {
           const active = category.slug === selected.slug;
           return (
@@ -59,9 +59,9 @@ export function CategoryIndexClient({ menu, onNavigate }: Props) {
               tabIndex={active ? 0 : -1}
               onClick={() => selectCategory(category)}
               onKeyDown={(event) => onTabKeyDown(event, index)}
-              className={`relative flex h-[60px] w-full items-center border-t border-[#D0D5DD] px-2 py-3 pl-4 text-left text-[12px] leading-[18px] transition-colors duration-150 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#2A83E9] first:border-t-0 ${active ? "bg-white font-semibold text-[#2A83E9]" : "text-[#101828] motion-safe:hover:bg-white/70"}`}
+              className={`relative flex h-[60px] w-full items-center border-t border-line px-2 py-3 pl-4 text-left text-[12px] leading-[18px] transition-colors duration-150 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-brand first:border-t-0 ${active ? "bg-surface font-semibold text-ink" : "text-ink motion-safe:hover:bg-surface/70"}`}
             >
-              {active ? <span aria-hidden="true" className="absolute inset-y-0 left-0 w-[2.4px] bg-[#2A83E9]" /> : null}
+              {active ? <span aria-hidden="true" className="absolute inset-y-0 left-0 w-[2.4px] bg-brand" /> : null}
               <span className="line-clamp-3 break-words">{category.name}</span>
             </button>
           );
@@ -74,11 +74,11 @@ export function CategoryIndexClient({ menu, onNavigate }: Props) {
         role="tabpanel"
         aria-labelledby={`category-tab-${selected.slug}`}
         tabIndex={0}
-        className={`min-w-0 flex-1 self-stretch overflow-y-auto rounded-tl-lg bg-white p-2 transition-[opacity,transform] duration-[180ms] ease-out motion-reduce:transform-none motion-reduce:transition-none ${contentVisible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}
+        className={`min-w-0 flex-1 self-stretch overflow-y-auto rounded-tl-lg bg-surface p-2 transition-[opacity,transform] duration-[180ms] ease-out motion-reduce:transform-none motion-reduce:transition-none ${contentVisible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}
       >
         {selected.children.length ? (
           <section className="mb-4 last:mb-0">
-            <h2 className="mb-2 mt-0.5 text-[12px] font-bold uppercase leading-[18px] text-[#252A31]">{selected.name}</h2>
+            <h2 className="mb-2 mt-0.5 text-[12px] font-bold uppercase leading-[18px] text-ink">{selected.name}</h2>
             <div className="grid grid-cols-3">
               {selected.children.map((child) => {
                 const href = `/danh-muc/${child.slug}`;
@@ -87,12 +87,12 @@ export function CategoryIndexClient({ menu, onNavigate }: Props) {
                     key={child.slug}
                     href={href}
                     onClick={(event) => navigate(event, href)}
-                    className="group flex h-[95px] min-w-0 flex-col items-center rounded-lg px-0.5 py-0.5 text-center active:scale-[0.96] motion-safe:transition-transform motion-reduce:transform-none motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#2A83E9]"
+                    className="group flex h-[95px] min-w-0 flex-col items-center rounded-lg px-0.5 py-0.5 text-center active:scale-[0.96] motion-safe:transition-transform motion-reduce:transform-none motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand"
                   >
-                    <span className="relative grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-[#EAF3FF] text-[#667085]">
+                    <span className="relative grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-brand-tint text-ink-2">
                       {child.image ? <Image src={child.image} alt="" fill sizes="48px" className="object-contain p-1" /> : <CategoryIcon icon={selected.icon} className="size-7" />}
                     </span>
-                    <span className="mt-0.5 line-clamp-2 min-h-9 w-full break-words text-[12px] leading-[18px] text-[#252A31] group-hover:text-[#2A83E9]">{child.name}</span>
+                    <span className="mt-0.5 line-clamp-2 min-h-9 w-full break-words text-[12px] leading-[18px] text-ink group-hover:text-ink">{child.name}</span>
                   </Link>
                 );
               })}

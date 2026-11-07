@@ -28,7 +28,7 @@
 | Việc | Nhánh | Bước hiện tại |
 |---|---|---|
 | Danh mục điện thoại + lọc quạt | `worktree-website-v2` | Mã đã có (Codex). Claude Code đã rà: lỗi bộ lọc Điều khiển bị gắn chung điều kiện Loại quạt → chờ Codex sửa (bước 5). Cập nhật 100 quạt trên Supabase chờ chủ shop đồng ý. |
-| Nhập Excel đọc cột Tồn | `feature/nhap-excel-ton-kho` | Dở, chưa qua tsc. Cần Claude Code rà lại bàn giao cũ rồi giao Codex làm tiếp. |
+| Nhập Excel đọc cột Tồn | `feature/nhap-excel-ton-kho` | Mã xong, migration đã chạy, ĐÃ lên tantruongtin.com (06/11). Còn: thử nhập file nhỏ trên web thật; gộp nhánh vào `main` (chưa gộp) |
 | Giỏ hàng + Thanh toán (`viec/gio-hang-thanh-toan/`) | `worktree-website-v2` (sau khi việc Danh mục đã commit; nếu chưa thì tạo nhánh riêng `feature/gio-hang-thanh-toan`) | Xong, chủ shop duyệt, đã commit (07/11) |
 | Danh mục kiểu DMX (`viec/danh-muc-kieu-dmx/`) | `worktree-website-v2` | Xong, chủ shop duyệt, đã commit (07/11) |
 | Tra cứu đơn / Báo giá / Cảm ơn | (tạo khi bắt đầu) | Chờ |

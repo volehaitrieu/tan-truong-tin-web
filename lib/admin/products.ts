@@ -79,12 +79,16 @@ export async function listProducts(f: ProductFilter, opts: { page: number; perPa
 export async function listOptions() {
   const db = await createClient();
   const [c, b] = await Promise.all([
-    db.from("categories").select("id, name").order("sort").order("name"),
+    db.from("categories").select("id, name, parent_id").order("sort").order("name"),
     db.from("brands").select("id, name, products(count)").order("name"),
   ]);
   const brands = ((b.data ?? []) as unknown as { id: number; name: string; products: { count: number }[] }[])
     .map((x) => ({ id: x.id, name: x.name, count: x.products[0]?.count ?? 0 }));
-  return { categories: (c.data ?? []) as Option[], brands: brands as BrandOption[] };
+  // Bỏ Phân loại (cấp 3) khỏi danh sách Danh mục: Phân loại gắn qua Nhập Excel (bảng liên kết), không qua ô Danh mục.
+  const cats = (c.data ?? []) as { id: number; name: string; parent_id: number | null }[];
+  const byId = new Map(cats.map((x) => [x.id, x]));
+  const level2OrRoot = cats.filter((x) => x.parent_id === null || byId.get(x.parent_id)?.parent_id === null);
+  return { categories: level2OrRoot.map(({ id, name }) => ({ id, name })) as Option[], brands: brands as BrandOption[] };
 }
 
 export type ProductDetail = {
@@ -92,6 +96,7 @@ export type ProductDetail = {
   categoryId: number | null; brandId: number | null; spec: string; warranty: string; origin: string; madeIn: string; description: string;
   needTags: string; visible: boolean; stock: number; min: number; location: string; cost: number | null; updatedAt: string;
   images: ProductImage[];
+  classifications: string[]; // chỉ xem trong form (mẫu F1); đổi qua Nhập Excel
 };
 
 export type ProductImage = { id: number; url: string; sort: number; is_illustration: boolean };
@@ -114,11 +119,15 @@ export async function getProductDetail(id: number, withCost: boolean): Promise<P
     const { data: c } = await db.from("product_costs").select("cost_price, import_price").eq("product_id", id).maybeSingle();
     cost = c ? c.import_price ?? c.cost_price : null;
   }
+  // Phân loại đang gắn (bảng chưa có → danh sách rỗng, form vẫn mở được).
+  const { data: links } = await db.from("product_classifications").select("category:categories(name)").eq("product_id", id);
+  const classifications = ((links ?? []) as unknown as { category: { name: string } | null }[])
+    .map((l) => l.category?.name).filter((n): n is string => !!n).sort((a, b) => a.localeCompare(b, "vi"));
   return {
     id: d.id, sku: d.sku, name: d.name, unit: d.unit, price: d.price, salePrice: d.sale_price, saleFrom: d.sale_from ?? "", saleTo: d.sale_to ?? "",
     categoryId: d.category_id, brandId: d.brand_id, spec: d.spec_line ?? "", warranty: d.warranty ?? "", origin: d.origin ?? "", madeIn: d.made_in ?? "",
     description: d.description ?? "", needTags: d.need_tags.join(", "), visible: d.is_visible, stock: d.inventory?.qty ?? 0, min: d.inventory?.min_qty ?? 0,
     location: d.inventory?.location ?? "Kho 1",
-    cost, images: [...(d.images ?? [])].sort((a, b) => a.sort - b.sort), updatedAt: new Intl.DateTimeFormat("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "short", timeStyle: "short" }).format(new Date(d.updated_at)),
+    cost, classifications, images: [...(d.images ?? [])].sort((a, b) => a.sort - b.sort), updatedAt: new Intl.DateTimeFormat("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "short", timeStyle: "short" }).format(new Date(d.updated_at)),
   };
 }

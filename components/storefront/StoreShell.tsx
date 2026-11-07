@@ -1,11 +1,11 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { House, Map, MapPin, ReceiptText, ShoppingCart, UserRound } from "lucide-react";
+import { Map, MapPin, ReceiptText, ShoppingCart, UserRound } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { StoreSearch } from "@/components/storefront/StoreSearch";
 import { HeaderSearchToggle } from "@/components/storefront/HeaderSearchToggle";
 import { CartCount } from "@/components/storefront/CartControls";
-import { CategoryDrawer } from "@/components/storefront/CategoryDrawer";
+import { MobileBottomNav } from "@/components/storefront/MobileBottomNav";
 import { FloatActions } from "@/components/storefront/FloatActions";
 import { getCategoryMenu } from "@/lib/catalog";
 import { SHOP } from "@/lib/shop";
@@ -109,14 +109,7 @@ export async function StoreShell({ children }: { children: ReactNode }) {
       <FloatActions />
 
       {/* Thanh đáy điện thoại */}
-      <nav aria-label="Điều hướng nhanh" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-line bg-ground/90 pb-[env(safe-area-inset-bottom)] text-[11px] text-ink-2 backdrop-blur-xl md:hidden">
-        <Link href="/" className="flex h-16 flex-col items-center justify-center gap-1 hover:text-brand"><House className="size-5" aria-hidden />Trang chủ</Link>
-        <CategoryDrawer menu={categoryMenu} />
-        <Link href="/gio-hang" className="flex h-16 flex-col items-center justify-center gap-1 hover:text-brand">
-          <span className="relative"><ShoppingCart className="size-5" aria-hidden /><CartCount /></span>Giỏ hàng
-        </Link>
-        <Link href="/tra-cuu" className="flex h-16 flex-col items-center justify-center gap-1 hover:text-brand"><ReceiptText className="size-5" aria-hidden />Tra cứu đơn</Link>
-      </nav>
+      <MobileBottomNav menu={categoryMenu} />
     </div>
   );
 }

@@ -1,24 +1,27 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
-import { usePathname, useRouter } from "next/navigation";
-import { LayoutGrid } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { CategoryOverlay } from "@/components/storefront/CategoryOverlay";
 import type { CategoryMenuTab } from "@/lib/catalog";
 
-export function CategoryDrawer({ menu }: { menu: CategoryMenuTab[] }) {
-  const pathname = usePathname();
+type Controls = { isOpen: boolean; toggle: () => void; navigate: (href: string) => void; openerRef: RefObject<HTMLButtonElement | null> };
+
+export function CategoryDrawer({ menu, children }: { menu: CategoryMenuTab[]; children: (controls: Controls) => ReactNode }) {
   const router = useRouter();
-  const active = pathname === "/danh-muc" || pathname.startsWith("/danh-muc/");
   const [isOpen, setIsOpen] = useState(false);
   const [closing, setClosing] = useState(false);
+  // Gắn tấm vào khung .store để nhận bảng màu web (token chỉ có hiệu lực bên trong .store).
+  const [portalTarget, setPortalTarget] = useState<Element | null>(null);
   const openerRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const historyEntryRef = useRef(false);
   const timerRef = useRef<number | null>(null);
   const openRef = useRef(false);
   const closingRef = useRef(false);
+  const requestedClose = useRef(false);
+  const destination = useRef<string | undefined>(undefined);
 
   const finishClose = useCallback((href?: string) => {
     if (closingRef.current) return;
@@ -28,12 +31,11 @@ export function CategoryDrawer({ menu }: { menu: CategoryMenuTab[] }) {
     timerRef.current = window.setTimeout(() => {
       openRef.current = false;
       closingRef.current = false;
+      requestedClose.current = false;
+      historyEntryRef.current = false;
       setIsOpen(false);
       setClosing(false);
       if (href) {
-        const state = { ...window.history.state };
-        delete state.__tttCategoryOverlay;
-        window.history.replaceState(state, "", window.location.href);
         router.push(href);
       } else {
         openerRef.current?.focus();
@@ -46,7 +48,8 @@ export function CategoryDrawer({ menu }: { menu: CategoryMenuTab[] }) {
     function onPopState() {
       if (!historyEntryRef.current || !openRef.current) return;
       historyEntryRef.current = false;
-      finishClose();
+      finishClose(destination.current);
+      destination.current = undefined;
     }
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
@@ -58,37 +61,32 @@ export function CategoryDrawer({ menu }: { menu: CategoryMenuTab[] }) {
     if (openRef.current) return;
     openRef.current = true;
     closingRef.current = false;
+    requestedClose.current = false;
+    destination.current = undefined;
     setClosing(false);
+    setPortalTarget(openerRef.current?.closest(".store") ?? document.body);
     setIsOpen(true);
     window.history.pushState({ ...window.history.state, __tttCategoryOverlay: true }, "", window.location.href);
     historyEntryRef.current = true;
   }
 
-  function closeMenu() {
+  const closeMenu = useCallback(() => {
+    if (requestedClose.current) return;
+    requestedClose.current = true;
     if (historyEntryRef.current) window.history.back();
-    else finishClose();
+    else { finishClose(destination.current); destination.current = undefined; }
+  }, [finishClose]);
+
+  function navigate(href: string) {
+    if (!openRef.current) { router.push(href); return; }
+    destination.current = href;
+    closeMenu();
   }
 
-  return (
-    <>
-      <button
-        ref={openerRef}
-        type="button"
-        aria-current={active ? "page" : undefined}
-        aria-expanded={isOpen}
-        aria-haspopup="dialog"
-        onClick={openMenu}
-        className={`flex h-16 flex-col items-center justify-center gap-1 ${active ? "font-semibold text-ink" : "hover:text-brand"}`}
-      >
-        <LayoutGrid className="size-5" aria-hidden="true" />Danh mục
-      </button>
-      {isOpen && typeof document !== "undefined" ? createPortal(<CategoryOverlay
-        menu={menu}
-        closing={closing}
-        closeButtonRef={closeButtonRef}
-        onClose={closeMenu}
-        onNavigate={(href) => finishClose(href)}
-      />, document.body) : null}
-    </>
-  );
+  return <>
+    {children({ isOpen, toggle: () => openRef.current ? closeMenu() : openMenu(), navigate, openerRef })}
+    {isOpen && portalTarget ? createPortal(<CategoryOverlay
+      menu={menu} closing={closing} closeButtonRef={closeButtonRef} onClose={closeMenu} onNavigate={navigate}
+    />, portalTarget) : null}
+  </>;
 }

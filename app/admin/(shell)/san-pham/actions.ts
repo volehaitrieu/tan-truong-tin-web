@@ -7,6 +7,7 @@ import { costFromImport } from "@/lib/admin/products";
 import { logEvent } from "@/lib/admin/audit";
 import { parseProductFilter, type ProductSearchParams } from "@/lib/admin/products-params";
 import type { Cell } from "@/lib/excel/write-xlsx";
+import { EXPORT_GROUPS, normalizeExportGroups } from "@/lib/excel/parse-products";
 
 export type SaveInput = {
   id: number; name: string; unit: string; categoryId: number | null; brandId: number | null; spec: string; warranty: string; origin: string; madeIn: string;
@@ -235,21 +236,30 @@ export async function getProductPreviews(ids: number[]) {
 }
 
 // Xuất Excel theo đúng bộ lọc đang xem trên trang Sản phẩm (tham số URL); cột giá nhập chỉ có khi chủ shop xuất
-export async function exportProducts(sp: ProductSearchParams): Promise<{ ok: true; rows: Cell[][] } | { ok: false; error: string }> {
+export async function getExportOptions() {
+  const staff = await requireStaff();
+  return { withCost: staff.role === "owner" };
+}
+
+export async function exportProducts(sp: ProductSearchParams, options: { ids?: number[]; groups: string[] }): Promise<{ ok: true; rows: Cell[][] } | { ok: false; error: string }> {
   const staff = await requireStaff();
   // Giá nhập chỉ xuất ra file cho chủ shop; nhân viên có quyền xem giá nhập vẫn chỉ xem trên màn hình
   const withCost = staff.role === "owner";
+  if (!options || !Array.isArray(options.groups) || options.groups.length > EXPORT_GROUPS.length || options.groups.some((id) => typeof id !== "string" || !EXPORT_GROUPS.some((group) => group.id === id))) return { ok: false, error: "Nhóm cột xuất không hợp lệ." };
+  if (options.ids !== undefined && (!Array.isArray(options.ids) || !options.ids.length || options.ids.length > 5000 || !options.ids.every((id) => Number.isSafeInteger(id) && id > 0))) return { ok: false, error: "Danh sách sản phẩm không hợp lệ (tối đa 5.000 sản phẩm)." };
+  const ids = options.ids ? [...new Set(options.ids)] : undefined;
+  const groups = normalizeExportGroups(options.groups, withCost);
   const filter = parseProductFilter(sp ?? {});
   let rows: Cell[][];
   try {
     const { productExportSheet } = await import("@/lib/admin/product-export");
-    rows = await productExportSheet(filter, withCost);
+    rows = await productExportSheet(filter, withCost, groups, ids);
   } catch {
     return { ok: false, error: "Không đọc được danh sách sản phẩm để xuất. Vui lòng thử lại." };
   }
   // Mỗi lần xuất phải có trong nhật ký; không ghi được thì không trả file.
   // Chữ tìm cắt 80 ký tự như lúc tìm thật, để chi tiết nhật ký không vượt giới hạn trong DB.
-  const logged = await logEvent(await createClient(), "export:products", `${rows.length - 1} SP`, { filter: { ...filter, q: filter.q?.slice(0, 80) }, with_cost: withCost });
+  const logged = await logEvent(await createClient(), "export:products", `${rows.length - 1} SP`, { filter: ids ? undefined : { ...filter, q: filter.q?.slice(0, 80) }, with_cost: withCost && groups.includes("cost"), by_ids: !!ids, groups });
   if (!logged) return { ok: false, error: "Không ghi được nhật ký xuất file. Vui lòng thử lại." };
   return { ok: true, rows };
 }

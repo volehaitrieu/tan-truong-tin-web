@@ -2,22 +2,18 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, Phone, SlidersHorizontal, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Check, ChevronDown, Phone, SlidersHorizontal, X } from "lucide-react";
+import { PriceRange, type PriceError } from "@/components/storefront/PriceRange";
+import { clamp, fmtNumber, PRICE_STEP } from "@/components/storefront/priceFilter";
 import { ProductCard } from "@/components/storefront/ProductCard";
 import { discountPct, HOME_PAGE_SIZE, PAGE_SIZE, type Category, type Product } from "@/lib/mock/store";
 
-const SPEC_PRIORITY = ["Loại quạt", "Sải cánh", "Công suất", "Điều khiển"];
 const PRICES = [
   { id: "duoi-100", label: "Dưới 100.000₫", test: (n: number) => n < 100000 },
   { id: "100-500", label: "100.000₫ – 500.000₫", test: (n: number) => n >= 100000 && n <= 500000 },
   { id: "500-1tr", label: "500.000₫ – 1.000.000₫", test: (n: number) => n > 500000 && n <= 1000000 },
   { id: "tren-1tr", label: "Trên 1.000.000₫", test: (n: number) => n > 1000000 },
-];
-const STATES = [
-  { id: "con-hang", label: "Còn hàng", test: (p: Product) => p.stock },
-  { id: "lien-he", label: "Liên hệ", test: (p: Product) => !p.stock },
-  { id: "giam-gia", label: "Đang giảm giá", test: (p: Product) => !!p.old },
 ];
 const SORTS = [
   ["pho-bien", "Phổ biến"],
@@ -26,7 +22,7 @@ const SORTS = [
   ["giam-nhieu", "Giảm nhiều nhất"],
   ["ten", "Tên A–Z"],
 ] as const;
-const URL_FILTERS = ["cat", "sub", "industry", "brand", "price", "state"];
+const URL_FILTERS = ["cat", "sub", "industry", "brand", "price", "state", "classification", "min", "max"];
 
 // Nút "Xem tiếp N sản phẩm" kèm vòng tiến độ (đã hiện / tổng), theo thiết kế Stitch v2.
 // Nút "Xem thêm N sản phẩm" kèm vòng tiến độ (đã hiện / tổng), theo thiết kế Stitch v2. Chỉ tải khi chủ động bấm.
@@ -95,7 +91,7 @@ function paramKey(key: string) {
   return key.startsWith("spec:") ? `spec.${key.slice(5)}` : key;
 }
 
-export function ProductBrowser({ products, categories, fixedCat, showSort = true, showSale = false }: { products: Product[]; categories: Category[]; fixedCat?: string; showSort?: boolean; showSale?: boolean }) {
+export function ProductBrowser({ products, categories, showSort = true, showSale = false }: { products: Product[]; categories: Category[]; fixedCat?: string; showSort?: boolean; showSale?: boolean }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -105,49 +101,33 @@ export function ProductBrowser({ products, categories, fixedCat, showSort = true
   const [pagination, setPagination] = useState({ key: navigationKey, count: pageSize });
   const [sheet, setSheet] = useState(false);
   const [brandExpansion, setBrandExpansion] = useState<{ key: string; expanded: boolean } | null>(null);
+  const [priceDraft, setPriceDraft] = useState<{ key: string; lo: number; hi: number } | null>(null);
+  const [priceError, setPriceError] = useState<PriceError | null>(null);
+  const loRef = useRef<HTMLInputElement>(null);
+  const hiRef = useRef<HTMLInputElement>(null);
+  const filterButtonRef = useRef<HTMLButtonElement>(null);
+  const [engaged, setEngaged] = useState(false);
+  const resultsRef = useRef<HTMLDivElement>(null);
   const shown = pagination.key === navigationKey ? pagination.count : pageSize;
 
+  // Chủ shop chốt 07/11: bảng Lọc chỉ có 4 nhóm theo thứ tự Phân loại, Điều khiển, Khoảng giá, Thương hiệu.
   const groups = useMemo<Group[]>(() => {
     const uniq = (xs: string[]) => [...new Set(xs)].map((x) => ({ id: x, label: x }));
     const g: Group[] = [];
-    if (!fixedCat)
-      g.push({ key: "cat", title: "Danh mục", options: categories.map((c) => ({ id: c.slug, label: c.name })), test: (p, id) => p.cat === id });
-    const industries = uniq(products.map((p) => p.industry.trim()).filter(Boolean));
-    if (industries.length > 1) g.push({ key: "industry", title: "Ngành hàng", options: industries, test: (p, id) => p.industry.trim() === id });
-    const subs = fixedCat ? (categories.find((c) => c.slug === fixedCat)?.subs ?? []).filter((sub) => products.some((p) => p.sub === sub)) : [...new Set(products.map((p) => p.sub))];
-    if (subs.length > 1) g.push({ key: "sub", title: "Danh mục con", options: subs.map((s) => ({ id: s, label: s })), test: (p, id) => p.sub === id });
-    g.push({ key: "brand", title: "Thương hiệu", options: uniq(products.map((p) => p.brand).filter(Boolean)), test: (p, id) => p.brand === id });
-    g.push({ key: "price", title: "Khoảng giá", options: PRICES, test: (p, id) => PRICES.find((x) => x.id === id)!.test(p.price) });
-    if (fixedCat) {
-      const isFanList = products.length > 0 && products.every((product) => product.sub === "Quạt");
-      const hasFanTypes = isFanList && products.some((product) => product.classification);
-      if (hasFanTypes) {
-        const types = uniq(products.map((product) => product.classification ?? "").filter(Boolean));
-        g.push({ key: "spec:Loại quạt", title: "Loại quạt", options: types, test: (p, id) => p.classification === id });
-      }
-      if (isFanList) {
-        const controls = [...new Set(products.flatMap(controlOptions))];
-        g.push({
-          key: "spec:Điều khiển",
-          title: "Điều khiển",
-          options: controls.map((id) => ({ id, label: controlLabel(id) })),
-          test: (p, id) => controlOptions(p).includes(id),
-        });
-      }
-      const all = [...new Set(products.flatMap((p) => p.specs.map(([k]) => k)))];
-      const omit = new Set([...(hasFanTypes ? ["Loại quạt"] : []), ...(isFanList ? ["Điều khiển", "Remote"] : [])]);
-      const keys = [...SPEC_PRIORITY.filter((k) => all.includes(k) && !omit.has(k)), ...all.filter((k) => !SPEC_PRIORITY.includes(k) && !omit.has(k))].slice(0, 4);
-      for (const k of keys)
-        g.push({
-          key: `spec:${k}`,
-          title: k,
-          options: uniq(products.flatMap((p) => p.specs.filter(([kk]) => kk === k).map(([, v]) => v))),
-          test: (p, id) => p.specs.some(([kk, v]) => kk === k && v === id),
-        });
+    const classificationCounts = new Map<string, number>();
+    // Một SP có thể thuộc nhiều Phân loại: đếm mỗi SP một lần cho mỗi loại; chọn nhiều loại = HOẶC (thuộc ít nhất một loại).
+    for (const product of products) for (const name of new Set(product.classifications ?? [])) classificationCounts.set(name, (classificationCounts.get(name) ?? 0) + 1);
+    const classifications = [...classificationCounts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "vi")).map(([id]) => ({ id, label: id }));
+    if (classifications.length) g.push({ key: "classification", title: "Phân loại", options: classifications, test: (p, id) => (p.classifications ?? []).includes(id) });
+    const isFanList = products.length > 0 && products.every((product) => product.sub === "Quạt");
+    if (isFanList) {
+      const controls = [...new Set(products.flatMap(controlOptions))];
+      g.push({ key: "spec:Điều khiển", title: "Điều khiển", options: controls.map((id) => ({ id, label: controlLabel(id) })), test: (p, id) => controlOptions(p).includes(id) });
     }
-    g.push({ key: "state", title: "Tình trạng", options: STATES, test: (p, id) => STATES.find((x) => x.id === id)!.test(p) });
+    g.push({ key: "price", title: "Khoảng giá", options: PRICES, test: (p, id) => PRICES.find((x) => x.id === id)!.test(p.price) });
+    g.push({ key: "brand", title: "Thương hiệu", options: uniq(products.map((p) => p.brand).filter(Boolean)), test: (p, id) => p.brand === id });
     return g;
-  }, [products, categories, fixedCat]);
+  }, [products]);
 
   const picked = useMemo<Picked>(() => {
     const next: Picked = {};
@@ -177,14 +157,57 @@ export function ProductBrowser({ products, categories, fixedCat, showSort = true
   useEffect(() => {
     const resetEphemeralState = () => {
       setPagination({ key: "", count: PAGE_SIZE });
-      setBrandExpansion(null);
     };
     window.addEventListener("popstate", resetEphemeralState);
     return () => window.removeEventListener("popstate", resetEphemeralState);
   }, []);
 
-  const filter = (skip?: string) =>
-    products.filter((p) => groups.every((g) => g.key === skip || !picked[g.key]?.length || picked[g.key].some((id) => g.test(p, id))));
+  const beforePrice = products.filter((p) => groups.every((g) => g.key === "price" || !picked[g.key]?.length || picked[g.key].some((id) => g.test(p, id))));
+  // Hai đầu thanh giá cố định theo cả danh sách, không co theo hãng/phân loại đang chọn (tránh số đếm vòng lặp).
+  const prices = products.map((p) => p.price);
+  const bounds = { min: prices.length ? Math.min(...prices) : 0, max: prices.length ? Math.max(...prices) : 0 };
+  const readPrice = (key: string, fallback: number) => {
+    const raw = searchParams.get(key);
+    const value = raw !== null && raw.trim() !== "" ? Number(raw) : NaN;
+    return Number.isSafeInteger(value) && value >= 0 ? clamp(value, bounds.min, bounds.max) : fallback;
+  };
+  // Older price-chip URLs still select the equivalent interval until the next price edit.
+  const legacyPrices = picked.price?.length ? beforePrice.filter((p) => picked.price.some((id) => PRICES.find((option) => option.id === id)?.test(p.price))).map((p) => p.price) : [];
+  const lower = readPrice("min", legacyPrices.length ? Math.min(...legacyPrices) : bounds.min);
+  const upper = readPrice("max", legacyPrices.length ? Math.max(...legacyPrices) : bounds.max);
+  const applied = lower <= upper ? { lo: lower, hi: upper } : { lo: bounds.min, hi: bounds.max };
+  const priceKey = `${navigationKey}:${bounds.min}:${bounds.max}`;
+  const displayedPrice = priceDraft?.key === priceKey ? priceDraft : applied;
+  const priceOn = applied.lo > bounds.min || applied.hi < bounds.max;
+  const changePrice = (lo: number, hi: number) => { setEngaged(true); setPriceDraft({ key: priceKey, lo, hi }); };
+  const commitPrice = (lo: number, hi: number) => {
+    const params = new URLSearchParams(serializedParams);
+    params.delete("price"); params.delete("min"); params.delete("max");
+    if (lo > bounds.min) params.set("min", String(lo));
+    if (hi < bounds.max) params.set("max", String(hi));
+    const query = params.toString();
+    router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
+  const filter = (skip?: string) => products.filter((p) =>
+    groups.every((g) => g.key === "price" || g.key === skip || !picked[g.key]?.length || picked[g.key].some((id) => g.test(p, id)))
+    && (skip === "price" || (p.price >= applied.lo && p.price <= applied.hi)));
+
+  useEffect(() => {
+    if (engaged || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // Mẫu L2: nút Lọc lắc nhẹ 3 lần, nghỉ 4 giây rồi lặp; dừng hẳn khi khách đã bấm Lọc hoặc kéo thanh giá.
+    let animation: Animation | undefined;
+    let timer = window.setTimeout(function nudge() {
+      animation = filterButtonRef.current?.animate([{ transform: "translateX(0)" }, { transform: "translateX(-3px)" }, { transform: "translateX(3px)" }, { transform: "translateX(0)" }], { duration: 500, iterations: 3, easing: "ease-in-out" });
+      if (animation) animation.onfinish = () => { timer = window.setTimeout(nudge, 4000); };
+    }, 500);
+    return () => { window.clearTimeout(timer); animation?.cancel(); };
+  }, [pathname, engaged]);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const animation = resultsRef.current?.animate([{ opacity: 0.5 }, { opacity: 1 }], { duration: 150, easing: "ease-out" });
+    return () => animation?.cancel();
+  }, [navigationKey]);
 
   const results = useMemo(() => {
     const list = filter();
@@ -196,7 +219,7 @@ export function ProductBrowser({ products, categories, fixedCat, showSort = true
     };
     return by[sort] ? [...list].sort(by[sort]) : list;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [products, picked, sort, groups]);
+  }, [products, picked, sort, groups, applied.lo, applied.hi]);
   const saleHomeProducts = products.filter((product) => product.old);
   const [saleShown, setSaleShown] = useState(pageSize);
   const allHomeProducts = products;
@@ -204,12 +227,24 @@ export function ProductBrowser({ products, categories, fixedCat, showSort = true
   const toggle = (key: string, id: string) => {
     const group = groups.find((item) => item.key === key);
     if (!group?.options.some((option) => option.id === id)) return;
+    if (key === "price") {
+      const matches = beforePrice.filter((p) => group.test(p, id)).map((p) => p.price);
+      if (!matches.length) return;
+      const lo = Math.min(...matches), hi = Math.max(...matches);
+      const selected = applied.lo === lo && applied.hi === hi;
+      setPriceError(null);
+      changePrice(selected ? bounds.min : lo, selected ? bounds.max : hi);
+      commitPrice(selected ? bounds.min : lo, selected ? bounds.max : hi);
+      return;
+    }
     const current = picked[key] ?? [];
     const values = current.includes(id) ? current.filter((value) => value !== id) : [...current, id];
     updateUrl(paramKey(key), values);
   };
 
   const clearFilters = () => {
+    setPriceDraft(null);
+    setPriceError(null);
     const params = new URLSearchParams(serializedParams);
     for (const key of URL_FILTERS) params.delete(key);
     for (const key of [...params.keys()]) if (key.startsWith("spec.")) params.delete(key);
@@ -217,21 +252,13 @@ export function ProductBrowser({ products, categories, fixedCat, showSort = true
     router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
   };
 
-  const active = groups.flatMap((g) => (picked[g.key] ?? []).map((id) => ({ g, id, label: g.options.find((o) => o.id === id)?.label ?? id })));
+  const active = groups.filter((g) => g.key !== "price").flatMap((g) => (picked[g.key] ?? []).map((id) => ({ g, id, label: g.options.find((o) => o.id === id)?.label ?? id })));
   const hiddenBrandSelected = (picked.brand ?? []).some((id) => {
     const options = groups.find((group) => group.key === "brand")?.options ?? [];
     return options.slice(6).some((option) => option.id === id);
   });
-  const moreBrands = (brandExpansion?.key === navigationKey && brandExpansion.expanded) || hiddenBrandSelected;
-  const quickBrands = fixedCat ? groups.find((group) => group.key === "brand")?.options ?? [] : [];
-
-  useEffect(() => {
-    if (!sheet) return;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [sheet]);
+  const moreBrands = brandExpansion?.key === pathname ? brandExpansion.expanded : hiddenBrandSelected;
+  const activeCount = active.length + (priceOn ? 1 : 0);
 
   if (showSale) {
     return (
@@ -259,32 +286,30 @@ export function ProductBrowser({ products, categories, fixedCat, showSort = true
     <div className="space-y-1">
       {groups.map((g) => {
         const base = filter(g.key);
-        const opts = g.key === "brand" && !moreBrands ? g.options.slice(0, 6) : g.options;
         if (g.options.length === 0 && g.key !== "spec:Điều khiển") return null;
-        return (
-          <fieldset key={g.key} className="border-t border-line py-3 first:border-0 first:pt-0">
-            <legend className="mb-1 text-sm font-semibold">{g.title}</legend>
-            {g.key === "spec:Điều khiển" && products.some((product) => controlOptions(product).length === 0) && (
-              <p className="mb-2 text-xs leading-relaxed text-ink-2">Một số sản phẩm chưa có thông tin điều khiển.</p>
-            )}
-            {opts.map((o) => {
-              const n = base.filter((p) => g.test(p, o.id)).length;
-              const on = picked[g.key]?.includes(o.id) ?? false;
-              return (
-                <label key={o.id} className={`flex min-h-10 cursor-pointer items-center gap-2.5 text-sm ${n === 0 && !on ? "opacity-40" : ""}`}>
-                  <input type="checkbox" checked={on} disabled={n === 0 && !on} onChange={() => toggle(g.key, o.id)} className="size-[18px] accent-brand disabled:cursor-not-allowed disabled:opacity-50" />
-                  <span className="flex-1">{o.label}</span>
-                  <span className="num text-xs text-ink-2">{n}</span>
-                </label>
-              );
-            })}
-            {g.key === "brand" && g.options.length > 6 && !hiddenBrandSelected && (
-              <button type="button" onClick={() => setBrandExpansion({ key: navigationKey, expanded: !moreBrands })} className="min-h-10 text-sm font-medium text-brand">
-                {moreBrands ? "Thu gọn" : "Xem thêm"}
-              </button>
-            )}
-          </fieldset>
-        );
+        const option = (o: Group["options"][number]) => {
+          const matching = base.filter((p) => g.test(p, o.id));
+          const n = matching.length;
+          const on = g.key === "price" ? priceOn && n > 0 && applied.lo === Math.min(...matching.map((p) => p.price)) && applied.hi === Math.max(...matching.map((p) => p.price)) : picked[g.key]?.includes(o.id) ?? false;
+          // Mẫu C1: chỉ ô tick đổi trạng thái (không tô nền, không co cả dòng); ô tick nhún nhẹ khi nhấn.
+          return <label key={o.id} className={`group flex min-h-11 cursor-pointer items-center gap-3 text-sm ${n === 0 && !on ? "cursor-not-allowed opacity-40" : ""}`}>
+            <input type="checkbox" checked={on} disabled={n === 0 && !on} onChange={() => toggle(g.key, o.id)} className="peer sr-only" />
+            <span aria-hidden="true" className={`grid size-[18px] shrink-0 place-items-center rounded-[5px] border-[1.5px] transition-[background-color,border-color,transform] duration-150 group-active:scale-90 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-brand motion-reduce:transition-none motion-reduce:transform-none ${on ? "border-brand bg-brand text-white" : "border-ink-2 bg-surface"}`}>
+              {on && <Check className="anim-tick size-3" strokeWidth={3} />}
+            </span>
+            <span className={`flex-1 transition-colors duration-150 ${on ? "font-semibold text-ink" : ""}`}>{o.label}</span><span className="num text-xs text-ink-2">{n}</span>
+          </label>;
+        };
+        return <fieldset key={g.key} className="border-t border-line py-3 first:border-0 first:pt-0">
+          <legend className="mb-1 text-sm font-semibold">{g.title}</legend>
+          {g.key === "spec:Điều khiển" && products.some((p) => controlOptions(p).length === 0) && <p className="mb-2 text-xs leading-relaxed text-ink-2">Một số sản phẩm chưa có thông tin điều khiển.</p>}
+          {g.key === "price" && <PriceRange min={bounds.min} max={bounds.max} step={PRICE_STEP} lo={displayedPrice.lo} hi={displayedPrice.hi} error={priceError} onChange={changePrice} onCommit={commitPrice} onError={setPriceError} loRef={loRef} hiRef={hiRef} />}
+          {(g.key === "brand" ? g.options.slice(0, 6) : g.options).map(option)}
+          {g.key === "brand" && g.options.length > 6 && <>
+            <div inert={!moreBrands} className={`grid transition-[grid-template-rows] duration-200 motion-reduce:transition-none ${moreBrands ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}><div className="min-h-0 overflow-hidden">{g.options.slice(6).map(option)}</div></div>
+            <button type="button" aria-expanded={moreBrands} onClick={() => setBrandExpansion({ key: pathname, expanded: !moreBrands })} className="min-h-11 text-sm font-medium text-brand">{moreBrands ? "Thu gọn" : "Xem thêm"}</button>
+          </>}
+        </fieldset>;
       })}
     </div>
   );
@@ -297,17 +322,15 @@ export function ProductBrowser({ products, categories, fixedCat, showSort = true
       </aside>
 
       <div className="min-w-0">
-        {fixedCat && (
-          <div className="mb-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] md:hidden" aria-label="Lọc nhanh theo thương hiệu">
-            <button type="button" onClick={() => setSheet(true)} aria-expanded={sheet} className="flex h-11 shrink-0 items-center gap-2 rounded-full border border-line bg-surface px-4 text-sm font-semibold">
-              <SlidersHorizontal className="size-4" aria-hidden />Lọc{active.length > 0 && <span className="num">({active.length})</span>}
+        <div className="mb-3">
+          <div className="flex min-w-0 items-center justify-between gap-2">
+            <button ref={filterButtonRef} type="button" onClick={() => { setEngaged(true); setSheet(true); }} aria-expanded={sheet} aria-haspopup="dialog" className="relative flex h-11 shrink-0 md:hidden items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-sm font-semibold transition-colors duration-150 hover:bg-brand-tint">
+              <SlidersHorizontal className="size-4" aria-hidden />Lọc{activeCount > 0 && <span className="num">({activeCount})</span>}
             </button>
-            {quickBrands.map(({ id, label }) => {
-              const on = picked.brand?.includes(id) ?? false;
-              return <button key={id} type="button" aria-pressed={on} onClick={() => toggle("brand", id)} className={`h-11 shrink-0 rounded-full px-4 text-sm font-medium transition-colors duration-150 ${on ? "bg-brand text-white" : "bg-sunk text-ink hover:bg-brand-tint"}`}>{label}</button>;
-            })}
+            <p className="min-w-0 text-right text-[12px] leading-5 text-ink-2">Khoảng giá: <b className="num font-semibold text-ink">{fmtNumber(displayedPrice.lo)}₫ – {fmtNumber(displayedPrice.hi)}₫</b></p>
           </div>
-        )}
+          <PriceRange compact min={bounds.min} max={bounds.max} step={PRICE_STEP} lo={displayedPrice.lo} hi={displayedPrice.hi} error={null} onChange={changePrice} onCommit={commitPrice} onError={setPriceError} loRef={loRef} hiRef={hiRef} />
+        </div>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm text-ink-2">Tìm thấy <b className="num text-ink">{results.length}</b> sản phẩm</p>
           <div className="flex items-center gap-2">
@@ -322,21 +345,10 @@ export function ProductBrowser({ products, categories, fixedCat, showSort = true
           </div>
         </div>
 
-        {active.length > 0 && (
-          <div className="mb-4 flex flex-wrap gap-2">
-            {active.map(({ g, id, label }) => (
-              <button key={g.key + id} type="button" onClick={() => toggle(g.key, id)} className="flex min-h-9 items-center gap-1 rounded-full bg-brand-tint px-3 text-[13px] font-medium text-brand">
-                {label}<X className="size-3.5" aria-label="Bỏ lọc" />
-              </button>
-            ))}
-            <button type="button" onClick={clearFilters} className="min-h-9 px-2 text-[13px] text-ink-2 underline">Xóa tất cả</button>
-          </div>
-        )}
-
         {results.length > 0 ? (
           <>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {results.slice(0, shown).map((p) => <ProductCard key={p.sku} p={p} />)}
+            <div ref={resultsRef} className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {results.slice(0, shown).map((p, index) => <div key={p.sku} className="anim-rise grid min-w-0" style={{ "--i": index % pageSize } as CSSProperties}><ProductCard p={p} /></div>)}
             </div>
             {results.length > shown && <MoreButton shown={shown} total={results.length} next={Math.min(pageSize, results.length - shown)} onClick={() => setPagination({ key: navigationKey, count: shown + pageSize })} />}
           </>
@@ -354,22 +366,42 @@ export function ProductBrowser({ products, categories, fixedCat, showSort = true
         )}
       </div>
 
-      {sheet && (
-        <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Bộ lọc">
-          <button type="button" aria-label="Đóng" onClick={() => setSheet(false)} className="absolute inset-0 bg-ink/40" />
-          <div className="absolute inset-x-0 bottom-0 flex max-h-[85vh] flex-col rounded-t-xl bg-surface shadow-xl">
-            <div className="flex items-center justify-between border-b border-line px-4 py-2">
-              <b>Bộ lọc</b>
-              <button type="button" onClick={() => setSheet(false)} aria-label="Đóng bộ lọc" className="grid size-11 place-items-center"><X className="size-5" /></button>
-            </div>
-            <div className="overflow-y-auto px-4 py-3">{panel}</div>
-            <div className="flex gap-2 border-t border-line p-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
-              <button type="button" onClick={clearFilters} className="h-12 rounded-full border border-line px-5 font-medium">Bỏ chọn</button>
-              <button type="button" onClick={() => setSheet(false)} className="h-12 flex-1 rounded-full bg-brand font-bold text-white">Xem {results.length} kết quả</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {sheet && <BrowserFilterDialog count={results.length} invalid={!!priceError} onClear={clearFilters} onClose={() => setSheet(false)}>{panel}</BrowserFilterDialog>}
     </div>
   );
+}
+
+function BrowserFilterDialog({ children, count, invalid, onClear, onClose }: { children: ReactNode; count: number; invalid: boolean; onClear: () => void; onClose: () => void }) {
+  const [entered, setEntered] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const timer = useRef<number | null>(null);
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+    const frame = requestAnimationFrame(() => setEntered(true));
+    return () => { cancelAnimationFrame(frame); if (timer.current !== null) clearTimeout(timer.current); document.body.style.overflow = previous; opener?.focus(); };
+  }, []);
+  const finish = () => {
+    if (closing) return;
+    setClosing(true);
+    timer.current = window.setTimeout(onClose, window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 160);
+  };
+  return <div role="dialog" aria-modal="true" aria-label="Bộ lọc" className="fixed inset-0 z-[80]" onKeyDown={(event) => {
+    if (event.key === "Escape") { event.preventDefault(); finish(); }
+    if (event.key !== "Tab") return;
+    const nodes = [...event.currentTarget.querySelectorAll<HTMLElement>("button:not([disabled]), input:not([disabled])")].filter((el) => el.tabIndex !== -1 && !el.closest("[inert]"));
+    const first = nodes[0], last = nodes[nodes.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+  }}>
+    <button type="button" tabIndex={-1} aria-label="Đóng bộ lọc" onClick={finish} className={`absolute inset-0 bg-ink/40 transition-opacity duration-[220ms] motion-reduce:transition-none ${entered && !closing ? "opacity-100" : "opacity-0"}`} />
+    <div style={{ transitionDuration: closing ? "160ms" : "220ms" }} className={`absolute inset-x-0 bottom-0 mx-auto flex max-h-[85dvh] max-w-lg flex-col rounded-t-2xl bg-surface transition-[transform,opacity] ease-out motion-reduce:transform-none motion-reduce:transition-none ${entered && !closing ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
+      <div className="flex shrink-0 items-center justify-between border-b border-line px-4 py-2"><b>Bộ lọc</b><button ref={closeRef} type="button" onClick={finish} aria-label="Đóng bộ lọc" className="grid size-11 place-items-center rounded-full bg-sunk"><X className="size-5" aria-hidden /></button></div>
+      <div className="min-h-0 overflow-y-auto overscroll-contain px-4 py-3">{children}</div>
+      <div className="flex shrink-0 gap-2 border-t border-line p-3 pb-[calc(12px+env(safe-area-inset-bottom))]"><button type="button" onClick={onClear} className="h-12 rounded-full border border-line px-5 font-medium">Bỏ chọn</button><button type="button" disabled={invalid} onClick={finish} className="h-12 flex-1 rounded-full bg-brand font-bold text-white disabled:opacity-50">Xem {count} kết quả</button></div>
+    </div>
+  </div>;
 }

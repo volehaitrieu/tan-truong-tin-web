@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { Check, Download, FolderDown, Pencil, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { ProductExportButton } from "@/components/admin/ProductExportButton";
 import { Badge, OwnerOnly } from "@/components/admin/ui";
 import { ProductCell, ProductThumb, stockClass } from "@/components/admin/ProductCell";
 import { ProductDescription, ProductFacts, ProductPrice, ProductSpecs } from "@/components/admin/ProductInfo";
@@ -98,6 +99,7 @@ export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[];
         {picked.size > 0 && (
           <div className="ml-auto flex items-center gap-2">
             <span className="hidden text-sm text-ink-2 sm:inline">Đã chọn <b className="text-ink">{picked.size}</b></span>
+            <ProductExportButton total={picked.size} ids={pickedIds} />
             <button onClick={clear} className="h-9 rounded px-3 text-sm text-ink-2 hover:bg-white">Bỏ chọn</button>
             <button onClick={() => requestDownload(pickedIds)} className="inline-flex h-9 items-center gap-1.5 rounded bg-brand px-3 text-sm font-semibold text-white hover:bg-brand-deep">
               <Download className="size-4" aria-hidden />Tải {picked.size} SP
@@ -158,8 +160,9 @@ export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[];
       {/* Thanh dính đáy (điện thoại), ngay trên thanh điều hướng; chỉ hiện khi đang chọn */}
       {picked.size > 0 && (
         <div {...{ [SELECTION_KEEP_ATTR]: "" }} role="region" aria-label="Sản phẩm đã chọn"
-          className="fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-30 flex items-center gap-1.5 border-t border-line bg-white px-3 py-2 md:hidden">
+          className="fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-30 flex flex-wrap items-center gap-1.5 border-t border-line bg-white px-3 py-2 md:hidden">
           <span className="mr-auto whitespace-nowrap text-sm"><span className="max-[399px]:sr-only">Đã chọn </span><b className="num">{picked.size}</b><span className="min-[400px]:hidden"> SP</span></span>
+          <ProductExportButton total={picked.size} ids={pickedIds} />
           <button type="button" onClick={clear} className={barBtn + " border border-line"}>Hủy</button>
           {canEdit && picked.size === 1 && (
             <Link href={`/admin/san-pham/${pickedIds[0]}`} className={barBtn + " border border-line text-brand"}><Pencil className="size-4" aria-hidden />Sửa</Link>
