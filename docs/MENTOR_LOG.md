@@ -454,3 +454,24 @@
 - 06/11 (tối): Phân tích Danh mục + trang danh sách dienmayxanh.com khổ điện thoại (REA lỗi tham số → dùng trình duyệt app). Chủ shop chọn Danh mục mẫu A (chỉ danh mục con, không phân loại) và danh sách mẫu D. Khung `viec/danh-muc-kieu-dmx/2_KHUNG.md`; đã gửi Codex bước 3.
 
 - 07/11: Danh mục kiểu DMX bản 2 (tấm phủ toàn màn hình, tab = Danh mục, ô = Danh mục con, hiệu ứng nhẹ, ảnh ô Quạt riêng) + trang danh sách mẫu D. Chủ shop duyệt; commit cùng Giỏ hàng/Thanh toán, FloatActions và tài liệu phân công.
+## 06/11/2026 — Hoàn tất nhập Excel đọc cột Tồn (Codex)
+
+- Nhánh: feature/nhap-excel-ton-kho, worktree nhap-excel-ton.
+- Thêm nhãn đối chiếu tồn cũ/mới; sửa mẫu Excel, độ rộng, hướng dẫn, file dòng lỗi, xem trước và thông báo stockSet/stockFailed/stockIgnored.
+- Xuất Excel dùng cột Tồn của mẫu chuẩn, bỏ cột Tồn kho dư.
+- Sửa lỗi bộ đọc làm tròn số tồn lẻ trước kiểm tra; số tồn không nguyên phải báo lỗi.
+- Chỉ tạo 20261106000100_import_changes_qty.sql; chưa chạy migration.
+- Kiểm chứng: next typegen rồi npx tsc --noEmit đạt; npx eslint đạt (0 lỗi, 4 cảnh báo sẵn có ở ProductImageManager.tsx); node --test scripts/check-import-stock.mjs đạt 3/3 nhóm ca. Dùng toàn bộ dòng giả: tồn 5/0/100000/trống, thiếu cột, số lẻ/âm/quá giới hạn/chữ, DMHH và mẫu quạt cũ; kiểm Tồn tối thiểu/Thông số không lệch.
+- Không chạy build vì worktree không có .env.local. Không đọc/chép secrets hoặc Excel thật. Không gọi Supabase, không ghi dữ liệu, không deploy/push/main.
+- Rà ponytail-review: đã đọc luồng importProducts/applyChanges/setStock và đối chiếu constraint cũ; tồn vẫn qua adjust_stock và kiểm quyền. Chưa thử giao diện/ghi kho thực tế. Giới hạn bàn giao còn giữ: bán hàng đồng thời giữa đọc tồn và adjust_stock có thể làm số tồn lệch.
+- Chủ shop quyết định chạy migration trước rồi deploy; sau đó thử file nhỏ và kiểm bảng chờ, tồn thực tế, lịch sử kho.
+
+## 06/11/2026 — Triển khai nhập Tồn và tiếp nhận lịch sử Claude
+
+- Chủ shop yêu cầu làm ngay các bước cần thiết và tiếp tục thay Claude; đã đọc link phiên Claude, gồm các quyết định tại tin nhắn 38–41 và bàn giao cuối. Tài khoản hiện truy cập được, không cần đăng nhập lại.
+- Đã áp migration import_changes_qty vào project ztbwxfzklznpqbofbwlk; version thực 20261106084208. Đã kiểm constraint có qty; đổi tên tệp cho khớp lịch sử. Không đổi số tồn hay sản phẩm.
+- Đã xác minh Vercel trieuvolehai-2530/tan-truong-tin-web, project prj_Bzeg9df0YB7lrObhVMMzFbex2OnL. CLI link tự tạo .env.local chứa OIDC; không đọc/in/copy nội dung, tệp bị loại khỏi upload.
+- Build production với --skip-domain đạt: dpl_9jnuLWbGfHWT8bLoCGGXu8tJhA5c, https://tan-truong-tin-f9arywdgq-trieuvolehai-2530.vercel.app. npm run build hoàn tất, TypeScript đạt, tạo 153 trang. Kiểm HTTP trang chủ 200; /admin/nhap-excel trả 307 tới đăng nhập đúng kỳ vọng.
+- Promote sang tên miền chính bị auto-review từ chối vì cần xác nhận rõ thao tác đổi website đang chạy. Đã hỏi chủ shop; CHƯA promote. Không thử ghi kho thật.
+- Việc tiếp theo đã được chốt trong lịch sử: mẫu menu Danh mục điện thoại + trang từng danh mục cho shop duyệt trước mã; gán Phân loại và đổi Gia dụng → Đồ gia dụng cùng đợt; sau đó giỏ hàng/thanh toán, tra cứu, báo giá, cảm ơn, chính sách/giới thiệu, tài khoản. Không bịa chính sách/giá/thuộc tính. Worktree website-v2 đang có lib/ui-effects.ts và public/shop/ chưa theo dõi: giữ nguyên.
+- Cập nhật cuối: chủ shop xác nhận rõ “Đồng ý chuyển tantruongtin.com sang bản mới ngay”. Promote thành công; vercel inspect tantruongtin.com xác nhận đúng dpl_9jnuLWbGfHWT8bLoCGGXu8tJhA5c READY. Trang chủ HTTP 200, nhập Excel HTTP 307 tới /admin/dang-nhap. Không cần deploy lại; mã sau bản build chỉ đổi chú thích version migration và tài liệu.

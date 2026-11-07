@@ -8,7 +8,7 @@ import type { Cell } from "@/lib/excel/write-xlsx";
 // Xuất Excel danh sách SP theo đúng bộ lọc đang xem (không lọc = tất cả SP).
 // Cột đầu giữ đúng mẫu Nhập Excel để sửa xong nhập lại được; cột thêm ở cuối (Nhập Excel bỏ qua).
 // Cột giá nhập chỉ có khi withCost (nơi gọi quyết định: chỉ chủ shop); RLS product_costs vẫn chặn người thiếu quyền view_cost.
-const EXTRA_COLUMNS = ["Giá khuyến mãi", "Tồn kho", "Trạng thái", "Link ảnh"] as const;
+const EXTRA_COLUMNS = ["Giá khuyến mãi", "Trạng thái", "Link ảnh"] as const;
 const COST_COLUMNS = new Set<string>(["Giá nhập", "Giá nhập + 10%"]);
 const BATCH = 1000; // Supabase trả tối đa 1000 dòng mỗi lần
 
@@ -53,7 +53,7 @@ export async function productExportSheet(f: ProductFilter, withCost: boolean): P
       "Thương hiệu": r.brand?.name ?? null, "Vị trí": r.inventory?.location ?? null, "Tồn tối thiểu": r.inventory?.min_qty ?? null,
       "Thông số": r.spec_line, "Mô tả": r.description ? htmlToText(r.description) : null,
       "Bảo hành": r.warranty, "Xuất xứ": r.origin, "Sản xuất tại": r.made_in,
-      "Giá khuyến mãi": r.sale_price, "Tồn kho": r.inventory?.qty ?? 0, "Trạng thái": r.is_visible ? "Hiện" : "Ẩn",
+      "Giá khuyến mãi": r.sale_price, "Tồn": r.inventory?.qty ?? 0, "Trạng thái": r.is_visible ? "Hiện" : "Ẩn",
       // Chỉ ảnh thật đã tải lên (bỏ ảnh minh họa), mỗi link một dòng trong ô
       "Link ảnh": r.images.filter((i) => !i.is_illustration).sort((a, b) => a.sort - b.sort).map((i) => i.url).join("\n") || null,
     };
