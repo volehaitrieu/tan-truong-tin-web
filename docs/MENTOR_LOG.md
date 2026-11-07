@@ -501,3 +501,8 @@
 ## 07/11/2026 tối — Nhiều Phân loại: mã + file quạt cuối (Claude Code)
 - Chủ shop chọn N2/P1/F1. Viết migration (chưa chạy), nhập/đối chiếu/xác nhận/xuất nhiều Phân loại, bộ lọc HOẶC, form chỉ xem. tsc + ESLint + 6/6 kiểm thử đạt; trang Quạt vẫn chạy khi chưa có bảng mới. Chi tiết: `docs/website-v2/viec/phan-loai-nhieu/3_DA_LAM.md`.
 - File `Downloads/Kho-App-Quat-cuoi-2026-11-07.xlsx`: 8 Phân loại chuẩn SEO (bỏ "lỡ nhựa/lỡ công nghiệp"), 100/100 có dòng Điều khiển (18 "Đang cập nhật"). Chưa commit, chưa ghi Supabase.
+
+## 07/11/2026 tối — Triển khai nhiều Phân loại (Claude Code, chủ shop đồng ý)
+- Commit 33acc95 trên nhánh `worktree-website-v2` (không `main`), đã đẩy lên GitHub. Chưa đưa lên tên miền chính: Vercel không tự triển khai nhánh này; chờ chủ shop xác nhận riêng việc cập nhật website đang chạy.
+- Đã chạy migration `product_classifications` + `product_classifications_tighten_grants` trên Supabase ztbwxfzklznpqbofbwlk. Kiểm: bảng + RLS + 2 trigger có; 114 SP, 0 SP gắn cấp 3 nên không chuyển dữ liệu; 100 dòng chờ `category` kiểu cũ đã xóa (file quạt cuối thay thế); khách chỉ đọc. Hoàn tác: xem chú thích cuối tệp migration.
+- Việc tiếp: chủ shop nhập `Downloads/Kho-App-Quat-cuoi-2026-11-07.xlsx` ở trang Nhập Excel (chạy localhost:3000 hoặc bản đã triển khai), xem bảng Cũ/Mới rồi tick xác nhận.

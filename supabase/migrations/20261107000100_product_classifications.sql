@@ -1,6 +1,6 @@
 -- Một sản phẩm thuộc nhiều Phân loại (chủ shop duyệt 07/11/2026, docs/website-v2/viec/phan-loai-nhieu/).
 -- Phân loại = danh mục cấp 3 (con của Danh mục con). products.category_id trỏ Danh mục con (cấp 2);
--- các Phân loại nằm trong bảng liên kết. CHƯA CHẠY: cần chủ shop cho phép riêng trước khi áp lên dữ liệu thật.
+-- các Phân loại nằm trong bảng liên kết. Đã chạy trên Supabase thật 07/11/2026 (phiên bản thực ghi trong lịch sử migration) với chủ shop đồng ý.
 
 create table if not exists public.product_classifications (
   product_id bigint not null references public.products (id) on delete cascade,
@@ -15,6 +15,8 @@ create policy product_classifications_select on public.product_classifications f
   using (exists (select 1 from public.products p where p.id = product_id and (p.is_visible or private.is_staff())));
 create policy product_classifications_write on public.product_classifications for all to authenticated
   using (private.has_perm('edit_products')) with check (private.has_perm('edit_products'));
+-- Chỉ cấp đúng quyền cần (Supabase mặc định cấp rộng): khách chỉ đọc; nhân viên đọc/thêm/xóa, RLS vẫn kiểm edit_products.
+revoke all on public.product_classifications from anon, authenticated;
 grant select on public.product_classifications to anon, authenticated;
 grant insert, delete on public.product_classifications to authenticated;
 
