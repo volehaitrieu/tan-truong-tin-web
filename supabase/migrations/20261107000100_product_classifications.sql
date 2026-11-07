@@ -2,10 +2,13 @@
 -- Phân loại = danh mục cấp 3 (con của Danh mục con). products.category_id trỏ Danh mục con (cấp 2);
 -- các Phân loại nằm trong bảng liên kết. Đã chạy trên Supabase thật 07/11/2026 (phiên bản thực ghi trong lịch sử migration) với chủ shop đồng ý.
 
+-- Khóa chính riêng (không ghép) để PostgREST KHÔNG coi bảng là cầu nối nhiều–nhiều products↔categories:
+-- nếu coi, mọi truy vấn nhúng categories(...) từ products báo lỗi "more than one relationship" (đã xảy ra 07/11).
 create table if not exists public.product_classifications (
+  id bigint generated always as identity primary key,
   product_id bigint not null references public.products (id) on delete cascade,
   classification_id bigint not null references public.categories (id) on delete restrict,
-  primary key (product_id, classification_id)
+  constraint product_classifications_unique unique (product_id, classification_id)
 );
 create index if not exists product_classifications_by_class on public.product_classifications (classification_id, product_id);
 
