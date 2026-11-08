@@ -577,3 +577,7 @@
 - Sửa tiếp: ảnh trong bảng so sánh bị vỡ nét ở desktop (chủ shop báo): `sizes="140px"` làm Next tải bản ảnh nhỏ rồi phóng to ~450px. Đổi `sizes` thành `(max-width: 768px) 160px, 420px` trong `CompareView.tsx`; đã kiểm HTML trả về có `sizes` mới; ảnh gốc `/ai/hardware-hero.jpg` rộng 2172×724 nên đủ nét (cắt vuông ~724px). Chưa xem lại bằng mắt trên Chrome của chủ shop.
 - Chủ shop yêu cầu bỏ hàng "Mua" (nút Thêm vào giỏ) khỏi bảng so sánh: đã bỏ trong `CompareView.tsx` (cùng import không dùng). Muốn mua, khách bấm tên sản phẩm để vào trang chi tiết. tsc + ESLint đạt.
 - Chủ shop yêu cầu bỏ hàng "Hẹn giờ" khỏi bảng so sánh: thêm "hẹn giờ" vào danh sách nhãn không đưa vào bảng (`lib/compare.ts`), kiểm thử bổ sung trong `scripts/check-compare.mjs`. Trang chi tiết sản phẩm vẫn hiển thị Hẹn giờ như cũ.
+
+## 08/11/2026 (đêm) — Chốt đợt 1–2 và bàn giao cho Codex (Claude Code)
+- Chủ shop duyệt đợt 2. Kiểm cuối: tsc + ESLint đạt, 26 kiểm thử đạt, quét bí mật sạch. Commit 1e4b213 trên nhánh `worktree-website-v2` (chưa đẩy GitHub, chưa deploy, không đụng DB). Bàn giao đầy đủ ở `docs/website-v2/BAN_GIAO_2026-11-08.md` (trạng thái nhanh + "Việc tiếp theo cho Codex — Đợt 3") và `docs/BAN_GIAO_TIEP_TUC.md`.
+- Đã gửi lời bàn giao cho Codex (luồng "Thiết kế website bán hàng mobile", dự án tan-truong-tin-web). Codex đã nhận và trả đề xuất thiết kế Đợt 3 (rủi ro: múi giờ ngày khuyến mãi, vượt lượt mã khi đặt cùng lúc, bấm đặt hai lần, giá đổi lúc đặt, giảm chồng; 4 quy tắc kinh doanh chờ chủ shop chốt). Chưa viết mã Đợt 3; chờ chủ shop trả lời Codex.
