@@ -538,3 +538,6 @@
 
 ## 08/11/2026 — Rà soát tổng thể (Claude Code, chỉ đọc)
 - Báo cáo: `docs/website-v2/RA_SOAT_2026-11-08.md`. Phát hiện chính: 2 tài khoản nhân viên thử còn hoạt động; tồn kho 113/114 = 5 và place_order không chặn quá tồn; chính sách đổi trả chưa chốt; ảnh sản phẩm; chưa VietQR; SEO (robots, sitemap, meta/JSON-LD theo sản phẩm); Vercel gói Hobby. Chưa sửa gì.
+
+## 08/11/2026 — Rà soát giao diện bán hàng trên điện thoại (Claude Code, chỉ đọc)
+- Báo cáo: `docs/website-v2/RA_SOAT_GIAO_DIEN_MOBILE_2026-11-08.md`. 12 trang không tràn ngang, có h1. Cần sửa: ảnh sản phẩm sai (B439 ảnh chữ, FF2399 ảnh game, còn lại ảnh chậu cây), lời hứa "VietQR sắp có"/"Chờ chủ shop"/Tài khoản chuẩn bị, khối giảm giá rỗng; chưa có so sánh; trang chủ nặng 406KB; không có màn chờ/chuyển trang ở khu bán hàng; chữ <12px và nút <40px. Đã xóa giỏ hàng thử trong trình duyệt ứng dụng.
