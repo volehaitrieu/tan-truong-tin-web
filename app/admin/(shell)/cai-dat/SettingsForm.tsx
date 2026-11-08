@@ -1,12 +1,13 @@
 "use client";
-import { useActionState, startTransition } from "react";
-import { saveSettings, type SettingsState } from "./actions";
+import { useActionState, useState, startTransition } from "react";
+import { saveSettings, sendTestTelegram, type SettingsState } from "./actions";
 import type { ShopSettings } from "@/lib/settings";
 
 const input = "mt-1 h-11 w-full rounded border border-line bg-white px-3 text-sm";
 const section = "rounded-lg border border-line bg-white p-4 sm:p-5";
 
-export function SettingsForm({ s }: { s: ShopSettings }) {
+export function SettingsForm({ s, telegramReady }: { s: ShopSettings; telegramReady: boolean }) {
+  const [test, setTest] = useState<{ busy?: boolean; ok?: boolean; error?: string }>({});
   const [state, action, pending] = useActionState<SettingsState, FormData>(saveSettings, {});
   return (
     <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget); startTransition(() => action(fd)); }} className="space-y-4">
@@ -43,7 +44,18 @@ export function SettingsForm({ s }: { s: ShopSettings }) {
 
       <section className={section}>
         <h2 className="mb-1 font-semibold">Thông báo đơn mới qua Telegram</h2>
-        <p className="text-sm"><span className="rounded-full bg-gold-tint px-2 py-0.5 text-xs font-medium text-gold-ink">Sắp có</span> — cần chủ shop tạo bot Telegram.</p>
+        {telegramReady ? (
+          <>
+            <p className="text-sm">Bot báo đơn: <b className="text-ok">Đã cài</b>. Có đơn mới hoặc yêu cầu báo giá, bot gửi tin vào nhóm Telegram của shop.</p>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <button type="button" disabled={test.busy} onClick={async () => { setTest({ busy: true }); setTest({ ...(await sendTestTelegram()) }); }} className="h-11 rounded border border-line px-4 text-sm font-semibold hover:bg-brand-tint disabled:opacity-60">{test.busy ? "Đang gửi…" : "Gửi tin thử"}</button>
+              {test.ok && <span role="status" className="text-sm text-ok">Đã gửi. Kiểm tra nhóm Telegram.</span>}
+              {test.error && <span role="alert" className="text-sm text-danger">{test.error}</span>}
+            </div>
+          </>
+        ) : (
+          <p className="text-sm"><span className="rounded-full bg-gold-tint px-2 py-0.5 text-xs font-medium text-gold-ink">Chưa cài</span> — cần tạo bot Telegram rồi dán mã vào cấu hình máy chủ (xem docs/website-v2/viec/bao-don-telegram/HUONG_DAN_TAO_BOT.md).</p>
+        )}
       </section>
 
       <section className={section}>

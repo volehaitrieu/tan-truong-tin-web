@@ -1,5 +1,7 @@
 "use server";
+import { after } from "next/server";
 import { getProducts } from "@/lib/catalog";
+import { notifyOrder, notifyQuote } from "@/lib/notify/telegram";
 import { createPublicClient } from "@/lib/supabase/public";
 import type { Product } from "@/lib/mock/store";
 
@@ -26,6 +28,17 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
   if (!input || tooBig(input)) return { ok: false, error: "Dữ liệu đơn hàng không hợp lệ." };
   const { data, error } = await createPublicClient().rpc("place_order", { payload: input });
   if (error) return { ok: false, error: friendly(error.message) };
+  // Báo cho chủ shop qua Telegram SAU khi đã trả lời khách; lỗi báo tin không ảnh hưởng đơn (đơn đã lưu trong DB).
+  after(async () => {
+    try {
+      const catalog = new Map((await getProducts()).map((p) => [p.sku.toUpperCase(), p.name]));
+      await notifyOrder({
+        code: String(data.code), name: input.name, phone: input.phone, delivery: input.delivery, province: input.province, ward: input.ward,
+        street: input.street, note: input.note, subtotal: Number(data.subtotal) || 0, shippingFee: data.shipping_fee == null ? null : Number(data.shipping_fee),
+        items: (Array.isArray(input.items) ? input.items : []).map((it) => ({ name: catalog.get(String(it.sku).toUpperCase()) ?? String(it.sku), qty: it.qty })),
+      });
+    } catch { /* không để lỗi báo tin ảnh hưởng gì */ }
+  });
   return { ok: true, code: data.code, subtotal: data.subtotal, shippingFee: data.shipping_fee };
 }
 
@@ -43,7 +56,9 @@ export async function lookupOrder(code: string, phone: string): Promise<LookupRe
 export async function submitQuote(items: string, phone: string): Promise<{ ok: boolean; error?: string }> {
   if (typeof items !== "string" || typeof phone !== "string" || items.length > 2000) return { ok: false, error: "Nội dung quá dài." };
   const { error } = await createPublicClient().rpc("submit_quote", { p_items: items, p_phone: phone });
-  return error ? { ok: false, error: friendly(error.message) } : { ok: true };
+  if (error) return { ok: false, error: friendly(error.message) };
+  after(async () => { try { await notifyQuote(items, phone); } catch { /* không ảnh hưởng yêu cầu */ } });
+  return { ok: true };
 }
 
 // Chỉ đưa ra trình duyệt câu báo lỗi tiếng Việt do hàm DB tự viết; lỗi kỹ thuật thì báo chung chung

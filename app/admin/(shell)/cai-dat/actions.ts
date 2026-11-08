@@ -38,3 +38,11 @@ export async function saveSettings(_: SettingsState, form: FormData): Promise<Se
   revalidatePath("/", "layout");
   return { ok: true };
 }
+
+// Nút "Gửi tin thử" trong Cài đặt: chỉ người có quyền settings; không nhận dữ liệu từ trình duyệt (nội dung cố định).
+export async function sendTestTelegram(): Promise<{ ok: boolean; error?: string }> {
+  await requireStaff("settings");
+  const { sendTelegram, telegramConfigured } = await import("@/lib/notify/telegram");
+  if (!telegramConfigured()) return { ok: false, error: "Chưa cài mã bot trên máy chủ. Xem hướng dẫn tạo bot." };
+  return sendTelegram("Tin thử từ trang quản trị Tân Trường Tín: bot báo đơn hoạt động.");
+}
