@@ -102,7 +102,8 @@ function useToast() {
   return [text, setText] as const;
 }
 
-export function AddToCartButton({ sku, name, available = true }: { sku: string; name: string; available?: boolean }) {
+// inline: nằm cạnh nút khác trong một hàng (thẻ sản phẩm) thay vì chiếm cả chiều ngang.
+export function AddToCartButton({ sku, name, available = true, inline = false }: { sku: string; name: string; available?: boolean; inline?: boolean }) {
   const [toast, setToast] = useToast();
   return (
     <>
@@ -112,7 +113,7 @@ export function AddToCartButton({ sku, name, available = true }: { sku: string; 
           addToCart(sku);
           setToast(name);
         }}
-        className={`mt-3 flex h-11 w-full items-center justify-center rounded-full text-sm font-semibold transition duration-150 active:scale-[0.98] ${available ? "bg-brand text-white hover:bg-brand-deep" : "border border-brand bg-white text-brand hover:bg-brand-tint"}`}
+        className={`${inline ? "min-w-0 flex-1 whitespace-nowrap px-1 text-[13px] sm:text-sm" : "mt-3 w-full text-sm"} flex h-11 items-center justify-center rounded-full font-semibold transition duration-150 active:scale-[0.98] ${available ? "bg-brand text-white hover:bg-brand-deep" : "border border-brand bg-white text-brand hover:bg-brand-tint"}`}
       >
         {available ? "Thêm vào giỏ" : "Đặt trước"}
       </button>

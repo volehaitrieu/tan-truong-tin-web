@@ -32,6 +32,9 @@ export type Product = {
   warranty: string;
 };
 
+// Trang danh sách chỉ cần dữ liệu để vẽ thẻ và lọc: bỏ mô tả dài, hướng dẫn, ghi chú thông số (chỉ dùng ở trang chi tiết) cho trang nhẹ hơn.
+export const listProduct = (p: Product): Product => ({ ...p, description: undefined, usageGuide: undefined, specNotes: undefined });
+
 export const ORDER_STEPS = ["Chờ xác nhận", "Đã xác nhận", "Đang giao / Sẵn sàng lấy", "Hoàn thành"];
 
 // Tìm không dấu: "quat treo" khớp "Quạt treo"

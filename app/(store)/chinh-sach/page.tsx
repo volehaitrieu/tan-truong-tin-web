@@ -11,7 +11,7 @@ const BODY: Record<string, { text: string; pending?: boolean }> = {
   "doi-tra": { text: "Chính sách đổi trả đang chờ chủ shop chốt (thời hạn, điều kiện, hàng không đổi). Trong lúc chờ, vui lòng gọi shop để được hỗ trợ.", pending: true },
   "bao-hanh": { text: "Sản phẩm có bảo hành được bảo hành theo chính sách của hãng. Mang sản phẩm kèm hóa đơn đến cửa hàng, shop hỗ trợ gửi bảo hành." },
   "van-chuyen": { text: "Nhận tại cửa hàng: miễn phí. Giao nội thành Nha Trang: phí theo khu vực, shop báo khi gọi xác nhận đơn. Gửi đi tỉnh qua SPX, GHTK: phí báo sau.", pending: true },
-  "thanh-toan": { text: "Trả tiền mặt khi nhận hàng (COD) hoặc tại quầy. Chuyển khoản VietQR sắp có." },
+  "thanh-toan": { text: "Trả tiền mặt khi nhận hàng (COD) hoặc tại quầy." },
   "bao-mat": { text: "Shop chỉ dùng họ tên, số điện thoại và địa chỉ để xác nhận và giao đơn hàng; không chia sẻ cho bên khác ngoài đơn vị vận chuyển." },
   "gioi-thieu": { text: `Tân Trường Tín — ${SHOP.tagline.toLowerCase()} tại Nha Trang. “${SHOP.slogan}”` },
 };
@@ -22,6 +22,7 @@ export default async function PolicyPage() {
   const st = await getSettings();
   const body = (id: string) =>
     id === "doi-tra" && st.return_policy ? { text: st.return_policy }
+    : id === "thanh-toan" && st.bank ? { text: "Trả tiền mặt khi nhận hàng (COD) hoặc tại quầy.\nChuyển khoản bằng mã QR: chọn “Chuyển khoản” ở bước thanh toán, mã QR hiện sau khi đặt hàng. Shop xác nhận đơn khi nhận được tiền." }
     : id === "van-chuyen" && st.inner_ship_fee !== null ? { text: `Nhận tại cửa hàng: miễn phí. Giao nội thành Nha Trang: ${new Intl.NumberFormat("vi-VN").format(st.inner_ship_fee)}₫${st.free_ship_threshold ? `, miễn phí cho đơn từ ${new Intl.NumberFormat("vi-VN").format(st.free_ship_threshold)}₫` : ""}. Gửi đi tỉnh qua SPX, GHTK: phí báo sau.` }
     : BODY[id];
   return (

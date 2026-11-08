@@ -4,6 +4,8 @@
 
 Đây là **điểm bắt đầu duy nhất** cho bất kỳ công cụ AI nào tiếp tục dự án. Đọc hết tệp này trước, rồi mới mở các tài liệu khác.
 
+> **MỚI NHẤT 08/11/2026 đêm (nhánh `worktree-website-v2`):** đọc `docs/website-v2/BAN_GIAO_2026-11-08.md` TRƯỚC. Đợt 1 (chính sách + QR chuyển khoản) và Đợt 2 (so sánh sản phẩm) đã XONG và commit; VIỆC TIẾP THEO là Đợt 3 (khuyến mãi + mã giảm giá), rồi đợt 4 (tài khoản khách), đợt 5 (tích điểm/mời bạn). Chưa deploy. 26 kiểm thử an toàn, quy tắc làm việc và mục "Việc tiếp theo cho Codex" nằm trong tệp đó.
+
 > **MỚI 06/11/2026 (nhánh `worktree-website-v2`):** Website v2 + nhập tồn kho từ Excel. Đọc `docs/website-v2/BAN_GIAO_2026-11-06.md` TRƯỚC (có cả việc dở "Nhập Excel đọc cột Tồn" ở nhánh `feature/nhap-excel-ton-kho`, và 114 dòng tồn đã ghi vào DB thật kèm lệnh hoàn tác).
 
 ---

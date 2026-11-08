@@ -43,8 +43,9 @@ export function FavoriteButton({ sku, name }: { sku: string; name: string }) {
   };
 
   return (
-    <button type="button" onClick={toggle} aria-label={favorite ? `Bỏ ${name} khỏi yêu thích` : `Thêm ${name} vào yêu thích`} aria-pressed={favorite} className="absolute right-2 top-2 z-10 grid size-11 place-items-center rounded-full bg-white/95 text-ink shadow-sm transition-colors hover:text-danger focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
-      <Heart className={`size-5 ${favorite ? "fill-danger text-danger" : ""}`} aria-hidden />
+    <button type="button" onClick={toggle} aria-label={favorite ? `Bỏ ${name} khỏi yêu thích` : `Thêm ${name} vào yêu thích`} aria-pressed={favorite} className="group absolute right-0.5 top-0.5 z-10 grid size-10 place-items-center rounded-full text-ink transition-colors hover:text-danger focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-brand">
+      {/* Vòng trắng nhỏ 32px; vùng bấm vẫn 40px */}
+      <span className="grid size-8 place-items-center rounded-full bg-white/95 shadow-sm"><Heart className={`size-4 ${favorite ? "fill-danger text-danger" : ""}`} aria-hidden /></span>
     </button>
   );
 }

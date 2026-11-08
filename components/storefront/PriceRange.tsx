@@ -195,7 +195,7 @@ export function PriceRange({ min, max, step, lo, hi, error, onChange, onError, l
 
   return (
     <div>
-      {!compact && <div className="grid grid-cols-2 gap-2.5">
+      {!compact && <div className="grid grid-cols-2 gap-2.5 md:grid-cols-1">
         {field("lo", "Giá thấp nhất", `${id}-price-lo`, loRef)}
         {field("hi", "Giá cao nhất", `${id}-price-hi`, hiRef)}
       </div>}

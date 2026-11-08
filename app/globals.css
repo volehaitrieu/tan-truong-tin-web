@@ -66,6 +66,9 @@ svg.lucide { stroke-width: 1.75; }
 .img-shimmer { overflow: hidden; background: var(--color-sunk); }
 .img-shimmer::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55), transparent); animation: img-shimmer 1.2s ease-in-out infinite; }
 @keyframes img-shimmer { to { transform: translateX(100%); } }
+/* Hiệu ứng vào trang (app/(store)/template.tsx): chỉ độ mờ, 160ms */
+@keyframes page-enter { from { opacity: 0; } to { opacity: 1; } }
+.page-enter { animation: page-enter 160ms ease-out both; }
 @media (prefers-reduced-motion: reduce) { .img-shimmer::after { animation: none; display: none; } }
 .product-card:hover .product-art { transform: scale(1.03); }
 
@@ -179,6 +182,37 @@ body[data-buybar] .store { padding-bottom: calc(140px + env(safe-area-inset-bott
   body[data-buybar] .store { padding-bottom: 76px; }
   body[data-buybar] .float-actions { bottom: 96px; }
   body[data-buybar] .buy-toast { bottom: 96px; }
+}
+
+/* So sánh sản phẩm: thanh nổi nằm ngay trên thanh điều hướng (cao 64px). Trang chi tiết khi thanh mua hiện (body[data-buybar]):
+   thanh so sánh thu gọn còn 48px và nằm trên thanh mua (~70px). CompareBar đặt body[data-compare] khi thanh đang hiện.
+   Thứ tự lớp: nút liên hệ 40 < thanh mua 45 < so sánh 50 < thông báo 55 < Danh mục 60 < điều hướng 70. */
+.compare-bar { bottom: calc(64px + env(safe-area-inset-bottom)); height: 64px; }
+.compare-toast { bottom: calc(76px + env(safe-area-inset-bottom)); }
+body[data-compare] .compare-toast { bottom: calc(140px + env(safe-area-inset-bottom)); }
+body[data-compare] .float-actions { bottom: calc(140px + env(safe-area-inset-bottom)); }
+body[data-compare] .buy-toast { bottom: calc(env(safe-area-inset-bottom) + 150px); }
+body[data-compare] .store { padding-bottom: calc(128px + env(safe-area-inset-bottom)); }
+body[data-buybar] .compare-bar { bottom: calc(134px + env(safe-area-inset-bottom)); height: 48px; }
+body[data-buybar] .compare-sub { display: none; }
+body[data-buybar] .compare-toast { bottom: calc(150px + env(safe-area-inset-bottom)); }
+body[data-buybar][data-compare] .compare-toast { bottom: calc(190px + env(safe-area-inset-bottom)); }
+body[data-buybar][data-compare] .float-actions { bottom: calc(196px + env(safe-area-inset-bottom)); }
+body[data-buybar][data-compare] .buy-toast { bottom: calc(env(safe-area-inset-bottom) + 198px); }
+body[data-buybar][data-compare] .store { padding-bottom: calc(188px + env(safe-area-inset-bottom)); }
+@media (min-width: 768px) {
+  .compare-bar { bottom: 0; }
+  .compare-toast { bottom: 24px; }
+  body[data-compare] .compare-toast { bottom: 76px; }
+  body[data-compare] .float-actions { bottom: 96px; }
+  body[data-compare] .buy-toast { bottom: 96px; }
+  body[data-compare] .store { padding-bottom: 80px; }
+  body[data-buybar] .compare-bar { bottom: 70px; }
+  body[data-buybar] .compare-toast { bottom: 90px; }
+  body[data-buybar][data-compare] .compare-toast { bottom: 130px; }
+  body[data-buybar][data-compare] .float-actions { bottom: 132px; }
+  body[data-buybar][data-compare] .buy-toast { bottom: 132px; }
+  body[data-buybar][data-compare] .store { padding-bottom: 128px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

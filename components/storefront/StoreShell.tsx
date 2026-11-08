@@ -7,6 +7,7 @@ import { HeaderSearchToggle } from "@/components/storefront/HeaderSearchToggle";
 import { CartCount } from "@/components/storefront/CartControls";
 import { MobileBottomNav } from "@/components/storefront/MobileBottomNav";
 import { FloatActions } from "@/components/storefront/FloatActions";
+import { CompareBar } from "@/components/storefront/compare/CompareBar";
 import { getCategoryMenu } from "@/lib/catalog";
 import { SHOP } from "@/lib/shop";
 
@@ -107,6 +108,9 @@ export async function StoreShell({ children }: { children: ReactNode }) {
 
       {/* Nút nổi Zalo + Gọi */}
       <FloatActions />
+
+      {/* Thanh so sánh sản phẩm (chỉ hiện khi đã chọn món) */}
+      <CompareBar />
 
       {/* Thanh đáy điện thoại */}
       <MobileBottomNav menu={categoryMenu} />

@@ -59,7 +59,7 @@ export function HeaderSearchToggle() {
           mobile
           onDone={() => setOpen(false)}
           endSlot={
-            <button type="button" aria-label="Đóng tìm kiếm" onClick={() => setOpen(false)} className="mr-1 grid size-9 shrink-0 place-items-center rounded-full transition-colors duration-150 hover:bg-sunk">
+            <button type="button" aria-label="Đóng tìm kiếm" onClick={() => setOpen(false)} className="mr-1 grid size-11 shrink-0 place-items-center rounded-full transition-colors duration-150 hover:bg-sunk">
               <X className="size-[18px]" aria-hidden />
             </button>
           }

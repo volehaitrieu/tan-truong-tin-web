@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
-import { CircleCheck, QrCode } from "lucide-react";
+import { CircleCheck } from "lucide-react";
 import { OrderSteps } from "@/components/storefront/OrderSteps";
 import { ORDER_KEY, type PlacedOrder } from "@/components/storefront/CheckoutForm";
+import { BankQr } from "@/components/storefront/BankQr";
+import type { ShopBank } from "@/lib/vietqr";
 import { formatVnd } from "@/lib/shop";
 
 const noop = () => () => {};
@@ -15,7 +17,7 @@ function readOrder() {
   }
 }
 
-export function ThankYou() {
+export function ThankYou({ bank = null }: { bank?: ShopBank | null }) {
   const raw = useSyncExternalStore(noop, readOrder, () => undefined);
   if (raw === undefined) return null;
   const order = raw ? (JSON.parse(raw) as PlacedOrder) : null;
@@ -56,10 +58,11 @@ export function ThankYou() {
         </ul>
       </div>
 
-      <div className="mt-4 flex items-center gap-4 rounded-md bg-white p-5">
-        <span className="grid size-20 shrink-0 place-items-center rounded-md bg-sunk text-ink-2"><QrCode className="size-10" aria-hidden /></span>
-        <p className="text-sm text-ink-2"><b className="text-ink">Chuyển khoản VietQR</b> <span className="rounded-full border border-line bg-sunk px-2 py-0.5 text-xs font-medium text-ink-2">Sắp có</span><br />Hiện shop nhận tiền mặt khi giao/nhận hàng.</p>
-      </div>
+      {order.pay === "bank" && bank ? (
+        <BankQr bank={bank} amount={order.total} code={order.code} />
+      ) : (
+        <p className="mt-4 rounded-md bg-white p-5 text-sm text-ink-2"><b className="text-ink">Thanh toán:</b> tiền mặt khi giao hoặc nhận hàng.</p>
+      )}
 
       <div className="mt-5 flex flex-wrap justify-center gap-3">
         <Link href={`/tra-cuu?ma=${order.code}`} className="inline-flex h-12 items-center rounded-md bg-brand px-6 font-semibold text-white hover:bg-brand-deep">Tra cứu đơn</Link>

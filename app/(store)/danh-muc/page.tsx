@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CatalogBrowserShell } from "@/components/storefront/CatalogBrowserShell";
 import { ProductBrowserShell } from "@/components/storefront/ProductBrowserShell";
+import { listProduct } from "@/lib/mock/store";
 import { CategoryIndexClient } from "@/components/storefront/CategoryIndexClient";
 import { getCategories, getCategoryMenu, getProducts } from "@/lib/catalog";
 
@@ -22,7 +23,7 @@ export default async function CategoryIndex({ searchParams }: PageProps<"/danh-m
       <>
         <div hidden data-theme-v2 />
         <h1 className="mb-5 text-[26px] font-extrabold sm:text-[32px]">{industry && products.length ? industry : "Sản phẩm"}</h1>
-        <ProductBrowserShell key={industry} products={products} categories={categories} />
+        <ProductBrowserShell key={industry} products={products.map(listProduct)} categories={categories} />
       </>
     );
   }
@@ -36,7 +37,7 @@ export default async function CategoryIndex({ searchParams }: PageProps<"/danh-m
         </header>
         <div className="flex min-h-0 flex-1 px-0 pt-2"><CategoryIndexClient menu={menu} /></div>
       </div>
-      <div className="hidden md:block"><CatalogBrowserShell products={products} /></div>
+      <div className="hidden md:block"><CatalogBrowserShell products={products.map(listProduct)} /></div>
     </>
   );
 }

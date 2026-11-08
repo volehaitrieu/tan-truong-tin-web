@@ -71,7 +71,7 @@ export function BrandRotator({ brands }: { brands: Brand[] }) {
         <div className="mt-1 flex items-center justify-center gap-1">
           <div className="flex" role="group" aria-label="Chọn nhóm thương hiệu">
             {Array.from({ length: pages }, (_, index) => (
-              <button key={index} type="button" onClick={() => setPage(index)} aria-label={`Nhóm thương hiệu ${index + 1} trên ${pages}`} aria-current={index === current} className="grid h-11 w-7 place-items-center">
+              <button key={index} type="button" onClick={() => setPage(index)} aria-label={`Nhóm thương hiệu ${index + 1} trên ${pages}`} aria-current={index === current} className="grid h-11 w-10 place-items-center">
                 <span className={`block h-2 rounded-full transition-all duration-200 ${index === current ? "w-5 bg-brand" : "w-2 bg-line"}`} />
               </button>
             ))}

@@ -29,7 +29,7 @@ const URL_FILTERS = ["cat", "sub", "brand", "price", "state", "classification", 
 function MoreButton({ shown, total, next, onClick }: { shown: number; total: number; next: number; onClick: () => void }) {
   const done = Math.round((shown / total) * 100);
   return (
-    <button type="button" onClick={onClick} className="mt-6 flex h-12 w-full items-center justify-between rounded-full bg-brand px-4 font-semibold text-white shadow-md transition hover:bg-brand-deep active:scale-[0.98]">
+    <button type="button" onClick={onClick} className="mt-6 flex h-12 w-full items-center justify-between rounded-full bg-brand px-4 font-semibold text-white shadow-md transition hover:bg-brand-deep active:scale-[0.98] md:mx-auto md:w-fit md:gap-4 md:px-6">
       <span className="flex items-center gap-3">
         <span className="relative grid size-7 shrink-0 place-items-center" aria-hidden>
           <svg viewBox="0 0 36 36" className="size-7 -rotate-90">
@@ -40,7 +40,7 @@ function MoreButton({ shown, total, next, onClick }: { shown: number; total: num
         </span>
         Xem thêm {next} sản phẩm
       </span>
-      <ChevronDown className="size-5" aria-hidden />
+      <ChevronDown className="size-5 md:hidden" aria-hidden />
     </button>
   );
 }
@@ -88,7 +88,6 @@ export function ProductBrowser({ products, categories, showSort = true, showSale
   const pageSize = showSale ? HOME_PAGE_SIZE : PAGE_SIZE;
   const [pagination, setPagination] = useState({ key: navigationKey, count: pageSize });
   const [sheet, setSheet] = useState(false);
-  const [brandExpansion, setBrandExpansion] = useState<{ key: string; expanded: boolean } | null>(null);
   const [priceDraft, setPriceDraft] = useState<{ key: string; lo: number; hi: number } | null>(null);
   const [priceError, setPriceError] = useState<PriceError | null>(null);
   const loRef = useRef<HTMLInputElement>(null);
@@ -241,20 +240,18 @@ export function ProductBrowser({ products, categories, showSort = true, showSale
   };
 
   const active = groups.filter((g) => g.key !== "price").flatMap((g) => (picked[g.key] ?? []).map((id) => ({ g, id, label: g.options.find((o) => o.id === id)?.label ?? id })));
-  const hiddenBrandSelected = (picked.brand ?? []).some((id) => {
-    const options = groups.find((group) => group.key === "brand")?.options ?? [];
-    return options.slice(6).some((option) => option.id === id);
-  });
-  const moreBrands = brandExpansion?.key === pathname ? brandExpansion.expanded : hiddenBrandSelected;
   const activeCount = active.length + (priceOn ? 1 : 0);
 
   if (showSale) {
     return (
       <div className="min-w-0">
+        {/* Chưa có sản phẩm giảm giá thì ẩn cả khối, không hiện khung trống */}
+        {saleHomeProducts.length > 0 && (
         <section className="mb-8" aria-labelledby="h-giam-gia">
           <h2 id="h-giam-gia" className="mb-3 text-lg font-bold sm:text-[22px]">Sản phẩm đang giảm giá ({saleHomeProducts.length})</h2>
           {saleHomeProducts.length ? <><div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{saleHomeProducts.slice(0, saleShown).map((p) => <ProductCard key={p.sku} p={p} />)}</div>{saleHomeProducts.length > saleShown && <MoreButton shown={saleShown} total={saleHomeProducts.length} next={Math.min(pageSize, saleHomeProducts.length - saleShown)} onClick={() => setSaleShown(saleShown + pageSize)} />}</> : <p className="rounded-xl border border-line bg-surface p-5 text-sm text-ink-2">Hiện chưa có sản phẩm giảm giá.</p>}
         </section>
+        )}
         <section aria-labelledby="h-tat-ca">
           <h2 id="h-tat-ca" className="mb-3 text-lg font-bold sm:text-[22px]">Tất cả sản phẩm ({allHomeProducts.length})</h2>
           {allHomeProducts.length ? (
@@ -293,11 +290,8 @@ export function ProductBrowser({ products, categories, showSort = true, showSale
           {g.key === "spec:Điều khiển" && products.some((p) => controlOptions(p).length === 0) && <p className="mb-2 text-xs leading-relaxed text-ink-2">Một số sản phẩm chưa có thông tin điều khiển.</p>}
           {g.key === "price" && <PriceRange min={bounds.min} max={bounds.max} step={PRICE_STEP} lo={displayedPrice.lo} hi={displayedPrice.hi} error={priceError} onChange={changePrice} onCommit={commitPrice} onError={setPriceError} loRef={loRef} hiRef={hiRef} />}
           {/* Khoảng giá chỉ dùng thanh kéo + hai ô nhập (đã bỏ 4 ô tick, chủ shop yêu cầu 08/11). */}
-          {g.key !== "price" && (g.key === "brand" ? g.options.slice(0, 6) : g.options).map(option)}
-          {g.key === "brand" && g.options.length > 6 && <>
-            <div inert={!moreBrands} className={`grid transition-[grid-template-rows] duration-200 motion-reduce:transition-none ${moreBrands ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}><div className="min-h-0 overflow-hidden">{g.options.slice(6).map(option)}</div></div>
-            <button type="button" aria-expanded={moreBrands} onClick={() => setBrandExpansion({ key: pathname, expanded: !moreBrands })} className="min-h-11 text-sm font-medium text-brand">{moreBrands ? "Thu gọn" : "Xem thêm"}</button>
-          </>}
+          {/* Thương hiệu hiện đủ mọi hãng, không còn nút Xem thêm (chủ shop yêu cầu 08/11). */}
+          {g.key !== "price" && g.options.map(option)}
         </fieldset>;
       })}
     </div>
@@ -311,7 +305,8 @@ export function ProductBrowser({ products, categories, showSort = true, showSale
       </aside>
 
       <div className="min-w-0">
-        <div className="mb-3">
+        {/* Điện thoại: nút Lọc + khoảng giá nhanh. Từ md trở lên bộ lọc bên trái đã có Khoảng giá nên bỏ phần này (chủ shop 08/11). */}
+        <div className="mb-3 md:hidden">
           <div className="flex min-w-0 items-center justify-between gap-2">
             <button ref={filterButtonRef} type="button" onClick={() => { setEngaged(true); setSheet(true); }} aria-expanded={sheet} aria-haspopup="dialog" className="relative flex h-11 shrink-0 md:hidden items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-sm font-semibold transition-colors duration-150 hover:bg-brand-tint">
               <SlidersHorizontal className="size-4" aria-hidden />Lọc{activeCount > 0 && <span className="num">({activeCount})</span>}

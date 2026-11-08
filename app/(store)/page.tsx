@@ -7,6 +7,7 @@ import { CategoryIcon } from "@/components/storefront/CategoryIcon";
 import { ProductBrowserShell } from "@/components/storefront/ProductBrowserShell";
 import { getCategories, getProducts } from "@/lib/catalog";
 import { SHOP } from "@/lib/shop";
+import { listProduct } from "@/lib/mock/store";
 
 // Dữ liệu từ Supabase, làm mới mỗi 60 giây
 export const revalidate = 60;
@@ -18,6 +19,12 @@ export default async function Home() {
   for (const p of PRODUCTS) if (p.brand) brandCounts.set(p.brand, (brandCounts.get(p.brand) ?? 0) + 1);
   const BRANDS = [...brandCounts].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "vi"));
   const INDUSTRIES = [...new Set(PRODUCTS.map((p) => p.industry.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "vi"));
+  // Danh sách ở trang chủ: xen kẽ các ngành hàng (ngành đông sản phẩm trước) để trang đầu thấy đủ ngành, thay vì xếp theo tên.
+  const byIndustry = new Map<string, typeof PRODUCTS>();
+  for (const p of PRODUCTS) { const key = p.industry.trim() || "-"; byIndustry.set(key, [...(byIndustry.get(key) ?? []), p]); }
+  const groups = [...byIndustry.values()].sort((a, b) => b.length - a.length);
+  const SHOWCASE: typeof PRODUCTS = [];
+  for (let i = 0; groups.some((g) => i < g.length); i++) for (const g of groups) if (i < g.length) SHOWCASE.push(g[i]);
   return (
     <>
       {/* Đánh dấu trang đã áp bảng màu mới (xem khối .store:has([data-theme-v2]) trong globals.css) */}
@@ -77,7 +84,7 @@ export default async function Home() {
 
       {/* Tất cả sản phẩm */}
       <section id="tat-ca" className="mt-10 scroll-mt-32" aria-labelledby="h-tat-ca">
-        <ProductBrowserShell products={PRODUCTS} categories={CATEGORIES} showSort={false} showSale />
+        <ProductBrowserShell products={SHOWCASE.map(listProduct)} categories={CATEGORIES} showSort={false} showSale />
       </section>
 
       {/* Thương hiệu: 4 hãng một lần, tự sang 4 hãng kế tiếp sau 3 giây (BrandRotator) */}

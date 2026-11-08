@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ProductBrowserShell } from "@/components/storefront/ProductBrowserShell";
+import { listProduct } from "@/lib/mock/store";
 import { getCategories, getProducts } from "@/lib/catalog";
 
 // Dữ liệu từ Supabase, làm mới mỗi 60 giây
@@ -39,9 +40,9 @@ export default async function CategoryPage({ params }: PageProps<"/danh-muc/[slu
       <div hidden data-theme-v2 />
       {child && (
         <nav aria-label="Đường dẫn" className="mb-3 flex items-center gap-2 text-sm text-ink-2">
-          <Link href="/danh-muc" className="hover:text-ink">Danh mục</Link>
+          <Link href="/danh-muc" className="inline-flex min-h-11 items-center hover:text-ink">Danh mục</Link>
           <span aria-hidden="true">/</span>
-          <Link href={`/danh-muc/${cat.slug}`} className="hover:text-ink">{cat.name}</Link>
+          <Link href={`/danh-muc/${cat.slug}`} className="inline-flex min-h-11 items-center hover:text-ink">{cat.name}</Link>
         </nav>
       )}
       <h1 className="mb-4 text-[28px] font-extrabold sm:text-[34px]">{child?.name ?? cat.name} · {products.length} sản phẩm</h1>
@@ -54,7 +55,7 @@ export default async function CategoryPage({ params }: PageProps<"/danh-muc/[slu
           ))}
         </nav>
       )}
-      <ProductBrowserShell key={cat.slug} products={products} categories={categories} fixedCat={cat.slug} />
+      <ProductBrowserShell key={cat.slug} products={products.map(listProduct)} categories={categories} fixedCat={cat.slug} />
     </>
   );
 }

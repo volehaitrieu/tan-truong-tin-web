@@ -3,9 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Banknote, ChevronDown, ChevronRight, FileText, ShieldCheck, Store, Truck } from "lucide-react";
 import { BuyBox } from "@/components/storefront/CartControls";
+import { CompareButton } from "@/components/storefront/compare/CompareButton";
 import { ProductCard, ProductImage, StockBadge } from "@/components/storefront/ProductCard";
 import { getCategories, getProduct, getProducts } from "@/lib/catalog";
-import { formatVnd } from "@/lib/shop";
+import { formatVnd, SHOP } from "@/lib/shop";
 
 // Dữ liệu từ Supabase, làm mới mỗi 60 giây
 export const revalidate = 60;
@@ -16,7 +17,18 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/san-pham/[sku]">): Promise<Metadata> {
   const { sku } = await params;
-  return { title: (await getProduct(sku))?.name ?? "Không tìm thấy sản phẩm" };
+  const p = await getProduct(sku);
+  if (!p) return { title: "Không tìm thấy sản phẩm" };
+  // Mô tả riêng từng sản phẩm: tên, hãng, vài thông số chính, giá, nơi mua (không đưa lời hứa nào ngoài dữ liệu thật).
+  const keySpecs = ["Loại quạt", "Công suất", "Sải cánh", "Điều khiển"]
+    .map((k) => p.specs.find(([name]) => name === k))
+    .filter((x): x is [string, string] => !!x)
+    .slice(0, 3)
+    .map(([k, v]) => `${k.toLowerCase()} ${v}`)
+    .join(", ");
+  const description = `${p.name}${p.brand ? ` (${p.brand})` : ""}${keySpecs ? `: ${keySpecs}` : ""}. Giá ${formatVnd(p.price)}. Mua tại ${SHOP.name}, ${SHOP.addressShort}.`.slice(0, 200);
+  const realImage = p.image && !p.image.startsWith("/ai/") ? p.image : undefined;
+  return { title: p.name, description, openGraph: { title: p.name, description, type: "website", locale: "vi_VN", ...(realImage ? { images: [realImage] } : {}) } };
 }
 
 // Thông số nổi bật (học từ các sàn lớn): vài mục khách hay so sánh nhất, lấy từ chính dữ liệu của sản phẩm.
@@ -47,7 +59,7 @@ export default async function ProductPage({ params }: PageProps<"/san-pham/[sku]
   const policyRows = [
     { Icon: Store, text: "Lấy tại cửa hàng", href: "/chinh-sach#van-chuyen" },
     { Icon: Truck, text: "Giao nội thành", href: "/chinh-sach#van-chuyen" },
-    { Icon: Banknote, text: "COD · VietQR sắp có", href: "/chinh-sach#thanh-toan" },
+    { Icon: Banknote, text: "Trả tiền mặt khi nhận hàng (COD)", href: "/chinh-sach#thanh-toan" },
     { Icon: ShieldCheck, text: `Bảo hành: ${p.warranty}`, href: "/chinh-sach#bao-hanh" },
   ];
 
@@ -105,6 +117,7 @@ export default async function ProductPage({ params }: PageProps<"/san-pham/[sku]
               </li>
             ))}
           </ul>
+          <CompareButton sku={p.sku} name={p.name} variant="inline" />
           <Link href={`/bao-gia?sku=${p.sku}`} className="mt-3 flex min-h-11 items-center gap-2 text-sm font-semibold text-ink hover:underline">
             <FileText className="size-4" aria-hidden />Mua số lượng lớn? Gửi yêu cầu báo giá
           </Link>

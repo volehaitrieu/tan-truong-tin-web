@@ -2,6 +2,7 @@
 import { useActionState, useState, startTransition } from "react";
 import { saveSettings, sendTestTelegram, type SettingsState } from "./actions";
 import type { ShopSettings } from "@/lib/settings";
+import { BANKS } from "@/lib/vietqr";
 
 const input = "mt-1 h-11 w-full rounded border border-line bg-white px-3 text-sm";
 const section = "rounded-lg border border-line bg-white p-4 sm:p-5";
@@ -39,7 +40,22 @@ export function SettingsForm({ s, telegramReady }: { s: ShopSettings; telegramRe
       <section className={section}>
         <h2 className="mb-1 font-semibold">Thanh toán</h2>
         <p className="text-sm">COD — tiền mặt khi nhận hàng: <b className="text-ok">Đang bật</b></p>
-        <p className="mt-1 text-sm">Chuyển khoản VietQR: <span className="rounded-full bg-gold-tint px-2 py-0.5 text-xs font-medium text-gold-ink">Sắp có</span> — cần số tài khoản ngân hàng của shop.</p>
+        <p className="mt-1 text-sm">Chuyển khoản VietQR: {s.bank ? <b className="text-ok">Đang bật</b> : <span className="rounded-full bg-gold-tint px-2 py-0.5 text-xs font-medium text-gold-ink">Chưa cài</span>}</p>
+        <p className="mb-3 mt-1 text-[13px] text-ink-2">Điền tài khoản nhận tiền của shop để khách chọn “Chuyển khoản” và thấy mã QR đúng số tiền. Để trống cả ba ô = tắt chuyển khoản. Sau khi lưu, nên tự đặt một đơn thử và quét mã bằng app ngân hàng để chắc chắn.</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="text-sm">Ngân hàng
+            <select name="bank_bin" defaultValue={s.bank?.bin ?? ""} className={input}>
+              <option value="">— Chưa chọn —</option>
+              {BANKS.map((b) => <option key={b.bin} value={b.bin}>{b.name}</option>)}
+            </select>
+          </label>
+          <label className="text-sm">Số tài khoản
+            <input name="bank_account_no" defaultValue={s.bank?.account_no ?? ""} inputMode="numeric" autoComplete="off" maxLength={24} className={`${input} num`} />
+          </label>
+          <label className="text-sm sm:col-span-2">Tên chủ tài khoản
+            <input name="bank_account_name" defaultValue={s.bank?.account_name ?? ""} autoComplete="off" maxLength={60} className={input} placeholder="Viết hoa không dấu, giống tên trên thẻ" />
+          </label>
+        </div>
       </section>
 
       <section className={section}>

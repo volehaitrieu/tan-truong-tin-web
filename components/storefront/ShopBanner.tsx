@@ -22,7 +22,7 @@ export function ShopBanner() {
       <div className="shop-banner-body">
         <div>
           <h2 className="text-base font-bold leading-snug tracking-tight text-white">Xem quạt, ấm siêu tốc tại cửa hàng</h2>
-          <p className="mt-1.5 text-[11.5px] leading-snug text-[#d8dce4]">Mở {SHOP.hours} hằng ngày</p>
+          <p className="mt-1.5 text-xs leading-snug text-[#d8dce4]">Mở {SHOP.hours} hằng ngày</p>
         </div>
         <div className="flex items-center gap-2">
           <Link href="/danh-muc/quat" className="inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-brand px-[13px] text-[13px] font-semibold text-white hover:bg-brand-deep active:scale-[0.98]">Xem quạt</Link>

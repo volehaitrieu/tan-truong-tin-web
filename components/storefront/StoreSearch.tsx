@@ -235,7 +235,7 @@ export function StoreSearch({ mobile = false, initial = "", autoFocus = false, o
               >
                 {industries.length > 0 && (
                   <div className="border-b border-sunk px-3 pb-2.5 pt-2.5">
-                    <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-2" aria-hidden>Ngành hàng</p>
+                    <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-2" aria-hidden>Ngành hàng</p>
                     <div className="flex flex-wrap gap-2">
                       {industries.map((ind, i) => (
                         <Link

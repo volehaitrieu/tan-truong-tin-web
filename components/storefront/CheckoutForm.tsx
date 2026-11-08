@@ -3,13 +3,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Banknote, MapPin, QrCode, Store, Truck } from "lucide-react";
+import { Banknote, Landmark, MapPin, Store, Truck } from "lucide-react";
 import { clearCart, useCartLines } from "@/components/storefront/CartControls";
 import { placeOrder } from "@/app/(store)/actions";
 import { PROVINCES, isInner } from "@/lib/mock/address";
 import { formatVnd } from "@/lib/shop";
 
-export type PlacedOrder = { code: string; total: number; method: Method; lines: { name: string; quantity: number; price: number }[] };
+export type PlacedOrder = { code: string; total: number; method: Method; pay?: "cod" | "bank"; lines: { name: string; quantity: number; price: number }[] };
 export const ORDER_KEY = "ttt-last-order";
 type Method = "pickup" | "inner" | "province";
 const METHODS: { id: Method; icon: typeof Store; title: string }[] = [
@@ -23,11 +23,12 @@ function Field({ label, error, children }: { label: ReactNode; error?: string; c
   return <label className="block text-sm font-medium">{label}{children}{error && <span role="alert" className="mt-1 block text-[13px] font-normal text-danger">{error}</span>}</label>;
 }
 
-export function CheckoutForm({ innerFee, freeFrom }: { innerFee: number | null; freeFrom: number | null }) {
+export function CheckoutForm({ innerFee, freeFrom, bankReady = false }: { innerFee: number | null; freeFrom: number | null; bankReady?: boolean }) {
   const cart = useCartLines();
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [method, setMethod] = useState<Method>("pickup");
+  const [pay, setPay] = useState<"cod" | "bank">("cod");
   const [f, setF] = useState({ name: "", phone: "", province: "Khánh Hòa", ward: "", street: "", note: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [placed, setPlaced] = useState(false);
@@ -80,11 +81,12 @@ export function CheckoutForm({ innerFee, freeFrom }: { innerFee: number | null; 
       const res = await placeOrder({
         name: f.name, phone: f.phone, delivery: method,
         province: method === "pickup" ? undefined : f.province, ward: method === "pickup" ? undefined : f.ward,
-        street: method === "pickup" ? undefined : f.street, note: f.note || undefined,
+        street: method === "pickup" ? undefined : f.street,
+        note: [pay === "bank" && bankReady ? "[Khách chọn chuyển khoản]" : "", f.note].filter(Boolean).join(" ") || undefined,
         items: lines.map((l) => ({ sku: l.sku, qty: l.quantity })),
       });
       if (!res.ok) { setServerError(res.error); setSending(false); return; }
-      const order: PlacedOrder = { code: res.code, total: res.subtotal, method, lines: lines.map((l) => ({ name: l.product.name, quantity: l.quantity, price: l.product.price })) };
+      const order: PlacedOrder = { code: res.code, total: res.subtotal, method, pay: bankReady ? pay : "cod", lines: lines.map((l) => ({ name: l.product.name, quantity: l.quantity, price: l.product.price })) };
       try { sessionStorage.setItem(ORDER_KEY, JSON.stringify(order)); } catch {}
       setPlaced(true); clearCart(); router.push("/cam-on");
     } catch {
@@ -111,7 +113,10 @@ export function CheckoutForm({ innerFee, freeFrom }: { innerFee: number | null; 
       <fieldset className="space-y-2"><legend className="mb-2 text-lg font-bold">2. Cách nhận hàng</legend>{METHODS.map(({ id, icon: Icon, title }) => <label key={id} className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border p-3 ${method === id ? "border-brand bg-brand-tint" : "border-line"}`}><input type="radio" name="method" checked={method === id} onChange={() => setMethod(id)} className="size-5 accent-brand" /><Icon className="size-5 text-brand" aria-hidden /><span><b className="block text-[15px]">{title}</b><span className="text-[13px] text-ink-2">{id === "pickup" ? "0₫ · 379 đường 2/4, Nha Trang" : id === "inner" ? innerNote : "SPX, GHTK · phí báo sau"}</span></span></label>)}</fieldset>
       {method !== "pickup" && <section className="space-y-4"><h2 className="text-lg font-bold">3. Địa chỉ</h2><div className="grid gap-4 sm:grid-cols-2"><Field label="Tỉnh / Thành phố *"><select value={f.province} onChange={set("province")} className={`${input} border-line`}>{Object.keys(PROVINCES).map((p) => <option key={p}>{p}</option>)}</select></Field><Field label="Phường / Xã *" error={errors.ward}><select value={f.ward} onChange={set("ward")} aria-invalid={!!errors.ward} className={`${input} ${border("ward")}`}><option value="">Chọn phường / xã</option>{wards.map((w) => <option key={w}>{w}</option>)}</select></Field></div>{errors.ward?.includes("ngoài Nha Trang") && <button type="button" onClick={() => { setMethod("province"); setErrors((old) => ({ ...old, ward: "" })); }} className="min-h-10 rounded-full border border-line px-3 text-sm font-medium">Chuyển sang Gửi đi tỉnh</button>}<Field label="Số nhà, tên đường *" error={errors.street}><input value={f.street} onChange={set("street")} autoComplete="street-address" aria-invalid={!!errors.street} className={`${input} ${border("street")}`} placeholder="Ví dụ: 12 Lê Thánh Tôn" /></Field></section>}
       <Field label={<>Ghi chú <span className="font-normal text-ink-2">(không bắt buộc)</span></>}><textarea value={f.note} onChange={set("note")} rows={2} className="mt-1 w-full rounded-lg border border-line p-3 text-base outline-none focus:border-brand" placeholder="Giờ nhận hàng, chỉ đường…" /></Field>
-      <fieldset className="space-y-2"><legend className="mb-2 text-lg font-bold">4. Thanh toán</legend><label className="flex min-h-14 items-center gap-3 rounded-xl border border-brand bg-brand-tint p-3"><input type="radio" name="pay" defaultChecked className="size-5 accent-brand" /><Banknote className="size-5 text-brand" aria-hidden /><b className="text-[15px]">Trả tiền mặt khi nhận hàng (COD)</b></label><label className="flex min-h-14 items-center gap-3 rounded-xl border border-line p-3 opacity-60"><input type="radio" name="pay" disabled className="size-5" /><QrCode className="size-5 text-brand" aria-hidden /><b className="flex-1 text-[15px]">Chuyển khoản VietQR</b><span className="rounded-full border border-line bg-sunk px-2 py-1 text-xs font-medium text-ink-2">Sắp có</span></label></fieldset>
+      <fieldset className="space-y-2"><legend className="mb-2 text-lg font-bold">4. Thanh toán</legend>
+        <label className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border p-3 ${pay === "cod" || !bankReady ? "border-brand bg-brand-tint" : "border-line"}`}><input type="radio" name="pay" checked={pay === "cod" || !bankReady} onChange={() => setPay("cod")} className="size-5 accent-brand" /><Banknote className="size-5 text-brand" aria-hidden /><b className="text-[15px]">Trả tiền mặt khi nhận hàng (COD)</b></label>
+        {bankReady && <label className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border p-3 ${pay === "bank" ? "border-brand bg-brand-tint" : "border-line"}`}><input type="radio" name="pay" checked={pay === "bank"} onChange={() => setPay("bank")} className="size-5 accent-brand" /><Landmark className="size-5 text-brand" aria-hidden /><span><b className="block text-[15px]">Chuyển khoản (quét mã QR)</b><span className="text-[13px] text-ink-2">Mã QR hiện sau khi đặt hàng</span></span></label>}
+      </fieldset>
     </div>
     <aside className="hidden h-fit rounded-xl bg-white p-4 sm:p-5 lg:sticky lg:top-28 lg:block"><h2 className="font-bold">Đơn hàng ({lines.reduce((s, l) => s + l.quantity, 0)} món)</h2>{summary}{serverError && <p role="alert" className="mt-3 rounded-xl bg-[#fef2f2] p-3 text-sm text-danger">{serverError}</p>}{orderButton}</aside>
     <div className={`fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-40 border-t border-line bg-surface px-4 py-3 shadow-[var(--shadow-soft)] lg:hidden ${focused ? "hidden" : ""}`}><p className="flex justify-between text-sm font-semibold">Tạm tính <b className="num text-base">{formatVnd(total + (fee ?? 0))}</b></p>{serverError && <p role="alert" className="my-2 rounded-lg bg-[#fef2f2] p-2 text-sm text-danger">{serverError}</p>}{invalidCount > 0 && <p aria-live="polite" className="mt-1 text-xs text-danger">Còn {invalidCount} ô cần sửa</p>}{orderButton}</div>
