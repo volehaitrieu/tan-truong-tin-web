@@ -15,7 +15,7 @@ const BATCH = 1000; // Supabase trả tối đa 1000 dòng mỗi lần
 
 type Row = {
   id: number; sku: string; name: string; unit: string; price: number; sale_price: number | null; is_visible: boolean;
-  industry: string | null; spec_line: string | null; description: string | null; warranty: string | null; origin: string | null; made_in: string | null;
+  industry: string | null; spec_line: string | null; description: string | null; usage_guide?: string | null; warranty: string | null; origin: string | null; made_in: string | null;
   category_id: number | null; brand: { name: string } | null;
   inventory: { qty: number; min_qty: number; location: string } | null;
   images: { url: string; sort: number; is_illustration: boolean }[];
@@ -23,12 +23,13 @@ type Row = {
 const COLUMNS = "id, sku, name, unit, price, sale_price, is_visible, industry, spec_line, description, warranty, origin, made_in, category_id, "
   + "brand:brands(name), inventory(qty, min_qty, location), images:product_images(url, sort, is_illustration)";
 
-async function fetchAll(f: ProductFilter, ids?: number[]) {
+async function fetchAll(f: ProductFilter, ids: number[] | undefined, withGuide: boolean) {
+  const columns = withGuide ? `${COLUMNS}, usage_guide` : COLUMNS;
   const rows: Row[] = [];
-  const { db, query } = await filteredProducts(ids ? {} : f, COLUMNS);
+  const { db, query } = await filteredProducts(ids ? {} : f, columns);
   if (ids) {
     for (let i = 0; i < ids.length; i += 500) {
-      const { data, error } = await db.from("products").select(COLUMNS).in("id", ids.slice(i, i + 500)).order("name").order("id");
+      const { data, error } = await db.from("products").select(columns).in("id", ids.slice(i, i + 500)).order("name").order("id");
       if (error) throw error;
       rows.push(...(data as unknown as Row[]));
     }
@@ -45,7 +46,13 @@ async function fetchAll(f: ProductFilter, ids?: number[]) {
 
 export async function productExportSheet(f: ProductFilter, withCost: boolean, groups: string[], ids?: number[]): Promise<Cell[][]> {
   const selected = normalizeExportGroups(groups, withCost);
-  const { db, rows } = await fetchAll(f, ids);
+  // Cột Hướng dẫn sử dụng chưa có trong DB (migration chưa chạy) → xuất không có cột đó.
+  let fetched: Awaited<ReturnType<typeof fetchAll>>;
+  try { fetched = await fetchAll(f, ids, true); } catch (e) {
+    if ((e as { code?: string })?.code !== "42703") throw e;
+    fetched = await fetchAll(f, ids, false);
+  }
+  const { db, rows } = fetched;
   const costs = withCost && selected.includes("cost") && rows.length ? await importPrices(db, rows.map((r) => r.id)) : new Map<number, number>();
   const { data: cats, error } = await db.from("categories").select("id, parent_id, name");
   if (error) throw error;
@@ -75,7 +82,7 @@ export async function productExportSheet(f: ProductFilter, withCost: boolean, gr
       "Ngành hàng": r.industry, "Danh mục": root?.name ?? parent?.name ?? cat?.name ?? null, "Danh mục con": root ? parent?.name ?? null : parent && cat ? cat.name : null,
       "Phân loại": links.has(r.id) ? links.get(r.id)!.sort((a, b) => a.localeCompare(b, "vi")).join("; ") : root ? cat?.name ?? null : null,
       "Thương hiệu": r.brand?.name ?? null, "Vị trí": r.inventory?.location ?? null, "Tồn tối thiểu": r.inventory?.min_qty ?? null,
-      "Thông số": r.spec_line, "Mô tả": r.description ? htmlToText(r.description) : null,
+      "Thông số": r.spec_line, "Mô tả": r.description ? htmlToText(r.description) : null, "Hướng dẫn sử dụng": r.usage_guide ?? null,
       "Bảo hành": r.warranty, "Xuất xứ": r.origin, "Sản xuất tại": r.made_in,
       "Giá khuyến mãi": r.sale_price, "Tồn": r.inventory?.qty ?? 0, "Trạng thái": r.is_visible ? "Hiện" : "Ẩn",
       // Chỉ ảnh thật đã tải lên (bỏ ảnh minh họa), mỗi link một dòng trong ô

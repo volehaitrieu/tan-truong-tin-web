@@ -28,6 +28,7 @@ export type Product = {
   specs: [string, string][];
   specNotes?: string[]; // dòng thông số không có dấu ":"
   description?: string; // HTML đã làm sạch
+  usageGuide?: string[]; // các bước hướng dẫn sử dụng (mỗi dòng một bước)
   warranty: string;
 };
 

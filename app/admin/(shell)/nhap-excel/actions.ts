@@ -16,7 +16,7 @@ const str = (v: unknown, max: number) => (v == null ? null : String(v).replace(/
 // Các trường được so sánh khi SP đã có. Khóa = cột field trong bảng import_changes.
 // "qty" (tồn kho) cần migration 20261106084208_import_changes_qty.sql đã chạy, nếu chưa bảng đối chiếu sẽ từ chối dòng tồn.
 // "classifications" (nhiều Phân loại) cần migration 20261107000100_product_classifications.sql.
-type Field = "name" | "unit" | "price" | "import_price" | "category" | "classifications" | "industry" | "brand" | "location" | "min_qty" | "qty" | "spec" | "description" | "warranty" | "origin" | "made_in";
+type Field = "name" | "unit" | "price" | "import_price" | "category" | "classifications" | "industry" | "brand" | "location" | "min_qty" | "qty" | "spec" | "description" | "usage_guide" | "warranty" | "origin" | "made_in";
 
 type Db = Awaited<ReturnType<typeof createClient>>;
 // Đặt số tồn đúng bằng `target`: tính chênh lệch với tồn lúc này rồi gọi hàm adjust_stock của cơ sở dữ liệu
@@ -49,6 +49,9 @@ export async function importProducts(input: ImportRow[], defaultSub: string | nu
   if (industryError) return { ok: false, error: industryError.code === "42703" || industryError.code === "PGRST204"
     ? "Chức năng Ngành hàng chưa được cập nhật trên hệ thống. Vui lòng hoàn tất cập nhật trước khi nhập Excel."
     : "Không kiểm tra được dữ liệu sản phẩm. Vui lòng thử lại trước khi nhập Excel." };
+  // Cột Hướng dẫn sử dụng cần migration 20261108000100_product_usage_guide.sql; chưa có thì từ chối file có cột này.
+  const { error: guideError } = await db.from("products").select("usage_guide").limit(0);
+  const guideReady = !guideError;
   const catId = new Map((cats ?? []).map((c) => [c.slug, c.id]));
   const catById = new Map<number, CatRow>((cats ?? []).map((c) => [c.id, c]));
   const resolvedSub = (r: ImportRow) => r.sub && catId.has(r.sub) ? r.sub : defaultSub && catId.has(defaultSub) ? defaultSub : null;
@@ -63,7 +66,7 @@ export async function importProducts(input: ImportRow[], defaultSub: string | nu
     brand: str(r.brand, 60), spec: str(r.spec, 3000),
     attributes: Object.fromEntries(Object.entries(r.attributes ?? {}).slice(0, 20).map(([k, v]) => [k.slice(0, 30), String(v).slice(0, 120)])),
     warranty: str(r.warranty, 100), origin: str(r.origin, 100), location: str(r.location, 40), madeIn: str(r.madeIn, 100),
-    description: str(r.description, 10000), errors: [],
+    description: str(r.description, 10000), usageGuide: str(r.usageGuide, 3000), errors: [],
   }, (() => {
     const sub = catById.get(catId.get(resolvedSub(r) ?? "") ?? -1);
     return !!sub && (sub.parent_id === null || catById.get(sub.parent_id)?.parent_id !== null);
@@ -71,6 +74,7 @@ export async function importProducts(input: ImportRow[], defaultSub: string | nu
   const good = rows.filter((r) => r.errors.length === 0 && /^[A-Z0-9][A-Z0-9-]{1,40}$/.test(r.sku));
   if (!good.length) return { ok: false, error: "Không có dòng hợp lệ (kiểm tra mã, giá, danh mục)." };
 
+  if (!guideReady && good.some((r) => r.usageGuide)) return { ok: false, error: "Hệ thống chưa được cập nhật để lưu Hướng dẫn sử dụng. Liên hệ người quản trị kỹ thuật trước khi nhập cột này." };
   // Phân loại (nhiều) cần bảng liên kết; chưa có thì từ chối file có cột Phân loại.
   const wantsClassifications = good.some((r) => r.classifications?.length);
   const { error: linkError } = await db.from("product_classifications").select("product_id").limit(0);
@@ -103,13 +107,13 @@ export async function importProducts(input: ImportRow[], defaultSub: string | nu
   // SP đã có
   type Old = {
     id: number; sku: string; name: string; unit: string; price: number; category_id: number | null; industry: string | null; brand_id: number | null;
-    spec_line: string | null; description: string | null; warranty: string | null; origin: string | null; made_in: string | null;
+    spec_line: string | null; description: string | null; usage_guide?: string | null; warranty: string | null; origin: string | null; made_in: string | null;
     inventory: { min_qty: number; location: string; qty: number } | null;
   };
   const old = new Map<string, Old>();
   for (let i = 0; i < good.length; i += 500) {
     const { data, error } = await db.from("products")
-      .select("id, sku, name, unit, price, category_id, industry, brand_id, spec_line, description, warranty, origin, made_in, inventory(min_qty, location, qty)")
+      .select(`id, sku, name, unit, price, category_id, industry, brand_id, spec_line, description, ${guideReady ? "usage_guide, " : ""}warranty, origin, made_in, inventory(min_qty, location, qty)`)
       .in("sku", good.slice(i, i + 500).map((r) => r.sku));
     if (error) return { ok: false, error: "Không đọc được sản phẩm hiện có để đối chiếu. Vui lòng thử lại." };
     for (const p of (data ?? []) as unknown as Old[]) old.set(p.sku, p);
@@ -150,6 +154,7 @@ export async function importProducts(input: ImportRow[], defaultSub: string | nu
       brand_id: r.brand ? brandId.get(r.brand) ?? null : null, spec_line: r.spec, attributes: r.attributes,
       warranty: r.warranty, origin: r.origin, made_in: r.madeIn ?? null,
       description: r.description ? sanitizeHtml(textToHtml(r.description)) : null,
+      ...(guideReady && r.usageGuide ? { usage_guide: r.usageGuide } : {}),
     }))).select("id, sku");
     if (error) return { ok: false, error: `Lỗi khi ghi lô ${i / 500 + 1}: ${/[À-ỹ]/.test(error.message) ? error.message : "vui lòng thử lại"}` };
     const id = new Map((saved ?? []).map((p) => [p.sku, p.id]));
@@ -205,6 +210,7 @@ export async function importProducts(input: ImportRow[], defaultSub: string | nu
     if (canStock && r.qty != null) cmp("qty", String(p.inventory?.qty ?? 0), String(r.qty));
     cmp("spec", p.spec_line, r.spec);
     cmp("description", p.description ? htmlToText(p.description) : null, r.description);
+    cmp("usage_guide", p.usage_guide ?? null, r.usageGuide);
     cmp("warranty", p.warranty, r.warranty);
     cmp("origin", p.origin, r.origin);
     cmp("made_in", p.made_in, r.madeIn);
@@ -280,6 +286,7 @@ export async function applyChanges(ids: number[]): Promise<{ ok: boolean; applie
       else if (field === "warranty") prod.warranty = v.slice(0, 100);
       else if (field === "origin") prod.origin = v.slice(0, 100);
       else if (field === "made_in") prod.made_in = v.slice(0, 100);
+      else if (field === "usage_guide") prod.usage_guide = v.slice(0, 3000);
       else if (field === "category" && !classChange) prod.category_id = categoryId;
       else if (field === "industry") prod.industry = v.slice(0, 80);
       else if (field === "brand") {

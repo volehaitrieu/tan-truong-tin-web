@@ -24,7 +24,7 @@ export function ProductForm({ product: p, options, canPrice, canCost, canAdjustS
   const [staged, setStaged] = useState<StagedProductImage[]>([]);
   const [f, setF] = useState({
     name: p?.name ?? "", unit: p?.unit ?? "Cái", categoryId: p?.categoryId ? String(p.categoryId) : "", brandId: p?.brandId ? String(p.brandId) : "", spec: p?.spec ?? "",
-    warranty: p?.warranty ?? "", origin: p?.origin ?? "", madeIn: p?.madeIn ?? "", description: p?.description ?? "", needTags: p?.needTags ?? "", visible: p?.visible ?? false, min: String(p?.min ?? 0), location: p?.location ?? "Kho 1",
+    warranty: p?.warranty ?? "", origin: p?.origin ?? "", madeIn: p?.madeIn ?? "", description: p?.description ?? "", usageGuide: p?.usageGuide ?? "", needTags: p?.needTags ?? "", visible: p?.visible ?? false, min: String(p?.min ?? 0), location: p?.location ?? "Kho 1",
     price: p ? String(p.price) : "", salePrice: p?.salePrice != null ? String(p.salePrice) : "", saleFrom: p?.saleFrom ?? "", saleTo: p?.saleTo ?? "", cost: p?.cost != null ? String(p.cost) : "",
   });
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -48,7 +48,7 @@ export function ProductForm({ product: p, options, canPrice, canCost, canAdjustS
     start(async () => {
       const values = {
         name: f.name, unit: f.unit, categoryId: f.categoryId ? Number(f.categoryId) : null, brandId: f.brandId ? Number(f.brandId) : null,
-        spec: f.spec, warranty: f.warranty, origin: f.origin, madeIn: f.madeIn, description: f.description, needTags: f.needTags, visible: f.visible, min, location: f.location,
+        spec: f.spec, warranty: f.warranty, origin: f.origin, madeIn: f.madeIn, description: f.description, usageGuide: f.usageGuide, needTags: f.needTags, visible: f.visible, min, location: f.location,
         price: price as number, salePrice: sale as number | null, saleFrom: f.saleFrom, saleTo: f.saleTo, cost: canCost ? cost as number | null : undefined,
       };
       let r: { ok: boolean; id?: number; error?: string };
@@ -138,6 +138,12 @@ export function ProductForm({ product: p, options, canPrice, canCost, canAdjustS
               <div className="sm:col-span-2 text-sm">
                 <span className="mb-1.5 block font-medium">Mô tả</span>
                 <RichTextEditor label="Mô tả" value={f.description} onChange={(html) => setF((s) => ({ ...s, description: html }))} />
+              </div>
+              <div className="sm:col-span-2">
+                <Field label="Hướng dẫn sử dụng (mỗi dòng một bước)">
+                  <textarea className={`${input} h-36 py-2 leading-6`} value={f.usageGuide} onChange={set("usageGuide")} maxLength={3000} placeholder={"Lắp quạt đúng chiều, siết chặt ốc giữ cánh.\nCắm điện 220V, chọn cấp gió.\nRút phích điện trước khi vệ sinh."} />
+                </Field>
+                <p className="mt-1 text-xs text-ink-2">Hiện ở trang sản phẩm, tự đánh số từng dòng. Không có nội dung thì mục này ẩn.</p>
               </div>
               <Field label="Bảo hành"><input className={input} value={f.warranty} onChange={set("warranty")} maxLength={100} /></Field>
               <Field label="Xuất xứ (nước của hãng)"><input className={input} value={f.origin} onChange={set("origin")} maxLength={100} placeholder="Ví dụ: Nhật Bản" /></Field>

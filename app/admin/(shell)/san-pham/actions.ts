@@ -11,7 +11,7 @@ import { EXPORT_GROUPS, normalizeExportGroups } from "@/lib/excel/parse-products
 
 export type SaveInput = {
   id: number; name: string; unit: string; categoryId: number | null; brandId: number | null; spec: string; warranty: string; origin: string; madeIn: string;
-  description: string; needTags: string; visible: boolean; min: number; location: string;
+  description: string; usageGuide?: string; needTags: string; visible: boolean; min: number; location: string;
   // Chỉ gửi khi người dùng có quyền sửa giá (máy chủ kiểm lại, trigger trong DB chặn thêm lần nữa)
   price?: number; salePrice?: number | null; saleFrom?: string; saleTo?: string; cost?: number | null;
 };
@@ -46,6 +46,7 @@ export async function createProduct(input: CreateInput): Promise<{ ok: boolean; 
     spec_line: String(input.spec ?? "").replace(/\r/g, "").trim().slice(0, 3000) || null,
     warranty: String(input.warranty ?? "").trim().slice(0, 100) || null, origin: String(input.origin ?? "").trim().slice(0, 100) || null,
     made_in: String(input.madeIn ?? "").trim().slice(0, 100) || null, description: sanitizeHtml(String(input.description ?? "")) || null,
+    usage_guide: String(input.usageGuide ?? "").replace(/\r/g, "").trim().slice(0, 3000) || null,
     need_tags: String(input.needTags ?? "").split(",").map((t) => t.trim()).filter(Boolean).slice(0, 10), is_visible: !!input.visible,
   }).select("id").single();
   if (error || !data) return { ok: false, error: error?.code === "23505" ? "SKU này đã tồn tại. Hãy nhập mã khác." : friendly(error?.message ?? "") };
@@ -158,6 +159,7 @@ export async function saveProduct(input: SaveInput): Promise<{ ok: boolean; erro
     name, unit: String(input.unit ?? "").trim().slice(0, 30) || "Cái", category_id: input.categoryId, brand_id: input.brandId,
     spec_line: String(input.spec ?? "").replace(/\r/g, "").trim().slice(0, 3000) || null, made_in: String(input.madeIn ?? "").trim().slice(0, 100) || null, warranty: String(input.warranty ?? "").trim().slice(0, 100) || null,
     origin: String(input.origin ?? "").trim().slice(0, 100) || null, description: sanitizeHtml(String(input.description ?? "")) || null,
+    usage_guide: String(input.usageGuide ?? "").replace(/\r/g, "").trim().slice(0, 3000) || null,
     need_tags: String(input.needTags ?? "").split(",").map((t) => t.trim()).filter(Boolean).slice(0, 10), is_visible: !!input.visible,
   };
   const wantsPrice = input.price !== undefined;

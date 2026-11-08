@@ -13,12 +13,16 @@ export default async function CategoryIndex({ searchParams }: PageProps<"/danh-m
   const filterKeys = new Set(["industry", "brand", "price", "state", "sort", "cat", "sub", "classification", "min", "max"]);
   const hasCatalogFilters = Object.keys(params).some((key) => filterKeys.has(key) || key.startsWith("spec."));
   if (hasCatalogFilters) {
-    const [products, categories] = await Promise.all([getProducts(), getCategories()]);
+    const [allProducts, categories] = await Promise.all([getProducts(), getCategories()]);
+    // Ngành hàng (?industry=Quạt) không còn là nhóm trong bảng Lọc nhưng link ở trang chủ/tìm kiếm vẫn dùng: lọc ngay tại đây
+    // để bảng Lọc (Phân loại, Điều khiển, Thương hiệu, giá) chỉ tính trong ngành đó.
+    const industry = typeof params.industry === "string" ? params.industry.trim() : "";
+    const products = industry ? allProducts.filter((p) => p.industry.trim() === industry) : allProducts;
     return (
       <>
         <div hidden data-theme-v2 />
-        <h1 className="mb-5 text-[26px] font-extrabold sm:text-[32px]">Sản phẩm</h1>
-        <ProductBrowserShell products={products} categories={categories} />
+        <h1 className="mb-5 text-[26px] font-extrabold sm:text-[32px]">{industry && products.length ? industry : "Sản phẩm"}</h1>
+        <ProductBrowserShell key={industry} products={products} categories={categories} />
       </>
     );
   }

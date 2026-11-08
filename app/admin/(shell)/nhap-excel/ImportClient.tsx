@@ -9,7 +9,7 @@ import { formatVnd } from "@/lib/shop";
 
 type Sub = { slug: string; name: string; parent: string };
 const STEPS = ["1 · Chọn file", "2 · Xem trước & kiểm lỗi", "3 · Xác nhận"];
-const WIDTHS = [22, 36, 12, 14, 14, 16, 18, 22, 24, 24, 16, 12, 8, 14, 36, 44, 18, 14, 14];
+const WIDTHS = [22, 36, 12, 14, 14, 16, 18, 22, 24, 24, 16, 12, 8, 14, 36, 44, 44, 18, 14, 14];
 
 // File mẫu: sheet SanPham (2 dòng ví dụ, cột Giá nhập + 10% có công thức), Hướng dẫn, Danh mục
 function downloadTemplate(subs: Sub[]) {
@@ -17,9 +17,9 @@ function downloadTemplate(subs: Sub[]) {
   const rows: Cell[][] = [
     [...TEMPLATE_COLUMNS],
     ex(2, ["QUATDUNG-SENKO-DD1602", "Quạt đứng Senko DD1602 47W", "Cái", 520000, 410000, null, "Quạt", "Đồ gia dụng", "Quạt", "Quạt đứng", "Senko", "Kho 1", 5, 2,
-      "Công suất: 47W\nSải cánh: 40cm\nĐiều khiển: nút nhấn", "Quạt đứng Senko chạy êm, gió mạnh.\nThân thép sơn tĩnh điện, bền.", "12 tháng", "Việt Nam", "Việt Nam"]),
+      "Công suất: 47W\nSải cánh: 40cm\nĐiều khiển: nút nhấn", "Quạt đứng Senko chạy êm, gió mạnh.\nThân thép sơn tĩnh điện, bền.", "1. Lắp quạt đúng chiều, siết chặt ốc giữ cánh.\n2. Cắm điện 220V, chọn cấp gió.\n3. Rút phích điện trước khi vệ sinh.", "12 tháng", "Việt Nam", "Việt Nam"]),
     ex(3, ["AMSIEUTOC-PANA-17", "Ấm siêu tốc Panasonic 1.7L", "Cái", 650000, 520000, null, "Ấm siêu tốc", "Đồ gia dụng", "Ấm siêu tốc", "", "Panasonic", "Kệ A2", 8, 3,
-      "Dung tích: 1.7 lít\nCông suất: 2200W", "Đun sôi nhanh, tự ngắt khi cạn nước.", "12 tháng theo hãng", "Nhật Bản", "Malaysia"]),
+      "Dung tích: 1.7 lít\nCông suất: 2200W", "Đun sôi nhanh, tự ngắt khi cạn nước.", "1. Đổ nước trong mức cho phép.\n2. Bật công tắc, ấm tự ngắt khi nước sôi.", "12 tháng theo hãng", "Nhật Bản", "Malaysia"]),
   ];
   const guide: Cell[][] = [
     ["Cột", "Cách nhập"],
@@ -31,6 +31,7 @@ function downloadTemplate(subs: Sub[]) {
     ["Phân loại", "Phân loại: nhóm nhỏ trong Danh mục con; một sản phẩm có thể có nhiều loại, ngăn bằng dấu chấm phẩy (vd. Quạt sàn; Quạt công nghiệp). Ô có nội dung thay toàn bộ Phân loại cũ sau khi bạn xác nhận; loại chưa có sẽ được tạo khi xác nhận. Để trống = giữ nguyên."],
     ["Ngành hàng", "Nhóm sản phẩm như Quạt hoặc Ấm siêu tốc. Các giá trị đã nhập sẽ tự hiện thành thẻ ngành hàng ở trang chủ."],
     ["Thông số, Mô tả", "Mỗi dòng một nội dung (trong ô Excel bấm Alt + Enter để xuống dòng). Thông số dạng “Tên: giá trị” hiện thành bảng."],
+    ["Hướng dẫn sử dụng", "Các bước dùng sản phẩm, mỗi bước một dòng (Alt + Enter để xuống dòng), tối đa 3.000 ký tự. Hiện ở trang sản phẩm. Ô trống = giữ nguyên."],
     ["Tồn", "Số hàng đang có, là số nguyên từ 0 đến 100.000; ô trống = giữ nguyên; cần quyền chỉnh tồn. Sản phẩm mới: tồn đầu kỳ. Sản phẩm đã có: tick xác nhận để đặt đúng số tồn mới."],
     ["Ô để trống", "Với sản phẩm đã có: ô trống = giữ nguyên thông tin cũ trên web."],
   ];
@@ -48,7 +49,7 @@ function downloadErrors(bad: ImportRow[]) {
     const raw = r.raw ?? {
       "Mã hàng hóa": r.sku, "Tên sản phẩm": r.name, "Đơn vị tính": r.unit, "Giá bán": Number.isFinite(r.price) ? String(r.price) : "",
       "Giá nhập": r.cost != null && Number.isFinite(r.cost) ? String(r.cost) : "", "Ngành hàng": r.industry ?? "", "Danh mục": "", "Danh mục con": "", "Phân loại": r.classifications?.join("; ") ?? "", "Thương hiệu": r.brand ?? "",
-      "Tồn": r.qty != null ? String(r.qty) : "", "Tồn tối thiểu": r.minQty != null ? String(r.minQty) : "", "Thông số": r.spec ?? "", "Bảo hành": r.warranty ?? "", "Xuất xứ": r.origin ?? "",
+      "Tồn": r.qty != null ? String(r.qty) : "", "Tồn tối thiểu": r.minQty != null ? String(r.minQty) : "", "Thông số": r.spec ?? "", "Hướng dẫn sử dụng": r.usageGuide ?? "", "Bảo hành": r.warranty ?? "", "Xuất xứ": r.origin ?? "",
     } as Record<string, string>;
     rows.push([...TEMPLATE_COLUMNS.map((c, ci) => (ci === 5 ? { formula: `IF(E${i + 2}="","",ROUND(E${i + 2}*1.1,0))` } : raw[c] ?? "")), `Dòng ${r.line}: ${r.errors.join("; ")}`]);
   });

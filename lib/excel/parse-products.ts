@@ -6,7 +6,7 @@ export type ImportRow = {
   sub: string | null; classifications: string[] | null; industry: string | null; brand: string | null; spec: string | null; attributes: Record<string, string>;
   warranty: string | null; origin: string | null; errors: string[];
   // Chỉ mẫu chuẩn TTT: vị trí, tồn (số hàng đang có; null = ô trống, giữ nguyên), sản xuất tại, mô tả (chữ thường, mỗi dòng một đoạn), ô gốc để xuất lại file lỗi
-  location?: string | null; qty?: number | null; madeIn?: string | null; description?: string | null; raw?: Record<string, string>;
+  usageGuide?: string | null; location?: string | null; qty?: number | null; madeIn?: string | null; description?: string | null; raw?: Record<string, string>;
 };
 
 // Số tồn tối đa mỗi lần đặt: khớp giới hạn của hàm adjust_stock trong cơ sở dữ liệu (±100.000).
@@ -15,7 +15,7 @@ export const MAX_STOCK = 100_000;
 // Cột của file Excel mẫu (mẫu chuẩn TTT). Giá tính bằng đồng.
 export const TEMPLATE_COLUMNS = [
   "Mã hàng hóa", "Tên sản phẩm", "Đơn vị tính", "Giá bán", "Giá nhập", "Giá nhập + 10%", "Ngành hàng", "Danh mục", "Danh mục con", "Phân loại", "Thương hiệu",
-  "Vị trí", "Tồn", "Tồn tối thiểu", "Thông số", "Mô tả", "Bảo hành", "Xuất xứ", "Sản xuất tại",
+  "Vị trí", "Tồn", "Tồn tối thiểu", "Thông số", "Mô tả", "Hướng dẫn sử dụng", "Bảo hành", "Xuất xứ", "Sản xuất tại",
 ] as const;
 export const TEMPLATE_SHEET = "SanPham";
 
@@ -24,7 +24,7 @@ export const EXPORT_GROUPS = [
   { id: "cost", name: "Giá nhập", columns: ["Giá nhập", "Giá nhập + 10%"] },
   { id: "category", name: "Phân nhóm", columns: ["Ngành hàng", "Danh mục", "Danh mục con", "Phân loại", "Thương hiệu"] },
   { id: "stock", name: "Kho", columns: ["Tồn", "Tồn tối thiểu", "Vị trí"] },
-  { id: "info", name: "Thông tin", columns: ["Thông số", "Mô tả", "Bảo hành", "Xuất xứ", "Sản xuất tại"] },
+  { id: "info", name: "Thông tin", columns: ["Thông số", "Mô tả", "Hướng dẫn sử dụng", "Bảo hành", "Xuất xứ", "Sản xuất tại"] },
   { id: "extra", name: "Khác", columns: ["Giá khuyến mãi", "Trạng thái", "Link ảnh"] },
 ] as const;
 
@@ -141,7 +141,7 @@ export function detectAndParse(
           line, sku: toSku(g("Mã hàng hóa")), name: g("Tên sản phẩm"), unit: g("Đơn vị tính") || "Cái", price: num(g("Giá bán")) * scale,
           cost: g("Giá nhập") ? num(g("Giá nhập")) * scale : null, minQty: g("Tồn tối thiểu") ? num(g("Tồn tối thiểu")) : null,
           sub, classifications: splitClassifications(g("Phân loại")), industry: opt("Ngành hàng"), brand: opt("Thương hiệu"), spec: service.spec || null, attributes: {}, warranty: opt("Bảo hành") ?? service.warranty, origin: opt("Xuất xứ") ?? service.origin,
-          location: opt("Vị trí"), qty: g("Tồn") ? Number(g("Tồn").replace(/\s/g, "").replace(",", ".")) : null, madeIn: opt("Sản xuất tại") ?? service.madeIn, description: opt("Mô tả"), raw, errors: [],
+          location: opt("Vị trí"), qty: g("Tồn") ? Number(g("Tồn").replace(/\s/g, "").replace(",", ".")) : null, madeIn: opt("Sản xuất tại") ?? service.madeIn, description: opt("Mô tả"), usageGuide: opt("Hướng dẫn sử dụng"), raw, errors: [],
         }, subs.find((item) => item.slug === sub)?.parent_id === null || subs.find((item) => item.slug === sub)?.parent === "");
         if (cat && !sub) row.errors.push(`Không tìm thấy danh mục “${cat}”`);
         if (row.minQty !== null && (!Number.isSafeInteger(row.minQty) || row.minQty < 0)) row.errors.push("Tồn tối thiểu không phải số");
@@ -216,6 +216,7 @@ export function finish(r: ImportRow, subIsRoot = false): ImportRow {
     if (r.classifications.some((name) => name.length > 80)) e.push("Tên Phân loại dài quá 80 ký tự.");
     if (r.classifications.length && (!r.sub || subIsRoot)) e.push("Có Phân loại thì phải có Danh mục con.");
   }
+  if (r.usageGuide && r.usageGuide.length > 3000) e.push("Hướng dẫn sử dụng quá dài (tối đa 3.000 ký tự).");
   if (!r.sku || r.sku.length < 2) e.push("Thiếu mã hàng hóa");
   if (!r.name || r.name.length < 2) e.push("Thiếu tên");
   if (r.name.length > 200) e.push("Tên quá dài");

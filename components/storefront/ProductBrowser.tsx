@@ -22,7 +22,7 @@ const SORTS = [
   ["giam-nhieu", "Giảm nhiều nhất"],
   ["ten", "Tên A–Z"],
 ] as const;
-const URL_FILTERS = ["cat", "sub", "industry", "brand", "price", "state", "classification", "min", "max"];
+const URL_FILTERS = ["cat", "sub", "brand", "price", "state", "classification", "min", "max"];
 
 // Nút "Xem tiếp N sản phẩm" kèm vòng tiến độ (đã hiện / tổng), theo thiết kế Stitch v2.
 // Nút "Xem thêm N sản phẩm" kèm vòng tiến độ (đã hiện / tổng), theo thiết kế Stitch v2. Chỉ tải khi chủ động bấm.

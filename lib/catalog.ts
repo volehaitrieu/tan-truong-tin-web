@@ -15,18 +15,15 @@ import { parseSpecs, sanitizeHtml } from "@/lib/rich-text";
 type Row = {
   sku: string; name: string; unit: string; price: number; sale_price: number | null; sale_from: string | null; sale_to: string | null;
   spec_line: string | null; attributes: Record<string, string | number>; warranty: string | null; in_stock: boolean;
-  origin: string | null; made_in: string | null; description: string | null;
+  origin: string | null; made_in: string | null; description: string | null; usage_guide?: string | null;
   category_id: number | null; industry: string | null;
   brand: { name: string } | null;
   images: { url: string; sort: number }[];
   links?: { classification_id: number }[];
 };
 const SELECT =
-  "sku, name, unit, price, sale_price, sale_from, sale_to, spec_line, attributes, warranty, origin, made_in, description, in_stock, " +
+  "sku, name, unit, price, sale_price, sale_from, sale_to, spec_line, attributes, warranty, origin, made_in, description, usage_guide, in_stock, " +
   "category_id, industry, brand:brands(name), images:product_images(url, sort), links:product_classifications(classification_id)";
-// Trước khi chạy migration nhiều Phân loại (bảng product_classifications chưa có) / migration Ngành hàng.
-const SELECT_BEFORE_LINKS = SELECT.replace(", links:product_classifications(classification_id)", "");
-const SELECT_BEFORE_INDUSTRY = SELECT_BEFORE_LINKS.replace("category_id, industry,", "category_id,");
 
 // Bảng danh mục (id → tên, slug, danh mục cha) — tra trong bộ nhớ thay vì nhúng bảng tự tham chiếu
 type CatRow = { id: number; parent_id: number | null; name: string; slug: string; icon: string | null; sort: number };
@@ -95,6 +92,11 @@ async function attributeLabels() {
   return map;
 }
 
+// Hướng dẫn sử dụng: mỗi dòng một bước; bỏ số thứ tự gõ sẵn ("1. ", "2) ") vì trang tự đánh số.
+function parseGuide(text: string | null | undefined): string[] {
+  return String(text ?? "").split(/\r?\n/).map((line) => line.replace(/^\s*\d{1,2}[.)]\s*/, "").trim()).filter(Boolean).slice(0, 30);
+}
+
 function toProduct(r: Row, labels: Map<string, { label: string; unit?: string }>, cats: CatRow[]): Product {
   const sale = saleActive(r);
   const specs = parseSpecs(r.spec_line ?? "");
@@ -149,31 +151,25 @@ function toProduct(r: Row, labels: Map<string, { label: string; unit?: string }>
     ],
     specNotes: specs.notes,
     description: r.description ? sanitizeHtml(r.description) : "",
+    usageGuide: parseGuide(r.usage_guide),
     warranty: r.warranty ?? "Theo chính sách của hãng",
   };
 }
 
 export const getProducts = cache(async (): Promise<Product[]> => {
-  const [initial, labels, cats] = await Promise.all([
-    createPublicClient().from("products").select(SELECT).order("name").limit(5000),
-    attributeLabels(),
-    getCategoryRows(),
-  ]);
-  let data = initial.data;
-  let error = initial.error;
-  if (error && /product_classifications/i.test(`${error.message} ${error.details ?? ""} ${error.hint ?? ""}`)) {
-    const before = await createPublicClient().from("products").select(SELECT_BEFORE_LINKS).order("name").limit(5000);
-    data = before.data as typeof data;
-    error = before.error;
+  const [labels, cats] = await Promise.all([attributeLabels(), getCategoryRows()]);
+  // Giữ trang bán hàng chạy khi DB chưa có cột/bảng mới: bỏ dần phần SELECT mà DB báo thiếu (tối đa 4 lần).
+  let select = SELECT;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const { data, error } = await createPublicClient().from("products").select(select).order("name").limit(5000);
+    if (!error) return (data as unknown as Row[]).map((r) => toProduct(r, labels, cats));
+    const text = `${error.message} ${error.details ?? ""} ${error.hint ?? ""}`;
+    if (/usage_guide/i.test(text) && select.includes("usage_guide, ")) select = select.replace("usage_guide, ", "");
+    else if (/product_classifications/i.test(text) && select.includes(", links:")) select = select.replace(", links:product_classifications(classification_id)", "");
+    else if (/products\.industry/i.test(text) && select.includes("category_id, industry,")) select = select.replace("category_id, industry,", "category_id,");
+    else throw error;
   }
-  // Keep the storefront readable while the industry migration is waiting to be applied.
-  if (error && /column products\.industry does not exist/i.test(error.message)) {
-    const legacy = await createPublicClient().from("products").select(SELECT_BEFORE_INDUSTRY).order("name").limit(5000);
-    data = legacy.data;
-    error = legacy.error;
-  }
-  if (error) throw error;
-  return (data as unknown as Row[]).map((r) => toProduct(r, labels, cats));
+  throw new Error("Không đọc được danh sách sản phẩm.");
 });
 
 export async function getProduct(sku: string) {

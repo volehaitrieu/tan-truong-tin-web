@@ -145,6 +145,26 @@ export default async function ProductPage({ params }: PageProps<"/san-pham/[sku]
             <p className="mt-3 text-sm"><b>Bảo hành:</b> {p.warranty}</p>
           </div>
         </details>
+
+        {p.usageGuide && p.usageGuide.length > 0 && (
+          <details open className="group rounded-3xl border border-line">
+            <summary className="flex min-h-16 cursor-pointer list-none items-center gap-3 px-5 [&::-webkit-details-marker]:hidden">
+              <h2 className="text-lg font-bold">Hướng dẫn sử dụng</h2>
+              <ChevronDown className="ml-auto size-5 transition-transform duration-200 group-open:rotate-180" aria-hidden />
+            </summary>
+            <div className="px-5 pb-5">
+              <ol className="space-y-3">
+                {p.usageGuide.map((step, i) => (
+                  <li key={i} className="flex gap-3 text-[15px] leading-6">
+                    <span aria-hidden className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-brand text-xs font-semibold text-white">{i + 1}</span>
+                    <span className="min-w-0">{step}</span>
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-4 text-sm text-ink-2">Hướng dẫn chung theo loại sản phẩm. Xem sách hướng dẫn của hãng đi kèm sản phẩm.</p>
+            </div>
+          </details>
+        )}
       </div>
 
       <section id="cung-danh-muc" className="mt-10 scroll-mt-32" aria-labelledby="h-lien-quan">

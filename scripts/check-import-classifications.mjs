@@ -32,3 +32,11 @@ test('Thông số: tách Bảo hành / Xuất xứ / Sản xuất tại, giữ d
   assert.equal(r.spec, 'Công suất: 65W\nĐiều khiển: Núm vặn');
   assert.deepEqual([r.warranty, r.origin, r.madeIn], ['12 tháng', 'Việt Nam', 'Việt Nam']);
 });
+
+test('Hướng dẫn sử dụng: đọc cột mới, ô trống = giữ nguyên, quá 3.000 ký tự báo lỗi', () => {
+  const ok = parse({ 'Hướng dẫn sử dụng': '1. Lắp quạt\n2. Cắm điện' });
+  assert.equal(ok.usageGuide, '1. Lắp quạt\n2. Cắm điện');
+  assert.deepEqual(ok.errors, []);
+  assert.equal(parse({ 'Hướng dẫn sử dụng': '' }).usageGuide, null);
+  assert.match(parse({ 'Hướng dẫn sử dụng': 'x'.repeat(3001) }).errors.join(), /quá dài/);
+});
