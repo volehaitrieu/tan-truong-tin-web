@@ -712,3 +712,8 @@
 - Kiểm mã: bộ test cho phép 30/30 đạt; `npx tsc --noEmit` đạt; ESLint không lỗi, có một cảnh báo biến chưa dùng ở `scripts/check-vietqr.mjs`; `git diff --check` đạt.
 - SePay dashboard có webhook HMAC đang bật cho domain, nhưng tổng số lần gửi/thành công đều bằng 0; bảng giao dịch website vẫn trống. Chưa xác minh endpoint cụ thể trong cấu hình SePay, chưa gửi POST thử, chưa chuyển tiền; chưa thể xác nhận đối soát tự động.
 - Chưa xác minh đăng nhập tài khoản nhân viên, đặt đơn thật, quét QR bằng app ngân hàng, tồn kho khi đặt vượt số lượng, hoặc hiển thị trên nhiều thiết bị. Chủ shop đã chấp nhận nội dung hiện có (bao gồm ảnh minh họa/chính sách chờ chốt) cho thuyết trình.
+
+## 09/11/2026 — Gộp nhánh website-v2 vào main
+- Theo yêu cầu chủ shop, đã kiểm tra `main` là tổ tiên của `worktree-website-v2` (main-only 0 commit, nhánh website có 22 commit), rồi fast-forward `main` lên `ae0db04`; push thường, không force-push và không xung đột.
+- Đã xác minh GitHub `main` và `worktree-website-v2` cùng SHA `ae0db0480758dfdc57a8375b847c425524174f14`. Vercel không cấu hình Git repository, nên không tự deploy khi push; tên miền vẫn trỏ deployment `dpl_7SJm3be9Eu33BHVi424VA2SQn6gM` READY.
+- Thư mục dự án gốc vẫn ở nhánh `codex/desktop-storefront-upgrade` và còn 6 thay đổi cục bộ; không chuyển nhánh hoặc sửa các thay đổi đó. Không ghi Supabase hay chạy migration. Các tệp tạm/route thử trong worktree website-v2 vẫn không nằm trong commit.
