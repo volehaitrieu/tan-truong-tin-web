@@ -2,16 +2,17 @@
 import { useActionState, useState, startTransition } from "react";
 import { saveSettings, sendTestTelegram, type SettingsState } from "./actions";
 import type { ShopSettings } from "@/lib/settings";
+import { FLAT_SHIPPING_POLICY } from "@/lib/shipping";
 import { BANKS } from "@/lib/vietqr";
 
 const input = "mt-1 h-11 w-full rounded border border-line bg-white px-3 text-sm";
 const section = "rounded-lg border border-line bg-white p-4 sm:p-5";
 
-export function SettingsForm({ s, telegramReady }: { s: ShopSettings; telegramReady: boolean }) {
+export function SettingsForm({ s, telegramReady, sepayReady, sepayAvailable }: { s: ShopSettings; telegramReady: boolean; sepayReady: boolean; sepayAvailable: boolean }) {
   const [test, setTest] = useState<{ busy?: boolean; ok?: boolean; error?: string }>({});
   const [state, action, pending] = useActionState<SettingsState, FormData>(saveSettings, {});
   return (
-    <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget); startTransition(() => action(fd)); }} className="space-y-4">
+    <form onSubmit={(e) => { e.preventDefault(); const form = e.currentTarget; const fd = new FormData(form); const secret = form.elements.namedItem("sepay_webhook_secret"); if (secret instanceof HTMLInputElement) secret.value = ""; startTransition(() => action(fd)); }} className="space-y-4">
       <section className={section}>
         <h2 className="mb-3 font-semibold">Thông tin cửa hàng</h2>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -26,7 +27,8 @@ export function SettingsForm({ s, telegramReady }: { s: ShopSettings; telegramRe
 
       <section className={section}>
         <h2 className="mb-1 font-semibold">Giao hàng & phí ship</h2>
-        <p className="mb-3 text-[13px] text-ink-2">Lấy tại cửa hàng: 0₫. Gửi đi tỉnh (SPX, GHTK): báo phí sau khi xác nhận đơn. Để trống phí nội thành = “báo sau”.</p>
+        {s.shop.shipping_policy === FLAT_SHIPPING_POLICY ? <p className="text-sm">Đang áp dụng phí giao hàng 15.000₫; miễn phí từ đơn 500.000₫. Lấy tại cửa hàng miễn phí.</p> : <>
+        <p className="mb-3 text-[13px] text-ink-2">Lấy tại cửa hàng miễn phí. Giao hàng tận nơi: theo mức phí và ngưỡng miễn phí đang cấu hình.</p>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-sm">Phí ship nội thành Nha Trang (đồng)
             <input name="inner_ship_fee" defaultValue={s.inner_ship_fee ?? ""} inputMode="numeric" maxLength={9} placeholder="Ví dụ 20000" className={`${input} num`} />
@@ -35,6 +37,7 @@ export function SettingsForm({ s, telegramReady }: { s: ShopSettings; telegramRe
             <input name="free_ship_threshold" defaultValue={s.free_ship_threshold ?? ""} inputMode="numeric" maxLength={11} placeholder="Để trống = không miễn phí" className={`${input} num`} />
           </label>
         </div>
+        </>}
       </section>
 
       <section className={section}>
@@ -55,6 +58,15 @@ export function SettingsForm({ s, telegramReady }: { s: ShopSettings; telegramRe
           <label className="text-sm sm:col-span-2">Tên chủ tài khoản
             <input name="bank_account_name" defaultValue={s.bank?.account_name ?? ""} autoComplete="off" maxLength={60} className={input} placeholder="Viết hoa không dấu, giống tên trên thẻ" />
           </label>
+        </div>
+        <div className="mt-4 rounded-lg border border-line bg-ground p-3">
+          <h3 className="font-semibold">Tự xác nhận chuyển khoản SePay</h3>
+          <p className="mt-1 text-[13px] text-ink-2">Trạng thái webhook: <b className={sepayReady ? "text-ok" : "text-gold-ink"}>{!sepayAvailable ? "Chưa cài phần nhận webhook ở cơ sở dữ liệu" : sepayReady ? "Đã có mã bảo mật" : "Chưa kết nối"}</b></p>
+          <p className="mt-1 text-[13px] text-ink-2">Sau khi SQL webhook được duyệt và website được cập nhật lên tên miền chính, tạo webhook HMAC-SHA256 trong SePay rồi dán mã bí mật vào đây. Mã được lưu riêng trong vùng bảo mật của cơ sở dữ liệu, không hiển thị lại sau khi lưu. Để trống khi lưu các cài đặt khác thì giữ nguyên mã hiện tại.</p>
+          <label className="mt-3 block text-sm">Mã bí mật webhook SePay
+            <input name="sepay_webhook_secret" type="password" autoComplete="new-password" minLength={24} maxLength={500} disabled={!sepayAvailable} className={`${input} disabled:bg-ground disabled:text-ink-2`} placeholder={sepayReady ? "Đã lưu — chỉ nhập nếu cần thay mã" : "Dán mã SePay tạo khi cấu hình webhook"} />
+          </label>
+          <p className="mt-2 break-all text-xs text-ink-2">Địa chỉ webhook cần nhập tại SePay: https://tantruongtin.com/api/sepay/webhook</p>
         </div>
       </section>
 

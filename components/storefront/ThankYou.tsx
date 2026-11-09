@@ -6,6 +6,7 @@ import { OrderSteps } from "@/components/storefront/OrderSteps";
 import { ORDER_KEY, type PlacedOrder } from "@/components/storefront/CheckoutForm";
 import { BankQr } from "@/components/storefront/BankQr";
 import type { ShopBank } from "@/lib/vietqr";
+import { receiptAmounts } from "@/lib/shipping";
 import { formatVnd } from "@/lib/shop";
 
 const noop = () => () => {};
@@ -30,7 +31,11 @@ export function ThankYou({ bank = null }: { bank?: ShopBank | null }) {
       </div>
     );
 
-  const shipLater = order.method !== "pickup";
+  return <OrderReceipt order={order} bank={bank} />;
+}
+
+export function OrderReceipt({ order, bank }: { order: PlacedOrder; bank: ShopBank | null }) {
+  const amounts = receiptAmounts(order.total, order.method, order.shippingFee);
   return (
     <div className="mx-auto max-w-2xl">
       <div className="rounded-md bg-white p-6 text-center sm:p-8">
@@ -39,10 +44,11 @@ export function ThankYou({ bank = null }: { bank?: ShopBank | null }) {
         <p className="mt-4 text-sm text-ink-2">Mã đơn hàng của bạn</p>
         <p className="num mt-1 text-[34px] font-extrabold tracking-wide text-brand">{order.code}</p>
         <p className="mt-1 text-[13px] text-ink-2">Hãy lưu lại mã này để tra cứu đơn.</p>
-        <p className="mt-5 text-[15px]">
-          Tổng tiền hàng <b className="num">{formatVnd(order.total)}</b>
-          {shipLater ? " — phí ship sẽ được báo khi shop gọi xác nhận đơn." : " — nhận tại cửa hàng, không mất phí ship."}
-        </p>
+        <dl className="mt-5 space-y-2 text-sm">
+          <div className="flex justify-between gap-3"><dt>Tiền hàng</dt><dd className="num">{formatVnd(amounts.subtotal)}</dd></div>
+          <div className="flex justify-between gap-3"><dt>Phí giao hàng</dt><dd className="num">{amounts.shippingPending ? "Shop xác nhận sau" : formatVnd(amounts.shippingFee!)}</dd></div>
+          <div className="flex justify-between gap-3 border-t border-line pt-2 font-bold"><dt>{amounts.shippingPending ? "Tạm tính" : "Tổng thanh toán"}</dt><dd className="num">{formatVnd(amounts.total)}</dd></div>
+        </dl>
       </div>
 
       <div className="mt-4 rounded-md bg-white p-5 sm:p-6">
@@ -58,8 +64,10 @@ export function ThankYou({ bank = null }: { bank?: ShopBank | null }) {
         </ul>
       </div>
 
-      {order.pay === "bank" && bank ? (
-        <BankQr bank={bank} amount={order.total} code={order.code} />
+      {order.pay === "bank" ? bank ? (
+        <BankQr bank={bank} amount={amounts.total} code={order.code} shippingPending={amounts.shippingPending} />
+      ) : (
+        <p role="alert" className="mt-4 rounded-md bg-white p-5 text-sm text-ink-2"><b className="text-ink">Chuyển khoản:</b> tài khoản nhận tiền chưa sẵn sàng. Vui lòng gọi shop để được hướng dẫn; không chuyển theo mã QR cũ.</p>
       ) : (
         <p className="mt-4 rounded-md bg-white p-5 text-sm text-ink-2"><b className="text-ink">Thanh toán:</b> tiền mặt khi giao hoặc nhận hàng.</p>
       )}

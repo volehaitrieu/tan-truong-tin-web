@@ -6,6 +6,7 @@ import { StoreSearch } from "@/components/storefront/StoreSearch";
 import { HeaderSearchToggle } from "@/components/storefront/HeaderSearchToggle";
 import { CartCount } from "@/components/storefront/CartControls";
 import { MobileBottomNav } from "@/components/storefront/MobileBottomNav";
+import { StoreBackButton } from "@/components/storefront/StoreBackButton";
 import { FloatActions } from "@/components/storefront/FloatActions";
 import { CompareBar } from "@/components/storefront/compare/CompareBar";
 import { getCategoryMenu } from "@/lib/catalog";
@@ -51,7 +52,10 @@ export async function StoreShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[1240px] flex-1 px-4 pb-10 pt-5">{children}</main>
+      <main className="mx-auto w-full max-w-[1240px] flex-1 px-4 pb-10 pt-5">
+        <StoreBackButton />
+        {children}
+      </main>
 
       <footer className="border-t border-line bg-ground text-ink md:bg-sunk">
         {/* Điện thoại: chân trang gọn, căn giữa theo thiết kế v2 */}

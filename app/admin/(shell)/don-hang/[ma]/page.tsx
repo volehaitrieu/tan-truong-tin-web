@@ -4,6 +4,7 @@ import { Clock3 } from "lucide-react";
 import { Badge, Card, PageHeader } from "@/components/admin/ui";
 import { ProductCell } from "@/components/admin/ProductCell";
 import { OrderActions, ShippingForm, PaidButton } from "@/components/admin/orders/OrderActions";
+import { DeleteOrderButton } from "@/components/admin/orders/DeleteOrderButton";
 import { requireStaff } from "@/lib/auth";
 import { DELIVERY_LABEL, NEXT_STATUS, STATUS_LABEL, STATUS_TONE, fmtTime, getOrder } from "@/lib/admin/orders";
 import { formatVnd } from "@/lib/shop";
@@ -28,7 +29,10 @@ export default async function OrderDetailPage({ params }: PageProps<"/admin/don-
         title={`Đơn hàng ${o.code}`}
         crumbs={[{ label: "Đơn hàng", href: "/admin/don-hang" }, { label: o.code }]}
         sub={fmtTime(o.created_at)}
-        actions={<Badge tone={STATUS_TONE[o.status]}>{STATUS_LABEL[o.status]}</Badge>}
+        actions={<div className="flex items-center gap-2">
+          <Badge tone={STATUS_TONE[o.status]}>{STATUS_LABEL[o.status]}</Badge>
+          {staff.role === "owner" && o.status === "cancelled" && o.payment_status === "unpaid" && <DeleteOrderButton orderId={o.id} code={o.code} />}
+        </div>}
       />
       <OrderActions orderId={o.id} code={o.code} next={NEXT_STATUS[o.status]} canCancel={!closed && staff.perms.has("cancel_orders")} />
       {o.needs_restock && <p className="mb-4 rounded-md bg-gold-tint p-3 text-sm text-gold-ink">Có món hết hàng — cần đặt hàng thêm và gọi báo khách thời gian có hàng.</p>}
@@ -78,7 +82,7 @@ export default async function OrderDetailPage({ params }: PageProps<"/admin/don-
             )}
           </Card>
           <Card pad title="Thanh toán">
-            <p className="text-sm">COD · {o.payment_status === "paid" ? <b className="text-ok">Đã nhận tiền</b> : "Chưa thanh toán"}</p>
+            <p className="text-sm">{o.payment_method === "bank" ? "Chuyển khoản" : "COD"} · {o.payment_status === "paid" ? <b className="text-ok">Đã nhận tiền</b> : "Chưa thanh toán"}</p>
             {o.payment_status === "unpaid" && o.status !== "cancelled" && <PaidButton orderId={o.id} code={o.code} />}
             <a href={`/admin/in-phieu/${o.code}`} className="mt-3 inline-flex h-11 items-center rounded border border-line px-4 text-sm font-medium">In phiếu giao hàng</a>
           </Card>

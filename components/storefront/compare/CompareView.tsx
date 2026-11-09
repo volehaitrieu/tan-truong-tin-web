@@ -42,7 +42,7 @@ export function CompareView({ products, missing }: { products: Product[]; missin
         <h1 className="text-[26px] font-extrabold sm:text-[32px]">So sánh sản phẩm</h1>
         {missing > 0 && <p role="status" className="mt-3 text-sm text-ink-2">Không tìm thấy {missing} sản phẩm.</p>}
         <div className="mt-5 rounded-xl border border-line bg-surface p-6 text-center">
-          <p className="text-ink-2">Bạn chưa chọn sản phẩm nào để so sánh. Bấm nút <ArrowLeftRight className="inline size-4 align-text-bottom" aria-hidden /> trên ảnh sản phẩm để thêm tối đa {MAX_COMPARE} món.</p>
+          <p className="text-ink-2">Bạn chưa chọn sản phẩm nào để so sánh. Bấm nút <ArrowLeftRight className="inline size-4 align-text-bottom" aria-hidden /> cạnh nút Thêm vào giỏ trên thẻ sản phẩm để thêm tối đa {MAX_COMPARE} món.</p>
           <Link href="/" className="mt-4 inline-flex h-11 items-center rounded-full bg-brand px-6 font-semibold text-white hover:bg-brand-deep">Xem sản phẩm</Link>
         </div>
       </>
@@ -135,7 +135,7 @@ export function CompareView({ products, missing }: { products: Product[]; missin
         </table>
       </div>
       {products.length > 2 && <p className="mt-2 text-xs text-ink-2">Vuốt ngang để xem đủ {products.length} sản phẩm.</p>}
-      {onlyDiff && rows.length > 0 && shownRows.length === 0 && <p role="status" className="mt-3 text-sm text-ink-2">Các thông số còn lại giống nhau hoặc chưa đủ thông tin để so sánh. Giá, hãng, tình trạng và bảo hành vẫn hiện ở trên.</p>}
+      {onlyDiff && rows.length > 0 && shownRows.length === 0 && <p role="status" className="mt-3 text-sm text-ink-2">Các thông số còn lại giống nhau hoặc chưa đủ thông tin để so sánh. Giá, hãng và bảo hành vẫn hiện ở trên.</p>}
       {rows.length === 0 && <p className="mt-3 text-sm text-ink-2">Các sản phẩm này chưa có thông số chi tiết để so sánh thêm.</p>}
     </>
   );

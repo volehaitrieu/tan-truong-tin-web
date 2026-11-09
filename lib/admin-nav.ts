@@ -2,6 +2,7 @@ import {
   BarChart3,
   Boxes,
   ClipboardCheck,
+  CreditCard,
   FileSpreadsheet,
   FolderTree,
   LayoutDashboard,
@@ -23,6 +24,7 @@ export type NavItem = { href: string; label: string; icon: LucideIcon; perm?: Pe
 export const ADMIN_NAV: NavItem[] = [
   { href: "/admin", label: "Tổng quan", icon: LayoutDashboard },
   { href: "/admin/don-hang", label: "Đơn hàng", icon: ReceiptText, perm: "process_orders" },
+  { href: "/admin/giao-dich", label: "Giao dịch", icon: CreditCard, perm: "process_orders" },
   { href: "/admin/ban-tai-quay", label: "Bán tại quầy", icon: ShoppingCart, perm: "pos_sale" },
   { href: "/admin/san-pham", label: "Sản phẩm", icon: Package },
   { href: "/admin/nhap-excel", label: "Nhập Excel", icon: FileSpreadsheet, perm: "import_excel" },

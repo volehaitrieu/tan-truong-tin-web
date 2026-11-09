@@ -18,7 +18,7 @@ export async function cartProducts(skus: string[]): Promise<Product[]> {
 
 export type PlaceOrderInput = {
   name: string; phone: string; email?: string; delivery: "pickup" | "inner" | "province";
-  province?: string; ward?: string; street?: string; note?: string; items: { sku: string; qty: number }[];
+  province?: string; ward?: string; street?: string; note?: string; shippingPolicy?: string; pay?: "cod" | "bank"; items: { sku: string; qty: number }[];
 };
 export type PlaceOrderResult = { ok: true; code: string; subtotal: number; shippingFee: number | null } | { ok: false; error: string };
 

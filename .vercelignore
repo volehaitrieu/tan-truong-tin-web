@@ -11,3 +11,13 @@ exports/
 .hallmark/
 research_notes/
 reports/
+.superpowers/
+/docs/
+/scripts/
+/supabase/
+/.claude/
+/.codex/
+/.agents/
+/AGENTS.md
+/CLAUDE.md
+/app/(store)/kiem-tra-phi-ship/

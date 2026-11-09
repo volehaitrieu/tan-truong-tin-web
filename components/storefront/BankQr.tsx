@@ -40,22 +40,22 @@ function CopyRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function BankQr({ bank, amount, code }: { bank: ShopBank; amount: number; code: string }) {
+export function BankQr({ bank, amount, code, shippingPending = false }: { bank: ShopBank; amount: number; code: string; shippingPending?: boolean }) {
   const payload = vietQrPayload(bank, amount, code);
   const note = transferNote(code);
   return (
     <section className="mt-4 rounded-md bg-white p-5 sm:p-6" aria-labelledby="qr-title">
       <h2 id="qr-title" className="font-bold">Chuyển khoản bằng mã QR</h2>
-      <p className="mt-1 text-[13px] text-ink-2">Mở app ngân hàng, chọn quét mã QR. Số tiền và nội dung đã điền sẵn, bạn chỉ cần kiểm tra rồi xác nhận.</p>
+      <p className="mt-1 text-[13px] text-ink-2">Mở app ngân hàng, chọn quét mã QR. Số tiền và nội dung đã điền sẵn; vui lòng giữ nguyên để hệ thống đối chiếu đúng đơn hàng.</p>
       <div className="mt-4"><QrSvg text={payload} /></div>
       <div className="mt-4 divide-y divide-line border-t border-line">
         <CopyRow label="Ngân hàng" value={bankName(bank.bin) || bank.bin} />
         <CopyRow label="Số tài khoản" value={bank.account_no} />
         {bank.account_name && <CopyRow label="Chủ tài khoản" value={bank.account_name} />}
-        <CopyRow label="Số tiền hàng" value={formatVnd(amount)} />
+        <CopyRow label={shippingPending ? "Số tiền hàng" : "Số tiền chuyển khoản"} value={formatVnd(amount)} />
         <CopyRow label="Nội dung chuyển khoản" value={note} />
       </div>
-      <p className="mt-3 text-[13px] text-ink-2">Mã QR tính theo tiền hàng. Phí ship (nếu có) shop báo khi gọi xác nhận đơn. Shop sẽ xác nhận khi nhận được tiền.</p>
+      <p className="mt-3 text-[13px] text-ink-2">{shippingPending ? "Mã QR chỉ gồm tiền hàng, chưa gồm phí giao hàng. Shop sẽ báo phần phí còn lại khi xác nhận đơn." : "Số tiền QR gồm tiền hàng và phí giao hàng đã hiển thị ở trên."} Giao dịch có số tiền sai sẽ cần shop kiểm tra thủ công.</p>
     </section>
   );
 }

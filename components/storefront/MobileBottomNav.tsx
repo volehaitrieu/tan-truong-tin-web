@@ -19,7 +19,7 @@ export function MobileBottomNav({ menu }: { menu: CategoryMenuTab[] }) {
       { href: "/tra-cuu", label: "Tra cứu đơn", icon: ReceiptText, active: !isOpen && inRoute("/tra-cuu") },
     ];
     const link = (item: typeof links[number]) => <Link key={item.href} href={item.href} aria-current={item.active ? "page" : undefined} onClick={(event) => { if (isOpen && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); navigate(item.href); } }} className={itemClass(item.active)}>
-      <span className="relative"><item.icon className="size-5" aria-hidden />{item.href === "/gio-hang" && <CartCount />}</span>{item.label}
+      <span className="relative"><item.icon className="size-5" aria-hidden />{item.href === "/gio-hang" && <CartCount placement="nav" />}</span>{item.label}
     </Link>;
     return <nav data-mobile-nav="" aria-label="Điều hướng nhanh" className="fixed inset-x-0 bottom-0 z-[70] grid grid-cols-4 border-t border-line bg-ground pb-[env(safe-area-inset-bottom)] text-xs md:hidden">
       {link(links[0])}

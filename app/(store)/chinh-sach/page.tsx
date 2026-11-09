@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { MapPin, Phone } from "lucide-react";
 import { POLICIES } from "@/components/storefront/StoreShell";
 import { SHOP } from "@/lib/shop";
+import { FLAT_SHIPPING_POLICY } from "@/lib/shipping";
 import { getSettings } from "@/lib/settings";
 
 export const metadata: Metadata = { title: "Chính sách & giới thiệu" };
@@ -23,6 +24,7 @@ export default async function PolicyPage() {
   const body = (id: string) =>
     id === "doi-tra" && st.return_policy ? { text: st.return_policy }
     : id === "thanh-toan" && st.bank ? { text: "Trả tiền mặt khi nhận hàng (COD) hoặc tại quầy.\nChuyển khoản bằng mã QR: chọn “Chuyển khoản” ở bước thanh toán, mã QR hiện sau khi đặt hàng. Shop xác nhận đơn khi nhận được tiền." }
+    : id === "van-chuyen" && st.shop.shipping_policy === FLAT_SHIPPING_POLICY ? { text: "Lấy tại cửa hàng: miễn phí. Giao hàng tận nơi: 15.000₫; miễn phí với đơn hàng từ 500.000₫." }
     : id === "van-chuyen" && st.inner_ship_fee !== null ? { text: `Nhận tại cửa hàng: miễn phí. Giao nội thành Nha Trang: ${new Intl.NumberFormat("vi-VN").format(st.inner_ship_fee)}₫${st.free_ship_threshold ? `, miễn phí cho đơn từ ${new Intl.NumberFormat("vi-VN").format(st.free_ship_threshold)}₫` : ""}. Gửi đi tỉnh qua SPX, GHTK: phí báo sau.` }
     : BODY[id];
   return (

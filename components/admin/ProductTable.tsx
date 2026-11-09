@@ -104,6 +104,9 @@ export function ProductTable({ items, canEdit, canCost }: { items: ProductRow[];
             <button onClick={() => requestDownload(pickedIds)} className="inline-flex h-9 items-center gap-1.5 rounded bg-brand px-3 text-sm font-semibold text-white hover:bg-brand-deep">
               <Download className="size-4" aria-hidden />Tải {picked.size} SP
             </button>
+            {canEdit && <button type="button" disabled={deleting} onClick={() => requestDelete(pickedIds)} className="inline-flex h-9 items-center gap-1.5 rounded border border-danger px-3 text-sm font-semibold text-danger hover:bg-[#fef2f2] disabled:opacity-50">
+              <Trash2 className="size-4" aria-hidden />Xóa {picked.size} SP
+            </button>}
           </div>
         )}
       </div>

@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { FLAT_SHIPPING_POLICY } from "@/lib/shipping";
 import { BANKS } from "@/lib/vietqr";
 
 export type SettingsState = { ok?: boolean; error?: string };
@@ -14,6 +15,8 @@ const text = (v: FormDataEntryValue | null, max: number) => String(v ?? "").trim
 
 export async function saveSettings(_: SettingsState, form: FormData): Promise<SettingsState> {
   await requireStaff("settings");
+  const sepaySecret = text(form.get("sepay_webhook_secret"), 500);
+  if (sepaySecret && sepaySecret.length < 24) return { error: "Mã bảo mật SePay quá ngắn. Hãy dán nguyên mã SePay cung cấp." };
   const fee = money(form.get("inner_ship_fee"));
   const free = money(form.get("free_ship_threshold"));
   if ((fee !== null && fee > 1_000_000) || (free !== null && free > 100_000_000)) return { error: "Số tiền quá lớn, vui lòng kiểm tra lại." };
@@ -33,8 +36,11 @@ export async function saveSettings(_: SettingsState, form: FormData): Promise<Se
   }
 
   const db = await createClient();
+  const { data: current, error: readError } = await db.from("settings").select("shop, inner_ship_fee, free_ship_threshold").eq("id", 1).single();
+  if (readError || !current) return { error: "Không đọc được cài đặt hiện tại. Vui lòng thử lại." };
   const { error } = await db.from("settings").update({
     shop: {
+      ...current.shop,
       name: text(form.get("name"), 80) || "TÂN TRƯỜNG TÍN",
       tagline: text(form.get("tagline"), 120),
       address: text(form.get("address"), 200),
@@ -42,14 +48,19 @@ export async function saveSettings(_: SettingsState, form: FormData): Promise<Se
       phone2: text(form.get("phone2"), 20),
       hours: text(form.get("hours"), 40),
     },
-    inner_ship_fee: fee,
-    free_ship_threshold: free,
+    inner_ship_fee: current.shop?.shipping_policy === FLAT_SHIPPING_POLICY ? current.inner_ship_fee : fee,
+    free_ship_threshold: current.shop?.shipping_policy === FLAT_SHIPPING_POLICY ? current.free_ship_threshold : free,
     return_policy: text(form.get("return_policy"), 5000) || null,
     bank,
     updated_at: new Date().toISOString(),
   }).eq("id", 1).select("id");
   if (error) return { error: "Không lưu được. Vui lòng thử lại." };
+  if (sepaySecret) {
+    const { error: secretError } = await db.rpc("sepay_set_webhook_secret", { p_secret: sepaySecret });
+    if (secretError) return { error: "Đã lưu cài đặt cửa hàng, nhưng chưa lưu được mã webhook SePay. Vui lòng thử lại phần này." };
+  }
   revalidatePath("/", "layout");
+  revalidatePath("/admin/cai-dat");
   return { ok: true };
 }
 

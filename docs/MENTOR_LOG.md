@@ -581,3 +581,134 @@
 ## 08/11/2026 (đêm) — Chốt đợt 1–2 và bàn giao cho Codex (Claude Code)
 - Chủ shop duyệt đợt 2. Kiểm cuối: tsc + ESLint đạt, 26 kiểm thử đạt, quét bí mật sạch. Commit 1e4b213 trên nhánh `worktree-website-v2` (chưa đẩy GitHub, chưa deploy, không đụng DB). Bàn giao đầy đủ ở `docs/website-v2/BAN_GIAO_2026-11-08.md` (trạng thái nhanh + "Việc tiếp theo cho Codex — Đợt 3") và `docs/BAN_GIAO_TIEP_TUC.md`.
 - Đã gửi lời bàn giao cho Codex (luồng "Thiết kế website bán hàng mobile", dự án tan-truong-tin-web). Codex đã nhận và trả đề xuất thiết kế Đợt 3 (rủi ro: múi giờ ngày khuyến mãi, vượt lượt mã khi đặt cùng lúc, bấm đặt hai lần, giá đổi lúc đặt, giảm chồng; 4 quy tắc kinh doanh chờ chủ shop chốt). Chưa viết mã Đợt 3; chờ chủ shop trả lời Codex.
+
+
+## 09/11/2026 — Đợt 3: chốt luật và thiết kế (Codex, chưa triển khai)
+- Chủ shop đã đồng ý 4 quy tắc: một mã/đơn, không cộng giảm vào hàng đang khuyến mãi; mã không giảm ship, ngưỡng miễn ship tính sau giảm; tạo đơn thành công mới tiêu lượt, shop hủy hoàn đúng một lần; giới hạn tổng lượt, chưa giới hạn mỗi người.
+- Đã làm: đọc bàn giao/Next.js và đối chiếu mã sản phẩm, tính giá, đặt/hủy đơn, QR và báo cáo. Tạo docs/website-v2/DOT3_THIET_KE_2026-11-09.md gồm luồng tiền, UI, mô hình DB dự kiến, xử lý đồng thời/gửi lại/hủy, quyền, kế hoạch kiểm thử và phát hành. Chưa tạo SQL migration.
+- Đã kiểm: đúng nhánh worktree-website-v2 và nền commit 1e4b213; form giá khuyến mãi đã có, ngày ở catalog đang theo UTC, các nơi tính tổng đơn cần đồng bộ khoản giảm. Chỉ thay đổi tài liệu; giữ nguyên .superpowers/.
+- Chưa kiểm: schema/quyền DB thực tế, thử đặt đơn, 26 kiểm thử hồi quy, giao diện chạy thật. Không sửa mã ứng dụng, không truy vấn/ghi DB, migration, commit/push/deploy.
+- Chờ chủ shop duyệt chi tiết: ngưỡng tối thiểu mã tính trên phần hàng đủ điều kiện E; QR khi chưa biết phí giao thu tiền hàng sau giảm và ghi rõ chưa gồm phí giao. Các lựa chọn này là đề xuất, không xem là đã chốt.
+
+## 09/11/2026 — Rà soát mobile đợt 1–2 (Codex)
+- Chủ shop tạm hoãn khuyến mãi, mã giảm giá và tích điểm; đồng ý rà soát hiện trạng, chưa cho sửa mã.
+- Đã kiểm ở 375px: so sánh 2/3 món, tải lại và quay lại; bảng 3 món cuộn ngang trong vùng bảng; thanh so sánh, mua hàng, điều hướng không chồng nhau trong trạng thái đã đo. Giỏ tăng 1 lên 2: 305.000 lên 610.000đ; giao nội thành miễn phí theo ngưỡng; gửi tỉnh ghi phí báo sau. Giỏ thử đã xóa hết. Trang so sánh trống đã xác minh cuối phiên.
+- Lỗi quan sát được: nút Zalo/gọi che nội dung cột phải bảng so sánh; xóa dòng cuối giỏ mất Hoàn tác; lần gửi form trống đầu tiên không chuyển focus vào trường lỗi; hướng dẫn so sánh còn nói nút trên ảnh và còn nhắc hàng tình trạng đã bỏ.
+- Rủi ro từ đọc mã, chưa thử tạo đơn: lưu sessionStorage thất bại có thể mất màn hình xác nhận sau khi giỏ đã xóa; QR dùng subtotal cần đối chiếu phí giao trước khi bật chuyển khoản.
+- Kiểm thử: 26/26 kiểm thử trong 5 tệp được phép đạt. Không tạo đơn thật, không nhập thông tin khách, không ghi DB/migration/commit/deploy, không sửa mã ứng dụng. Chưa kiểm ngân hàng thật, trình đọc màn hình, toàn bộ bộ lọc và thao tác món thứ tư trên trình duyệt. Cảnh báo hydration có thuộc tính do extension chèn, chưa kết luận là lỗi ứng dụng.
+- Đề xuất tiếp theo: xin duyệt sửa bốn lỗi giao diện/khả dụng trên; tách rà soát xác nhận đơn và QR thành phạm vi riêng trước mở bán.
+
+## 09/11/2026 — Sửa bốn lỗi sau rà soát (Codex)
+- Chủ shop đã duyệt sửa bốn lỗi. FloatActions ẩn ở /so-sanh để không che bảng; thông báo giỏ và Hoàn tác dùng chung cả khi giỏ trống; CheckoutForm chuyển focus sau khi render lỗi; sửa hai câu hướng dẫn so sánh lỗi thời.
+- Đã kiểm: TypeScript không emit, ESLint bốn tệp, 26/26 kiểm thử được phép và git diff --check đều đạt; tự rà diff. Giữ CRLF.
+- Chưa kiểm lại bằng trình duyệt sau sửa; chưa thử trình đọc màn hình hoặc đơn thật. Kiểm thử hàm thuần không chứng minh thao tác UI. Không sửa logic tiền/QR, không ghi DB/migration/commit/deploy. Chưa cần chủ shop cung cấp thêm thông tin liên hệ.
+
+## 09/11/2026 — Kiểm tra lại UI sau sửa (Codex)
+- Chủ shop duyệt kiểm tra trên trình duyệt ở 375×812. Đã xác minh: bảng so sánh hai quạt không còn nút Zalo/gọi nổi; hướng dẫn trang trống nói nút cạnh Thêm vào giỏ; xóa dòng cuối vẫn hiện Hoàn tác, bấm khôi phục đúng Airport số lượng 2 và 610.000đ; gửi form trống lần đầu đưa focus vào Họ tên (aria-invalid=true), hiện hai lỗi và không gửi đơn.
+- Đã xóa món thử, xác minh giỏ trống; so sánh trở về trang trống; khôi phục viewport và dừng server thử của phiên. Không sửa mã trong lượt này, không tạo đơn/ghi DB/migration/commit/deploy.
+- Giới hạn: chưa thử điện thoại vật lý/trình đọc màn hình; câu thông báo thông số giống nhau đã kiểm mã ở lượt trước, chưa tái hiện trạng thái này trên UI. Các cảnh báo dev do thuộc tính extension vẫn xuất hiện; không xem là bằng chứng lỗi production.
+
+## 09/11/2026 — Rà xác nhận đơn và QR (chỉ đọc mã)
+- Đã đối chiếu CheckoutForm, ThankYou, BankQr, vietqr, server action placeOrder và SQL migration lưu trong repo; không truy vấn DB thật. 5/5 kiểm thử VietQR hiện có đạt, không chứng minh quét ngân hàng thực tế.
+- Xác minh mã: server trả shippingFee nhưng CheckoutForm bỏ phí khi lưu xác nhận; ThankYou suy diễn mọi giao hàng đều báo phí sau, kể cả miễn phí/đã biết phí. QR chỉ lấy subtotal là giới hạn đã ghi nhận của đợt 1, không kết luận thuật toán QR tính sai.
+- Rủi ro: sessionStorage ghi thất bại bị bỏ qua rồi xóa giỏ/chuyển trang, khách mất mã vừa tạo hoặc thấy đơn cũ; JSON.parse và cấu trúc dữ liệu không kiểm tra có thể làm trang xác nhận lỗi; chi tiết dòng lấy giá từ trình duyệt, tổng lấy server nên có thể lệch khi giá thay đổi. Đây là kết luận đọc mã, chưa tái hiện đơn thật.
+- Đề xuất chờ duyệt: giữ biên nhận trong bộ nhớ để hiển thị ngay cả khi lưu phiên thất bại; kiểm tra dữ liệu cũ/hỏng; dùng phí server và phân biệt null/0/số dương. Cần quyết định chủ shop: QR gồm tiền hàng + phí đã biết, hay giữ thu tiền hàng riêng. Nếu cần chi tiết giá chính xác từ DB, thiết kế phản hồi máy chủ và đưa SQL duyệt riêng, không tự migration.
+- Không sửa ứng dụng/DB, không tạo đơn, commit/deploy. Chưa xác minh schema đang triển khai hoặc ứng dụng ngân hàng.
+- Đã dừng máy chủ thử. Chrome tạm thêm Airport số lượng 1 vào giỏ để xem mức phí; cuối lượt đang dọn mục này.
+
+
+## 09/11/2026 — Đợt giao nhận và thanh toán (Codex)
+- Chủ shop yêu cầu gộp lựa chọn giao hàng, đổi nhãn lấy tại cửa hàng, phí giao 15.000đ và miễn phí từ 500.000đ; giữ miễn phí lấy tại cửa hàng; hiển thị COD và chuyển khoản ngân hàng.
+- Đã sửa CheckoutForm: hai lựa chọn nhận hàng; địa chỉ ngoài khu nội thành tự lưu loại giao tỉnh trong đơn; tổng phí/giá tạm tính phản ánh mức 15.000đ dưới 500.000đ và miễn phí từ ngưỡng; cập nhật câu chữ ở giỏ hàng, chính sách vận chuyển, phần cài đặt. Phương thức chuyển khoản hiện chỉ chọn được khi shop đã cấu hình tài khoản, nếu chưa sẽ hiển thị cần cấu hình.
+- Đã cập nhật hàm phí thuần và kiểm thử biên đúng tại 500.000đ. Kiểm tra TypeScript, ESLint các tệp sửa, 28 kiểm thử cho phép và git diff --check đều đạt. Đã xem trên trang thanh toán thật ở localhost: giao nhận có hai lựa chọn, đơn 1.095.000đ được tính phí 0đ khi chọn lấy tại cửa hàng. Chưa kiểm lại trình duyệt sau chỉnh phần phương thức chuyển khoản.
+- CHƯA sửa DB: hàm place_order đang theo chính sách 15.000đ cho mọi đơn giao hàng từ lần cập nhật trước; cần soạn nội dung cập nhật ngưỡng 500.000đ để chủ shop duyệt trước khi thực thi theo quy tắc an toàn. Chưa đặt đơn thật, chưa ghi DB/migration, commit, push hay deploy. Tài khoản ngân hàng chưa cấu hình; chuyển khoản chưa thể dùng đến khi shop nhập thông tin ở Cài đặt.
+
+## 09/11/2026 — Rà soát liền mạch giỏ hàng → giao hàng → thanh toán
+- Chủ shop báo đơn giao tận nơi không cộng phí và không chọn được QR. Đã đối chiếu ảnh: tiền hàng 1.095.000đ đã vượt 500.000đ, nên phí 0đ là đúng luật shop đã chốt; cập nhật chú thích thành “Đơn này được miễn phí giao hàng” để nói rõ lý do. Với đơn dưới 500.000đ, hàm thuần kiểm tra trả 15.000đ.
+- Đã kiểm tra luồng: CheckoutForm tính tạm phí/hiển thị tổng; Server Action gửi chọn giao nhận; `place_order` tính lại phí/tiền hàng ở DB; biên nhận lấy phí server; QR dùng tổng biên nhận; cài đặt thanh toán bật QR khi `parseBank` hợp lệ. Chưa tạo đơn thử.
+- Đối chiếu DB chỉ đọc: `shipping_policy=flat_15000_v1`, `place_order` hiện đặt phí 0đ cho lấy tại cửa hàng và 15.000đ cho mọi đơn giao hàng; DB không có cấu hình tài khoản ngân hàng. Vì vậy hiện tồn tại lệch giữa giao diện (miễn phí từ 500.000đ) và DB (vẫn 15.000đ mọi đơn giao hàng). Đã soạn dự thảo SQL có guard theo hash, chỉ tính lại phí theo subtotal server ngay trước khi cập nhật đơn; chưa chạy, chờ chủ shop xem và duyệt nội dung.
+- QR chưa chọn được vì tài khoản ngân hàng thật chưa nhập. Không mở QR giả/không dùng số tài khoản thử. Chủ shop có thể nhập Ngân hàng + Số tài khoản + Tên chủ tài khoản tại Admin → Cài đặt; sau khi lưu, trang checkout mới bật lựa chọn QR.
+- Đã kiểm: TypeScript, ESLint tệp sửa, 28 kiểm thử được phép; không có lỗi. Đã kiểm tra UI trên localhost ở trang checkout, không gửi form. Chưa xác minh 375px trên điện thoại thật, chưa quét QR bằng app ngân hàng, chưa chạy SQL, chưa commit/push/deploy.
+
+## 09/11/2026 — Đồng bộ phí máy chủ và rà QR (Codex)
+- Chủ shop duyệt áp dụng dự thảo ngưỡng giao hàng. Đã chạy chính xác SQL trong tệp đã duyệt `docs/website-v2/PHI_SHIP_NGUONG_500000_AP_DUNG.sql` lên DB thật. SQL chỉ thay logic `place_order`: tiền hàng lấy ở DB, lấy tại cửa hàng 0đ, giao tận nơi dưới 500.000đ là 15.000đ, từ 500.000đ là 0đ; không đổi đơn đã có, bảng, RLS hay quyền.
+- Đã xác minh chỉ đọc sau áp dụng: hàm có điều kiện `v_subtotal >= 500000`, marker chính sách còn nguyên, hash hàm mới `bc4b8e022efa97f34cddb847a6b2ad1a`. Không tạo đơn để kiểm thử.
+- Đã rà VietQR: checkout chỉ bật phương thức ngân hàng khi tài khoản hợp lệ; biên nhận dùng `shippingFee` máy chủ; QR tạo từ tổng tiền biên nhận nên gồm cả ship khi có phí, và nội dung là mã đơn. Bộ kiểm thử xác nhận QR mẫu 320.000đ = tiền hàng 305.000đ + ship 15.000đ. DB hiện chưa có tài khoản ngân hàng, nên chưa thể chọn hoặc tạo QR thật. Chủ shop cần nhập ngân hàng/số tài khoản/tên chủ tài khoản tại Admin → Cài đặt; không nhập thông tin thử và không chuyển tiền. Chưa quét QR bằng app ngân hàng thật.
+- Chưa tạo đơn thật; không có thay đổi dữ liệu đơn cũ. Chưa chạy migration, commit, push hay deploy.
+
+
+## 09/11/2026 — Chuẩn bị nhận thanh toán SePay (chưa kết nối Live)
+- Chủ shop yêu cầu kết nối SePay và hỏi có thể cố định số tiền để khách tránh chuyển sai. Đã làm mã webhook nhận sự kiện HMAC-SHA256, kiểm thời gian/chữ ký trên raw body, chống nhận lặp theo mã giao dịch, đối chiếu tài khoản nhận + mã đơn + tổng tiền từ đơn DB; giao dịch lệch chỉ được ghi “Cần kiểm tra”, không tự đánh dấu đã thanh toán. QR tiếp tục điền sẵn tiền hàng + phí ship DB trả về; hướng dẫn khách giữ nguyên số tiền/nội dung. Bổ sung màn quản trị Giao dịch và nhãn phương thức thanh toán bank ở đơn hàng. Mã bí mật được nhập qua ô password trong Cài đặt; không gửi qua chat/ghi log; có log thao tác đổi mã.
+- Đã soạn SQL xem trước `docs/website-v2/SEPAY_WEBHOOK_DU_THAO.sql`: thêm phương thức bank, cấu hình secret riêng trong schema private, RLS chỉ nhân viên xử lý đơn được đọc giao dịch, RPC webhook tự xác thực HMAC, cập nhật `place_order` có guard theo hash để lưu phương thức thanh toán. Chưa chạy SQL, chưa ghi DB, chưa tạo webhook SePay, chưa gửi giao dịch, chưa deploy/commit/push.
+- Đã kiểm tra `npx tsc --noEmit`, ESLint các tệp thay đổi, bộ 5 tệp test được phép: 30/30 đạt, `git diff --check` đạt. Đã đọc tài liệu Next.js Route Handlers của phiên bản cài.
+- Chưa kiểm thử tích hợp với payload thực do SePay gửi, chưa kiểm tra SQL trên DB thật, chưa quét QR ngân hàng, chưa xác nhận cấu hình ngân hàng trong `settings` hiện tại. Tạo webhook chỉ sau khi SQL được duyệt/áp dụng và mã được triển khai; secret SePay chỉ nhập trực tiếp trong Cài đặt, tuyệt đối không gửi vào chat.
+
+
+## 09/11/2026 — Kiểm tra duyệt SQL SePay
+- Chủ shop duyệt bản SQL xem trước. Trước khi chạy, đối chiếu DB thật chỉ đọc: hash `place_order` khớp `bc4b8e022efa97f34cddb847a6b2ad1a`, pgcrypto HMAC có sẵn, bảng/cột liên quan khớp; nhưng thân hàm đang được nén một dòng nên các marker có khoảng trắng trong bản SQL cũ không khớp. SQL chưa được chạy; không có thay đổi DB.
+- Đã chỉnh bản xem trước để chèn theo đúng định nghĩa hiện hành. Truy vấn chỉ đọc xác nhận 4 marker mới xuất hiện đúng 1 lần và hash vẫn khớp. Do nội dung SQL đã đổi so với bản chủ shop duyệt, cần chủ shop duyệt lại bản cập nhật trước khi chạy.
+- Công cụ Supabase đồng thời báo advisory quan trọng: `private.classification_backfill_20261107` đang tắt RLS. Không thay đổi bảng đó hoặc tự áp remediate; sẽ báo chủ shop xử lý riêng.
+
+
+## 09/11/2026 — Đã áp dụng cấu hình DB nhận webhook SePay
+- Sau khi chủ shop duyệt bản SQL cập nhật, đã áp dụng lên Supabase thật `ztbwxfzklznpqbofbwlk` qua migration `20261109063637_sepay_webhook_integration_20261109`. Hash `place_order` trước/sau lần lượt `bc4b8e022efa97f34cddb847a6b2ad1a` / `af2db53d3ea2ad9fb0ea9f9b8dbb0123`; phương thức `bank` được lưu bởi DB; webhook chỉ tự đánh dấu đã thanh toán khi HMAC + thời gian + tài khoản + mã đơn + tổng tiền khớp. Chữ ký sai bị từ chối; giao dịch lệch được ghi cần kiểm tra. RLS bật cho bảng giao dịch và bảng secret; anon không đọc giao dịch/không cài secret; quyền cài secret cần xác thực và `settings`.
+- Đã xác minh chỉ đọc: hàm và bảng tồn tại, quyền/grant đúng; không có dòng giao dịch hoặc secret nào; số đơn vẫn 2 như trước khi áp dụng. Không tạo đơn, không gửi tiền, không ghi secret. Đã tạo tệp migration trong worktree `supabase/migrations/20261109063637_sepay_webhook_integration_20261109.sql`; tệp xem trước có trạng thái áp dụng.
+- Chưa kết nối webhook Live: code website chưa deploy, SePay chưa cấu hình URL webhook, tài khoản ngân hàng ở `settings` hiện chưa được cài, secret webhook chưa nhập. Không commit/push/deploy. Chủ shop sẽ nhập tài khoản và secret trực tiếp tại Admin → Cài đặt sau khi mã lên web; không gửi secret qua chat.
+- Supabase advisor báo có sẵn bảng `private.classification_backfill_20261107` đang tắt RLS (tồn tại trước đợt này); chưa thay đổi vì ngoài SQL được duyệt. Cần chủ shop xem xét tách riêng.
+- Chưa thử payload thật hoặc giao dịch ngân hàng. Kiểm thử tích hợp HMAC/đối chiếu tiền trên DB thật chưa thực hiện; chỉ kiểm schema, quyền, hash và số dòng sau migration.
+
+
+## 09/11/2026 — Trạng thái hoàn tất sau migration SePay
+- `npx tsc --noEmit`, ESLint các tệp sửa, 30/30 kiểm thử được phép và `git diff --check` đạt. `npm run build` tại máy không qua vì môi trường không lấy được Be Vietnam Pro từ Google Fonts.
+- Tạo bản deploy Vercel Production không gán domain đã bị bộ duyệt tự động chặn; nêu lý do đây là tải worktree lên Production và chỉ có duyệt migration, chưa có duyệt rõ hành động deploy. Không tìm cách vòng qua, không upload source hoặc đổi production. Cần chủ shop duyệt deploy riêng.
+- SePay chưa hoạt động Live cho tới khi deploy, cấu hình tài khoản trong website, tạo webhook HMAC trên SePay, và chủ shop nhập secret vào Admin → Cài đặt. Secret chưa được tạo/lưu ở DB.
+
+
+## 09/11/2026 — Bản triển khai SePay sẵn sàng (chưa gán tên miền)
+- Sau khi chủ shop duyệt rõ thao tác triển khai, đã tạo Vercel Production deployment từ worktree `worktree-website-v2`: `https://tan-truong-tin-92nilg5p4-trieuvolehai-2530.vercel.app`, trạng thái `READY`; Vercel yêu cầu đăng nhập để xem. Inspect: `https://vercel.com/trieuvolehai-2530/tan-truong-tin-web/AAWFvv2BW9vHs9w4nMHeYkt32sCa`. Chưa gán domain/alias, không chuyển traffic tantruongtin.com.
+- Vercel build từ xa thành công dù build cục bộ bị chặn bởi tải Google Font. `.vercel/project.json` tạm đã được dọn; `.superpowers/` được thêm vào `.vercelignore`. Không commit/push.
+- Chưa thử webhook thực, chưa tạo đơn/chuyển tiền. Cấu hình website chưa có tài khoản ngân hàng (đã kiểm tra chỉ đọc) và webhook secret chưa cài; webhook chưa được tạo trong SePay. Muốn chạy Live: chủ shop xem bản deploy, tự promote theo quy trình repo, nhập thông tin ngân hàng ở Admin → Cài đặt, tạo webhook SePay HMAC-SHA256 trỏ tới `https://tantruongtin.com/api/sepay/webhook`, rồi dán secret trực tiếp tại Admin → Cài đặt.
+- Cảnh báo RLS sẵn có của `private.classification_backfill_20261107` chưa xử lý; xem mục trước.
+
+
+## 09/11/2026 — Đã đưa bản website mới lên tên miền
+- Chủ shop yêu cầu làm thay; đã chạy `vercel promote https://tan-truong-tin-92nilg5p4-trieuvolehai-2530.vercel.app --yes`. Vercel xác nhận promote thành công; `vercel inspect tantruongtin.com --json` trỏ tới deployment `dpl_AAWFvv2BW9vHs9w4nMHeYkt32sCa`, `READY`. Tên miền hiện phục vụ bản mới.
+- Chưa nối xong SePay: DB vẫn báo chưa cài tài khoản ngân hàng và chưa có webhook secret. Cửa sổ SePay trên Chrome không mở được qua điều khiển trình duyệt sau các lần thử; không nhập/chuyển dữ liệu ngân hàng qua đường khác, không tạo webhook hoặc thử tiền. Cần chủ shop kết nối lại Chrome để tiếp tục cấu hình; secret không gửi qua chat.
+- Cảnh báo Supabase RLS disabled tại `private.classification_backfill_20261107` vẫn tồn tại, ngoài phạm vi migration này.
+
+## 09/11/2026 — Nút quay lại khu bán hàng
+- Đã thêm nút “Quay lại” vào khung chung các trang khách mua hàng, ẩn tại Trang chủ; truy cập thẳng một trang thì nút về Trang chủ, còn có lịch sử trong cùng website thì quay về trang trước. Không tạo breadcrumb mới; trang quản trị không thuộc phạm vi.
+- Đã kiểm: TypeScript, ESLint hai tệp sửa, 30 kiểm thử cho phép và `git diff --check` đạt. Trên localhost bằng Chrome đã xác nhận hai luồng: mở thẳng trang sản phẩm → nút về Trang chủ; từ Trang chủ mở sản phẩm → nút quay về Trang chủ.
+- Chưa xác minh bằng mắt ở viewport 375px và chưa thử bằng trình đọc màn hình. Chưa commit/push/deploy; không có thao tác DB. Các thay đổi không liên quan trong worktree được giữ nguyên.
+
+
+## 09/11/2026 — Tinh gọn trang chi tiết sản phẩm
+- Đã bỏ tên thương hiệu, mã hàng, tình trạng và các thẻ thông số nổi bật khỏi phần đầu trang chi tiết; bỏ nút so sánh trực tiếp và liên kết báo giá số lượng lớn trên trang này. Khu “Cùng danh mục” giữ nguyên chức năng so sánh trên thẻ.
+- Đưa “Thông số”, “Mô tả & Bảo hành”, “Hướng dẫn sử dụng” xuống ngay dưới phần chọn số lượng, thêm vào giỏ và Chat Zalo. Mỗi mục hiển thị trước 6 thông số/dòng; nút “Xem thêm”/“Thu gọn” đã kiểm bằng trình duyệt. Ghi chú thông số mở cùng phần đầy đủ.
+- Thanh mua dính tính thành tiền theo giá sản phẩm × số lượng đang chọn; thử 305.000₫ × 2 = 610.000₫. Huy hiệu giỏ hàng trong điều hướng điện thoại chuyển ra ngoài cạnh icon để không che icon.
+- Đã kiểm bằng localhost ở khổ điện thoại khoảng 430px: thứ tự mục, xem thêm/thu gọn, nút mua và phép tính 2 món. Chưa kiểm đúng 375px, huy hiệu với giỏ có số lượng dương, thiết bị thật hoặc trình đọc màn hình.
+- `npx tsc --noEmit`, ESLint bốn tệp sửa và `git diff --check` đạt. Không chạy bộ kiểm thử Node trong lượt này. Không ghi DB, không commit/push/deploy; các thay đổi khác có sẵn trong worktree được giữ nguyên.
+
+## 09/11/2026 — Hiệu ứng mở/đóng mục chi tiết sản phẩm
+- Đã dùng chung `AnimatedDisclosure` cho “Thông số”, “Mô tả & Bảo hành”, “Hướng dẫn sử dụng”: chuyển động 200ms cho chiều cao/độ mờ/vị trí, mũi tên xoay; hỗ trợ `prefers-reduced-motion`, trạng thái nút đọc được và nội dung đóng không nhận focus.
+- Đã rà các trang bán hàng: ba mục này là các mục mở/đóng dạng accordion duy nhất; không tìm thấy mục tương tự khác cần áp dụng.
+- Đã kiểm trên localhost ở khổ điện thoại khoảng 430px: bấm “Thông số” đóng/mở được, nội dung và trạng thái trợ năng cập nhật đúng. Chưa kiểm đúng 375px, thiết bị thật hoặc trình đọc màn hình.
+- `npx tsc --noEmit`, ESLint hai tệp liên quan và `git diff --check` đạt. Không chạy kiểm thử Node. Không ghi DB, không commit/push/deploy; các thay đổi khác có sẵn trong worktree được giữ nguyên.
+
+## 09/11/2026 — Xóa nhiều sản phẩm và xóa đơn an toàn
+- Trang Sản phẩm: thêm nút `Xóa N SP` vào thanh thao tác desktop khi chọn nhiều sản phẩm. Trên mobile vẫn dùng giữ dòng để chọn và thanh đáy Xóa. Có xác nhận trước khi xóa; mỗi SP dùng hành động máy chủ hiện có. SP đã được dùng trong đơn sẽ bị giữ lại, các SP khác trong lượt vẫn xóa tiếp và báo rõ món/lý do thất bại. RLS sản phẩm hiện có `products_delete` với quyền `edit_products` đã xác minh chỉ đọc trên DB thật.
+- Trang chi tiết đơn: thêm xóa từng đơn, chỉ chủ shop và chỉ đơn `cancelled` + `unpaid`. Xác nhận nêu mã đơn và cảnh báo mất danh sách món/lịch sử trạng thái. Server Action và RLS kiểm lại quyền/trạng thái. Nhật ký xóa chỉ lưu mã đơn, trạng thái, trạng thái thanh toán, tiền hàng, phí ship, thời điểm tạo; không sao chép tên/SĐT/địa chỉ.
+- Đã áp migration `20261109105709_delete_cancelled_unpaid_orders_owner_only` vào DB thật sau khi chủ shop duyệt toàn bộ. Truy vấn chỉ đọc xác nhận policy DELETE giới hạn owner + cancelled + unpaid, trigger audit chạy SECURITY DEFINER trong private với `search_path` rỗng. FK: order_items/order_events cascade; sepay_transactions giữ giao dịch và đặt order_id=NULL. Không có đơn nào bị xóa khi áp migration.
+- Kiểm tra: TypeScript, ESLint 4 tệp, diff-check đạt; bộ kiểm thử được phép đạt 30/30. Chưa kiểm bằng giao diện admin đã đăng nhập vì cần xác minh Cloudflare. Chưa promote/commit/push. Advisor bảo mật còn các cảnh báo đã có từ trước ở hàm public hiện hữu và cấu hình riêng SePay; không sửa vì ngoài phạm vi.
+- Bản phát hành cô lập trên nền main 05becd5 cùng đúng thay đổi xóa được Vercel build READY tại https://tan-truong-tin-r8mythkx3-trieuvolehai-2530.vercel.app; GET trang chủ và trang đăng nhập đều trả 200. Deployment được bảo vệ bằng đăng nhập Vercel.
+- Chưa promote, nên tantruongtin.com chưa chạy tính năng này. Theo quy trình dự án, chủ shop tự chạy tại thư mục chính: vercel promote https://tan-truong-tin-r8mythkx3-trieuvolehai-2530.vercel.app --yes. Không commit/push; không kiểm UI admin sau đăng nhập do Cloudflare CAPTCHA, không thực hiện xóa thật.
+- Lần deploy thử đầu tạo nhầm project/deployment rỗng .release-order-delete; đã xóa cả hai. Bản READY trên thuộc project thật tan-truong-tin-web; không gắn alias/domain chính.
+
+## 09/11/2026 — Phát hành worktree hiện tại lên tantruongtin.com cho buổi thuyết trình
+- Chủ shop xác nhận website chưa dùng cho kinh doanh; mục đích hiện tại là công khai để ban giám khảo xem. Theo đó tiếp tục bằng tài khoản Vercel Hobby, không nâng gói hoặc thay đổi thanh toán.
+- Đã deploy toàn bộ mã ứng dụng đang có trong worktree `worktree-website-v2` rồi promote deployment `dpl_7SJm3be9Eu33BHVi424VA2SQn6gM` lên `tantruongtin.com`. Deployment READY. Không commit, push hay merge; không ghi DB hoặc chạy migration.
+- Lần build thử đầu lỗi do quy tắc `.vercelignore` `supabase/` bỏ nhầm cả `lib/supabase/`. Đã đổi các quy tắc thành đường dẫn gốc như `/supabase/`, build lại thành công. Tài liệu nội bộ, script, migration và route thử phí ship không nằm trong deployment.
+- Đã kiểm bằng `vercel curl`: trang chủ 200, trang đăng nhập admin 200, `/admin/san-pham` chuyển 307 về đăng nhập, `/so-sanh` 200, `GET /api/sepay/webhook` 405 (đúng route POST-only), `/kiem-tra-phi-ship` 404. robots.txt vẫn `User-Agent: * / Disallow: /`; đây là chặn lập chỉ mục, không chặn người truy cập.
+- Kiểm mã: bộ test cho phép 30/30 đạt; `npx tsc --noEmit` đạt; ESLint không lỗi, có một cảnh báo biến chưa dùng ở `scripts/check-vietqr.mjs`; `git diff --check` đạt.
+- SePay dashboard có webhook HMAC đang bật cho domain, nhưng tổng số lần gửi/thành công đều bằng 0; bảng giao dịch website vẫn trống. Chưa xác minh endpoint cụ thể trong cấu hình SePay, chưa gửi POST thử, chưa chuyển tiền; chưa thể xác nhận đối soát tự động.
+- Chưa xác minh đăng nhập tài khoản nhân viên, đặt đơn thật, quét QR bằng app ngân hàng, tồn kho khi đặt vượt số lượng, hoặc hiển thị trên nhiều thiết bị. Chủ shop đã chấp nhận nội dung hiện có (bao gồm ảnh minh họa/chính sách chờ chốt) cho thuyết trình.

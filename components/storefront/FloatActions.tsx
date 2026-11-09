@@ -7,7 +7,9 @@ import { MessageCircle, Phone } from "lucide-react";
 const RAISED = new Set(["/gio-hang", "/thanh-toan"]);
 
 export function FloatActions() {
-  const raised = RAISED.has(usePathname());
+  const pathname = usePathname();
+  const raised = RAISED.has(pathname);
+  if (pathname === "/so-sanh") return null;
   const bottom = raised
     ? "bottom-[calc(216px+env(safe-area-inset-bottom))] lg:bottom-6"
     : "bottom-[calc(76px+env(safe-area-inset-bottom))] md:bottom-6";
