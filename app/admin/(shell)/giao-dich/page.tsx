@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/admin/ui";
 import { requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatVnd } from "@/lib/shop";
+import { ResolveReview } from "@/components/admin/orders/ResolveReview";
 
 export const metadata: Metadata = { title: "Giao dịch chuyển khoản" };
 
@@ -14,7 +15,7 @@ type Payment = {
 };
 
 export default async function PaymentsPage() {
-  await requireStaff("process_orders");
+  const staff = await requireStaff("process_orders");
   const db = await createClient();
   const { data, error } = await db.from("sepay_transactions")
     .select("id, transaction_id, account_number, transfer_amount, transfer_type, payment_code, content, order_id, status, review_reason, created_at")
@@ -38,6 +39,7 @@ export default async function PaymentsPage() {
           <p>Nội dung: <span className="break-words">{row.content || "(trống)"}</span></p>
           <p className="text-ink-2">Mã đơn nhận diện: {row.payment_code || "không thấy"}{row.order_id && codes.has(row.order_id) ? <> · <Link className="font-semibold text-brand underline" href={`/admin/don-hang/${codes.get(row.order_id)}`}>{codes.get(row.order_id)}</Link></> : ""}</p>
           {row.review_reason && <p role="status" className="text-gold-ink">{row.review_reason}</p>}
+          {staff.role === "owner" && row.status === "review" && row.transfer_type === "in" && <ResolveReview transactionId={row.id} />}
           <time className="block text-xs text-ink-2" dateTime={row.created_at}>{new Intl.DateTimeFormat("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "short", timeStyle: "short" }).format(new Date(row.created_at))}</time>
         </li>)}
       </ul>}

@@ -717,3 +717,58 @@
 - Theo yêu cầu chủ shop, đã kiểm tra `main` là tổ tiên của `worktree-website-v2` (main-only 0 commit, nhánh website có 22 commit), rồi fast-forward `main` lên `ae0db04`; push thường, không force-push và không xung đột.
 - Đã xác minh GitHub `main` và `worktree-website-v2` cùng SHA `ae0db0480758dfdc57a8375b847c425524174f14`. Vercel không cấu hình Git repository, nên không tự deploy khi push; tên miền vẫn trỏ deployment `dpl_7SJm3be9Eu33BHVi424VA2SQn6gM` READY.
 - Thư mục dự án gốc vẫn ở nhánh `codex/desktop-storefront-upgrade` và còn 6 thay đổi cục bộ; không chuyển nhánh hoặc sửa các thay đổi đó. Không ghi Supabase hay chạy migration. Các tệp tạm/route thử trong worktree website-v2 vẫn không nằm trong commit.
+
+## 09/11/2026 — Lưu khảo sát và kiểm tra đơn TTT001067
+- Đã lưu danh sách tính năng tham khảo để chủ shop bàn sau tại `docs/website-v2/TINH_NANG_THAM_KHAO_2026-11-09.md`; báo cáo 10 website ở `reports/Tính năng bán lẻ Việt Nam.md`. Không sửa mã tính năng.
+- Kiểm chỉ đọc DB thật: đơn TTT001067 tổng 590.000đ, chuyển khoản, trạng thái xử lý `completed` nhưng thanh toán `unpaid`. SePay nhận một giao dịch tiền vào đúng 590.000đ sau khi tạo đơn khoảng 86 giây, đúng tài khoản nhận đã cài. Giao dịch nằm ở `review`, không gắn đơn vì cả nội dung và trường `code` SePay đều không chứa mã TTT001067; trong 15 phút quanh giao dịch chỉ có một đơn chuyển khoản chưa thanh toán cùng tổng. Đơn TTT001066 trước đó tự khớp và đã thanh toán.
+- `node --test scripts/check-vietqr.mjs`: 9/9 đạt; mã QR trong mã nguồn có số tiền và mã đơn. Chưa xác minh ứng dụng ngân hàng có giữ nguyên nội dung sau khi quét; không xem chứng từ ngân hàng. Không sửa DB, không tự đánh dấu đã thanh toán.
+- Supabase advisory còn báo RLS tắt ở `private.classification_backfill_20261107`; bảng trống và anon/authenticated không có quyền SELECT theo kiểm tra chỉ đọc. Chưa sửa vì ngoài phạm vi.
+- Mã admin có nút “Xác nhận đã nhận tiền” trong chi tiết đơn (`order_mark_paid`) nhưng thao tác này không gắn giao dịch SePay đang `review` vào đơn; nếu làm thủ công, cần đối chiếu sao kê và chấp nhận còn mục giao dịch cần kiểm tra. Hướng sửa bền vững là đối soát thủ công có quyền, gắn giao dịch + cập nhật đơn + nhật ký trong một thao tác; cần thiết kế/duyệt riêng.
+
+## 09/11/2026 — Xác nhận thanh toán TTT001067 và rà mã đơn
+- Chủ shop xác nhận giao dịch tiền vào 590.000đ thuộc TTT001067 và cho phép ghi nhận. Đã dùng nút “Xác nhận đã nhận tiền” trên trang quản trị đang đăng nhập; giao diện đổi sang “Đã nhận tiền”. Truy vấn chỉ đọc DB thật xác nhận `orders.payment_status = paid` và có `order_events.type = paid`; không thay đổi trạng thái giao hàng `completed`.
+- Giao dịch SePay tương ứng vẫn ở `review`, `payment_code = NULL`, `order_id = NULL`: nút xác nhận thanh toán hiện tại chỉ cập nhật đơn, chưa gắn bản ghi giao dịch. Không sửa trực tiếp bản ghi SePay.
+- Mã đơn được tạo trên máy chủ bằng chuỗi `TTT` + 6 chữ số từ sequence; trang xác nhận đưa mã vào QR VietQR trường 62/08 và hiển thị dòng “Nội dung chuyển khoản”. Webhook chỉ tự ghép khi nội dung/`code` có `TTT` + 6 số, tài khoản nhận và số tiền khớp. `node --test scripts/check-vietqr.mjs` đạt 9/9.
+- Đã kiểm giao diện cấu hình SePay Live: “Nhận diện mã thanh toán” đang bật nhưng mẫu đang hoạt động chỉ có tiền tố `DH`, hậu tố số dài 3–10; website dùng `TTT` + 6 số. Vì vậy trường `code` của SePay không nhận diện TTT ngay cả với giao dịch trước có mã trong nội dung; webhook website vẫn tự trích được từ `content` nên giao dịch trước tự khớp. Giao dịch TTT001067 không có mã trong `content`, nên thiếu căn cứ tự ghép. Chưa biết vì sao nội dung chuyển khoản đến SePay mất mã; chưa thử quét bằng app ngân hàng thật.
+- Chưa sửa cấu hình SePay, mã ứng dụng, migration, commit, push hoặc deploy. Đề xuất thêm mẫu `TTT` + đúng 6 chữ số trong SePay, giữ mẫu `DH`, rồi thử một giao dịch mới có mã để kiểm chứng. Tuy nhiên cấu hình SePay chỉ giúp nhận diện khi ngân hàng gửi mã trong nội dung; không thể khôi phục mã đã thiếu. Cần thiết kế đối soát thủ công có quyền và liên kết giao dịch đã kiểm vào đơn để xóa mục `review` mà không ghép nhầm theo số tiền.
+
+## 09/11/2026 — Bổ sung mẫu nhận diện mã đơn trên SePay
+- Sau khi chủ shop đồng ý, đã thêm mẫu nhận diện `TTT` + đúng 6 chữ số, loại hậu tố “Số nguyên”, trạng thái hoạt động trên SePay Live. Giữ nguyên mẫu mặc định `DH` 3–10 số đang hoạt động. SePay báo “Đã cập nhật”; đã tải lại trang và xác nhận cả hai mẫu còn lưu đúng.
+- Không sửa mã website, Supabase, webhook, đơn hàng hoặc giao dịch cũ; không commit/push/deploy. Việc thêm mẫu không thể khôi phục mã TTT001067 vì nội dung giao dịch cũ đã thiếu mã và đơn đã được chủ shop xác nhận thủ công.
+- Chưa kiểm được ứng dụng ngân hàng trên điện thoại có giữ mã đơn từ QR vào ô nội dung trước khi chuyển tiền. Đã nhờ chủ shop quét thử chỉ để xem, không xác nhận chuyển khoản; chờ kết quả để đánh giá luồng từ QR tới ngân hàng.
+
+- Để hỗ trợ quét thử, đã dựng lại QR từ hàm VietQR đang dùng trên website với thông tin đơn TTT001067 đã thanh toán và lưu ảnh ở thư mục hình của phiên làm việc; xác minh chuỗi QR chứa đúng mã đơn và số tiền 590.000đ. Đây chỉ là ảnh kiểm tra, không tạo đơn/giao dịch mới; chủ shop cần dừng trước bước xác nhận chuyển tiền.
+
+- Chủ shop đã quét QR kiểm tra bằng ứng dụng ngân hàng và xác nhận ô nội dung hiện đúng mã `TTT…` trước bước chuyển tiền. Như vậy đã xác minh bước QR → màn hình nhập giao dịch; chưa xác minh nội dung sau khi ngân hàng xử lý và SePay nhận giao dịch thật. Không phát sinh chuyển khoản mới.
+
+## 10/11/2026 — Chủ shop xác nhận và cập nhật tồn kho thực tế
+
+- Chủ shop xác nhận tồn thực tế là 5 đơn vị cho mỗi sản phẩm hiện có và yêu cầu nhập thay. Trước khi chỉnh: 114 sản phẩm, 98 sản phẩm đã có tồn 5, 16 sản phẩm khác 5 (trong đó 2 sản phẩm tồn 0).
+- Đã dùng chức năng “Điều chỉnh” trên trang quản trị thật, lý do “Kiểm kho”, ghi chú xác nhận của chủ shop; chỉ điều chỉnh 16 sản phẩm lệch để tất cả đạt đúng 5. Không sửa mã ứng dụng hoặc chạy migration.
+- Đã đối chiếu giao diện quản trị đủ 114 dòng: tất cả hiển thị 5 cái, “Sắp hết” 0, “Hết hàng” 0. Truy vấn chỉ đọc DB thật sau cập nhật: total 114, qty_five 114, qty_other 0, min_qty 5, max_qty 5.
+- Chưa kiểm đối chiếu thực địa; số 5 dựa trên xác nhận của chủ shop. Luồng giữ hàng 30 phút/thanh toán trước vẫn là yêu cầu thiết kế, chưa triển khai trong lượt này. Không commit, push hoặc deploy.
+
+## 10/11/2026 — Chuẩn bị luồng chuyển khoản trả trước và giữ hàng
+
+- Chủ shop duyệt tiếp tục luồng đã chốt: COD giữ cách trả khi nhận; đơn chuyển khoản tạo mã chờ tiền, giữ hàng 30 phút, tự chấp nhận tiền đến muộn trong 24 giờ nếu đủ hàng; trường hợp khác cần shop xử lý.
+- Đã soạn bản nháp migration `20261110083306_prepaid_bank_reservations_20261110.sql` có kiểm hash các hàm hiện tại, bảng giữ hàng riêng, khóa tồn kho, trạng thái đã nhận tiền/cần xử lý, đối soát SePay và đối chiếu thủ công có quyền. Bổ sung chặn gắn hai giao dịch SePay vào cùng đơn; sản phẩm đã gắn với đơn tiếp tục được bảo vệ theo ràng buộc hiện có. Chưa chạy SQL trên DB thật.
+- Đã thêm trang /cho-thanh-toan, thay luồng checkout/tra cứu/trang thành công, nhãn quản trị, thông báo Telegram và biểu mẫu chủ shop đối chiếu giao dịch. Mã chưa deploy; tantruongtin.com vẫn dùng luồng cũ.
+- Đã kiểm: npx tsc --noEmit đạt, ESLint các tệp sửa đạt, 31/31 kiểm thử an toàn đạt, git diff --check đạt; đối chiếu chỉ đọc hash các hàm DB và 3 vị trí vá SePay. npm run build chưa hoàn tất vì môi trường không tải được Google Fonts. Chưa thử migration, webhook mới, UI 375px hay tiền thật.
+- Kế hoạch và giới hạn tại docs/website-v2/THANH_TOAN_TRUOC_2026-11-10.md. Cần chủ shop xem nội dung migration trước khi áp dụng; sau đó kiểm tra DB và thử luồng trước khi phát hành.
+
+## 10/11/2026 — Áp dụng migration chuyển khoản trả trước
+
+- Chủ shop duyệt trực tiếp bản SQL. Đã áp dụng bằng Supabase migration vào dự án thật `ztbwxfzklznpqbofbwlk`; Supabase ghi phiên bản `20261110083306_prepaid_bank_reservations_20261110`. Đã đổi tên tệp local theo đúng phiên bản này.
+- Kiểm tra chỉ đọc sau áp dụng: đủ 3 cột thanh toán mới, bảng giữ hàng có RLS và 0 dòng, 0 đơn cũ bị đổi trạng thái, 114/114 sản phẩm vẫn tồn 5. Các hàm mới đã có; các hàm legacy không cho anon/authenticated gọi trực tiếp; quyền chủ shop kiểm tra trong hàm đối chiếu.
+- Trang tantruongtin.com vẫn là bản mã cũ, nên chưa thể xác nhận giao diện chờ tiền. Chưa tạo đơn/chuyển tiền thử, chưa commit/push/deploy.
+- Đã thử mã giao diện trên localhost ở 375px với giỏ 305.000đ: chọn chuyển khoản đổi nút thành “Tạo mã thanh toán”; chọn giao tận nơi hiển thị tạm tính 320.000đ; độ rộng trang đúng 375px, không lỗi console. Không bấm tạo đơn, không có tiền thử.
+- `npx next build --webpack` hoàn tất, tạo đủ route mới; `npm run build` Turbopack trên Windows gặp lỗi tiến trình khi xử lý CSS (cả khi đã dừng dev server). Cần kiểm bản dựng ở môi trường phát hành trước khi promote.
+
+## 10/11/2026 — Phát hành luồng chuyển khoản trả trước
+
+- Chủ shop duyệt triển khai bản thử rồi phát hành nếu kiểm tra đạt. Đã liên kết worktree `website-v2` với đúng dự án Vercel `trieuvolehai-2530/tan-truong-tin-web`; kiểm gói tải lên loại `.env.local`, SQL, tài liệu nội bộ và route thử phí ship.
+- Bản thử `dpl_3Y2hLGBkw8gbnN3qrhcPiArcQifQ` READY. Kiểm HTTP: trang chủ, thanh toán, chờ thanh toán, đăng nhập quản trị 200; quản trị đơn hàng chưa đăng nhập 307; GET webhook 405; route thử phí ship 404. Không có log lỗi runtime hoặc HTTP 5xx trong cửa sổ kiểm.
+- Kiểm DB bằng các giao dịch mô phỏng hoàn tác: đơn chuyển khoản tạo `pending` và giữ hàng 30 phút; COD không tạo giữ hàng; webhook sai tiền chỉ vào review, đúng tiền nhận và webhook lặp không nhận hai lần; tiền đến muộn trong 24 giờ còn hàng được nhận, quá 24 giờ hoặc thiếu hàng vào review. Sau kiểm, 0 đơn thử, 0 giao dịch mô phỏng, 0 hàng giữ, 114/114 tồn kho bằng 5. Các sequence mã đơn có thể nhảy số vì Postgres không hoàn tác `nextval`.
+- Đã dùng `vercel promote` tạo production `dpl_1B1BztcnGEVSGAM3D3L1jLPqdsqi` READY. `vercel inspect tantruongtin.com` xác nhận đúng deployment mới và alias cả `tantruongtin.com`, `www.tantruongtin.com`. Kiểm trực tiếp HTTP các trang như trên; log runtime lỗi và HTTP 5xx đều 0 trong cửa sổ kiểm.
+- Trên tên miền chính ở 375px, giỏ thử 305.000đ + phí giao 15.000đ hiển thị 320.000đ; chuyển khoản chọn được và nút “Tạo mã thanh toán” hiện đúng. Không gửi đơn; trang thành công không báo thành công khi chưa có đơn; trang không tràn ngang, console sạch.
+- Chưa kiểm một chuyển khoản ngân hàng thật sau phát hành hoặc đăng nhập trang quản trị bằng tài khoản nhân viên. Chưa commit, push GitHub hay gộp nhánh. Mã nguồn và migration mới còn ở worktree local; GitHub chưa có đợt này.

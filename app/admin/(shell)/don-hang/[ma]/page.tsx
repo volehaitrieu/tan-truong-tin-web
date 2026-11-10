@@ -12,7 +12,7 @@ import { formatVnd } from "@/lib/shop";
 export const metadata: Metadata = { title: "Chi tiết đơn hàng" };
 
 const EVENT_LABEL = (type: string) =>
-  type === "created" ? "Đơn mới" : type === "shipping" ? "Cập nhật giao hàng" : type === "paid" ? "Đã nhận tiền"
+  type === "created" ? "Đơn mới" : type === "shipping" ? "Cập nhật giao hàng" : type === "paid" ? "Đã nhận tiền" : type === "payment_accepted" ? "Đã xác nhận đủ hàng" : type === "payment_linked" ? "Đã gắn giao dịch"
   : type.startsWith("status:") ? STATUS_LABEL[type.slice(7) as keyof typeof STATUS_LABEL] ?? type : type;
 
 export default async function OrderDetailPage({ params }: PageProps<"/admin/don-hang/[ma]">) {
@@ -34,7 +34,9 @@ export default async function OrderDetailPage({ params }: PageProps<"/admin/don-
           {staff.role === "owner" && o.status === "cancelled" && o.payment_status === "unpaid" && <DeleteOrderButton orderId={o.id} code={o.code} />}
         </div>}
       />
-      <OrderActions orderId={o.id} code={o.code} next={NEXT_STATUS[o.status]} canCancel={!closed && staff.perms.has("cancel_orders")} />
+      {o.payment_method === "bank" && o.payment_status === "unpaid" && o.status === "pending" && <p className="mb-4 rounded-md bg-brand-tint p-3 text-sm">Đơn đang chờ chuyển khoản. Chỉ xác nhận đơn sau khi nhận đủ tiền.</p>}
+      {o.payment_acceptance === "review" && <p className="mb-4 rounded-md bg-gold-tint p-3 text-sm text-gold-ink">Đã nhận tiền nhưng cần shop xử lý tồn kho hoặc giao dịch đến muộn trước khi xác nhận đơn.</p>}
+      <OrderActions orderId={o.id} code={o.code} next={o.payment_method === "bank" && (o.payment_status === "unpaid" || o.payment_acceptance === "review") ? [] : NEXT_STATUS[o.status]} canCancel={!closed && staff.perms.has("cancel_orders") && !(o.payment_method === "bank" && o.payment_status === "paid")} />
       {o.needs_restock && <p className="mb-4 rounded-md bg-gold-tint p-3 text-sm text-gold-ink">Có món hết hàng — cần đặt hàng thêm và gọi báo khách thời gian có hàng.</p>}
 
       <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
@@ -78,12 +80,12 @@ export default async function OrderDetailPage({ params }: PageProps<"/admin/don-
             {closed ? (
               <p className="mt-2 text-sm">Mã vận đơn: {o.tracking_code || "—"}</p>
             ) : (
-              <ShippingForm orderId={o.id} code={o.code} fee={o.shipping_fee} tracking={o.tracking_code ?? ""} />
+              <ShippingForm orderId={o.id} code={o.code} fee={o.shipping_fee} tracking={o.tracking_code ?? ""} feeLocked={o.payment_method === "bank" && !!o.payment_hold_until} />
             )}
           </Card>
           <Card pad title="Thanh toán">
-            <p className="text-sm">{o.payment_method === "bank" ? "Chuyển khoản" : "COD"} · {o.payment_status === "paid" ? <b className="text-ok">Đã nhận tiền</b> : "Chưa thanh toán"}</p>
-            {o.payment_status === "unpaid" && o.status !== "cancelled" && <PaidButton orderId={o.id} code={o.code} />}
+            <p className="text-sm">{o.payment_method === "bank" ? "Chuyển khoản" : "COD"} · {o.payment_status === "paid" ? <b className="text-ok">Đã nhận tiền{o.payment_acceptance === "review" && " · cần xử lý"}</b> : "Chưa thanh toán"}</p>
+            {(o.payment_status === "unpaid" || o.payment_acceptance === "review") && o.status !== "cancelled" && <PaidButton orderId={o.id} code={o.code} bank={o.payment_method === "bank"} reviewPaid={o.payment_acceptance === "review"} />}
             <a href={`/admin/in-phieu/${o.code}`} className="mt-3 inline-flex h-11 items-center rounded border border-line px-4 text-sm font-medium">In phiếu giao hàng</a>
           </Card>
         </div>

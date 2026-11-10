@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { markPaid, setShipping, setStatus, type ActionResult } from "@/app/admin/(shell)/don-hang/actions";
 import type { OrderStatus } from "@/lib/admin/orders";
@@ -48,15 +49,16 @@ export function OrderActions({ orderId, code, next, canCancel }: { orderId: numb
   );
 }
 
-export function ShippingForm({ orderId, code, fee, tracking }: { orderId: number; code: string; fee: number | null; tracking: string }) {
+export function ShippingForm({ orderId, code, fee, tracking, feeLocked = false }: { orderId: number; code: string; fee: number | null; tracking: string; feeLocked?: boolean }) {
   const { pending, error, run } = useAction();
   const [f, setF] = useState(fee === null ? "" : String(fee));
   const [t, setT] = useState(tracking);
   return (
     <form className="mt-3 space-y-2" onSubmit={(e) => { e.preventDefault(); run(() => setShipping(orderId, code, f, t)); }}>
       <label className="block text-sm">Phí ship (đồng)
-        <input value={f} onChange={(e) => setF(e.target.value)} inputMode="numeric" maxLength={10} placeholder="Để trống = báo sau" className="num mt-1 h-11 w-full rounded border border-line px-3" />
+        <input value={f} onChange={(e) => setF(e.target.value)} disabled={feeLocked} inputMode="numeric" maxLength={10} placeholder="Để trống = báo sau" className="num mt-1 h-11 w-full rounded border border-line px-3 disabled:bg-ground" />
       </label>
+      {feeLocked && <p className="text-xs text-ink-2">Phí giao hàng đã chốt trong mã QR; vẫn có thể cập nhật mã vận đơn.</p>}
       <label className="block text-sm">Mã vận đơn
         <input value={t} onChange={(e) => setT(e.target.value)} maxLength={60} className="mt-1 h-11 w-full rounded border border-line px-3" />
       </label>
@@ -66,11 +68,13 @@ export function ShippingForm({ orderId, code, fee, tracking }: { orderId: number
   );
 }
 
-export function PaidButton({ orderId, code }: { orderId: number; code: string }) {
+export function PaidButton({ orderId, code, bank = false, reviewPaid = false }: { orderId: number; code: string; bank?: boolean; reviewPaid?: boolean }) {
   const { pending, error, run } = useAction();
+  const [confirm, setConfirm] = useState(false);
   return (
     <>
-      <button disabled={pending} onClick={() => run(() => markPaid(orderId, code))} className={`${btn} mt-3 border border-brand text-brand`}>Xác nhận đã nhận tiền</button>
+      {bank && <p className="mt-2 text-xs text-ink-2">Nếu SePay đã ghi giao dịch, hãy <Link href="/admin/giao-dich" className="font-semibold text-brand underline">đối chiếu trong Giao dịch</Link> để liên kết đúng mã giao dịch.</p>}
+      {bank && !confirm ? <button type="button" onClick={() => setConfirm(true)} className={`${btn} mt-3 border border-brand text-brand`}>{reviewPaid ? "Kiểm tra đủ hàng để chấp nhận" : "Không thấy giao dịch? Xác minh sao kê"}</button> : <div className="mt-3"><p className="mb-2 text-xs text-ink-2">{reviewPaid ? "Hệ thống đã ghi nhận tiền. Chỉ chấp nhận đơn khi đã kiểm tra đủ hàng." : bank ? "Chỉ bấm sau khi đã đối chiếu sao kê ngân hàng: đúng đơn và đủ toàn bộ số tiền." : "Xác nhận đã thu tiền đơn này."}</p><button type="button" disabled={pending} onClick={() => run(() => markPaid(orderId, code))} className={`${btn} border border-brand text-brand`}>{reviewPaid ? "Chấp nhận khi đủ hàng" : "Xác nhận đã nhận tiền"}</button>{bank && <button type="button" disabled={pending} onClick={() => setConfirm(false)} className={`${btn} ml-2 border border-line`}>Hủy</button>}</div>}
       {error && <p role="alert" className="mt-1 text-sm text-danger">{error}</p>}
     </>
   );

@@ -26,13 +26,15 @@ export const NEXT_STATUS: Record<OrderStatus, OrderStatus[]> = {
 export type OrderRow = {
   id: number; code: string; customer_name: string; phone: string; delivery: Delivery; status: OrderStatus;
   payment_method: "cod" | "cash" | "bank"; payment_status: "unpaid" | "paid"; subtotal: number; shipping_fee: number | null; needs_restock: boolean; created_at: string;
+  payment_hold_until?: string | null;
+  payment_acceptance?: "pending" | "accepted" | "review" | null;
 };
 
 export async function listOrders(opts: { status?: string; q?: string }) {
   const db = await createClient();
   let query = db
     .from("orders")
-    .select("id, code, customer_name, phone, delivery, status, payment_method, payment_status, subtotal, shipping_fee, needs_restock, created_at")
+    .select("id, code, customer_name, phone, delivery, status, payment_method, payment_status, payment_acceptance, subtotal, shipping_fee, needs_restock, created_at")
     .order("created_at", { ascending: false })
     .limit(100);
   if (opts.status && opts.status in STATUS_LABEL) query = query.eq("status", opts.status);

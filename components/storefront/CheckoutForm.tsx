@@ -10,7 +10,7 @@ import { PROVINCES, isInner } from "@/lib/mock/address";
 import { FLAT_SHIPPING_POLICY, shippingFee } from "@/lib/shipping";
 import { formatVnd } from "@/lib/shop";
 
-export type PlacedOrder = { code: string; total: number; shippingFee?: number | null; method: Method; pay?: "cod" | "bank"; lines: { name: string; quantity: number; price: number }[] };
+export type PlacedOrder = { code: string; phone?: string; total: number; shippingFee?: number | null; method: Method; pay?: "cod" | "bank"; lines: { name: string; quantity: number; price: number }[] };
 export const ORDER_KEY = "ttt-last-order";
 type Method = "pickup" | "inner" | "province";
 const input = "mt-1 h-12 w-full rounded-lg border bg-white px-3 text-base outline-none focus:border-brand";
@@ -89,9 +89,11 @@ export function CheckoutForm({ innerFee, freeFrom, bankReady = false, shippingPo
         items: lines.map((l) => ({ sku: l.sku, qty: l.quantity })),
       });
       if (!res.ok) { setServerError(res.error); setSending(false); return; }
-      const order: PlacedOrder = { code: res.code, total: res.subtotal, shippingFee: res.shippingFee, method: deliveryMethod, pay: bankReady ? pay : "cod", lines: lines.map((l) => ({ name: l.product.name, quantity: l.quantity, price: l.product.price })) };
+      const order: PlacedOrder = { code: res.code, phone: f.phone.replace(/\D/g, ""), total: res.subtotal, shippingFee: res.shippingFee, method: deliveryMethod, pay: bankReady ? pay : "cod", lines: lines.map((l) => ({ name: l.product.name, quantity: l.quantity, price: l.product.price })) };
       try { sessionStorage.setItem(ORDER_KEY, JSON.stringify(order)); } catch {}
-      setPlaced(true); clearCart(); router.push("/cam-on");
+      setPlaced(true);
+      if (order.pay === "bank") router.push("/cho-thanh-toan");
+      else { clearCart(); router.push("/cam-on"); }
     } catch {
       setServerError("Chưa gửi được đơn hàng. Vui lòng thử lại hoặc gọi shop."); setSending(false);
     }
@@ -107,7 +109,7 @@ export function CheckoutForm({ innerFee, freeFrom, bankReady = false, shippingPo
     <Link href="/gio-hang" className="mt-1 inline-flex min-h-11 items-center text-sm font-semibold text-brand">Sửa giỏ hàng</Link>
     <div className="border-t border-line pt-3"><p className="flex justify-between text-sm">Tiền hàng <b className="num">{formatVnd(total)}</b></p><p className="mt-2 flex justify-between text-sm"><span>Phí giao hàng</span><span className="num text-right text-ink-2">{fee === null ? "Báo khi xác nhận đơn" : formatVnd(fee)}</span></p>{method !== "pickup" && flatShipping && <p className="mt-1 text-xs text-ok">{fee === 0 ? "Đơn này được miễn phí giao hàng" : "Miễn phí giao hàng từ 500.000₫"}</p>}<p className="mt-3 flex items-baseline justify-between text-base font-bold">Tạm tính <span className="num text-xl">{formatVnd(total + (fee ?? 0))}</span></p></div>
   </>;
-  const orderButton = <><button type="submit" disabled={sending} className="h-12 w-full rounded-full bg-brand font-bold text-white hover:bg-brand-deep disabled:opacity-60">{sending ? "Đang gửi đơn…" : "Đặt hàng"}</button><p className="mt-2 text-center text-xs text-ink-2">Shop sẽ gọi xác nhận trước khi giao.</p></>;
+  const orderButton = <><button type="submit" disabled={sending} className="h-12 w-full rounded-full bg-brand font-bold text-white hover:bg-brand-deep disabled:opacity-60">{sending ? "Đang xử lý…" : pay === "bank" && bankReady ? "Tạo mã thanh toán" : "Đặt hàng"}</button><p className="mt-2 text-center text-xs text-ink-2">{pay === "bank" && bankReady ? "Đơn chỉ thành công sau khi hệ thống xác nhận đã nhận đúng tiền." : "Shop sẽ gọi xác nhận trước khi giao."}</p></>;
 
   return <form ref={formRef} noValidate onSubmit={submit} className="mt-5 grid gap-5 pb-36 lg:grid-cols-[minmax(0,1fr)_360px] lg:pb-0">
     <section className="rounded-xl bg-white p-4 lg:hidden"><div className="flex items-baseline justify-between gap-3"><h2 className="font-bold">Đơn hàng ({lines.reduce((s, l) => s + l.quantity, 0)} món)</h2><b className="num text-sm">{formatVnd(total)}</b></div>{!summaryOpen && <><ul className="mt-2 space-y-1">{lines.slice(0, 2).map((l) => <li key={l.sku} className="text-sm text-ink-2">{l.product.name} × {l.quantity}</li>)}</ul>{lines.length > 2 && <p className="mt-1 text-xs text-ink-2">Còn {lines.length - 2} sản phẩm khác</p>}</>}<button type="button" aria-expanded={summaryOpen} onClick={() => setSummaryOpen((open) => !open)} className="mt-1 inline-flex min-h-11 items-center text-sm font-semibold text-brand">{summaryOpen ? "Thu gọn đơn hàng" : "Xem chi tiết đơn hàng"}</button>{summaryOpen && summary}</section>
@@ -118,7 +120,7 @@ export function CheckoutForm({ innerFee, freeFrom, bankReady = false, shippingPo
       <Field label={<>Ghi chú <span className="font-normal text-ink-2">(không bắt buộc)</span></>}><textarea value={f.note} onChange={set("note")} rows={2} className="mt-1 w-full rounded-lg border border-line p-3 text-base outline-none focus:border-brand" placeholder="Giờ nhận hàng, chỉ đường…" /></Field>
       <fieldset className="space-y-2"><legend className="mb-2 text-lg font-bold">4. Thanh toán</legend>
         <label className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border p-3 ${pay === "cod" || !bankReady ? "border-brand bg-brand-tint" : "border-line"}`}><input type="radio" name="pay" checked={pay === "cod" || !bankReady} onChange={() => setPay("cod")} className="size-5 accent-brand" /><Banknote className="size-5 text-brand" aria-hidden /><b className="text-[15px]">Trả tiền mặt khi nhận hàng (COD)</b></label>
-        {bankReady ? <label className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border p-3 ${pay === "bank" ? "border-brand bg-brand-tint" : "border-line"}`}><input type="radio" name="pay" checked={pay === "bank"} onChange={() => setPay("bank")} className="size-5 accent-brand" /><Landmark className="size-5 text-brand" aria-hidden /><span><b className="block text-[15px]">Chuyển khoản qua ngân hàng</b><span className="text-[13px] text-ink-2">Mã QR hiện sau khi đặt hàng</span></span></label> : <div className="flex min-h-14 items-center gap-3 rounded-xl border border-line p-3 text-ink-2" aria-disabled="true"><Landmark className="size-5 shrink-0" aria-hidden /><span><b className="block text-[15px] text-ink">Chuyển khoản qua ngân hàng</b><span className="text-[13px]">Chưa thể chọn — shop cần cấu hình tài khoản nhận tiền.</span></span></div>}
+        {bankReady ? <label className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border p-3 ${pay === "bank" ? "border-brand bg-brand-tint" : "border-line"}`}><input type="radio" name="pay" checked={pay === "bank"} onChange={() => setPay("bank")} className="size-5 accent-brand" /><Landmark className="size-5 text-brand" aria-hidden /><span><b className="block text-[15px]">Chuyển khoản qua ngân hàng</b><span className="text-[13px] text-ink-2">Tạo mã QR ở bước tiếp theo · giữ hàng tối đa 30 phút</span></span></label> : <div className="flex min-h-14 items-center gap-3 rounded-xl border border-line p-3 text-ink-2" aria-disabled="true"><Landmark className="size-5 shrink-0" aria-hidden /><span><b className="block text-[15px] text-ink">Chuyển khoản qua ngân hàng</b><span className="text-[13px]">Chưa thể chọn — shop cần cấu hình tài khoản nhận tiền.</span></span></div>}
       </fieldset>
     </div>
     <aside className="hidden h-fit rounded-xl bg-white p-4 sm:p-5 lg:sticky lg:top-28 lg:block"><h2 className="font-bold">Đơn hàng ({lines.reduce((s, l) => s + l.quantity, 0)} món)</h2>{summary}{serverError && <p role="alert" className="mt-3 rounded-xl bg-[#fef2f2] p-3 text-sm text-danger">{serverError}</p>}{orderButton}</aside>

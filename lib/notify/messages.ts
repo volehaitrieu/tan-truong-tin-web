@@ -10,12 +10,12 @@ const DELIVERY: Record<string, string> = { pickup: "Lấy tại cửa hàng", in
 
 export type OrderNotice = {
   code: string; name: string; phone: string; delivery: string; province?: string; ward?: string; street?: string; note?: string;
-  subtotal: number; shippingFee: number | null; items: { name: string; qty: number }[];
+  subtotal: number; shippingFee: number | null; paymentPending?: boolean; items: { name: string; qty: number }[];
 };
 
 export function orderMessage(o: OrderNotice): string {
   const lines = [
-    `ĐƠN MỚI ${clean(o.code, 30)}`,
+    `${o.paymentPending ? "MÃ CHUYỂN KHOẢN CHỜ TIỀN" : "ĐƠN MỚI"} ${clean(o.code, 30)}`,
     `Khách: ${clean(o.name, 80)} · ${clean(o.phone, 20)}`,
     `Nhận hàng: ${DELIVERY[o.delivery] ?? "Chưa rõ"}`,
   ];
@@ -25,6 +25,7 @@ export function orderMessage(o: OrderNotice): string {
   for (const it of o.items.slice(0, 30)) lines.push(`- ${Math.max(0, Math.floor(Number(it.qty) || 0))} × ${clean(it.name, 90)}`);
   if (o.items.length > 30) lines.push(`… và ${o.items.length - 30} món khác`);
   lines.push(`Tạm tính: ${formatVnd(o.subtotal)} · Phí ship: ${o.shippingFee == null ? "báo sau" : formatVnd(o.shippingFee)}`);
+  if (o.paymentPending) lines.push("Chưa xác nhận đặt hàng; đợi SePay hoặc shop đối chiếu đủ tiền trước khi xử lý.");
   const note = clean(o.note, 300);
   if (note) lines.push(`Ghi chú: ${note}`);
   const site = (process.env.SITE_URL || "").replace(/\/+$/, "");

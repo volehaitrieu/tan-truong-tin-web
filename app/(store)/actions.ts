@@ -34,7 +34,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       const catalog = new Map((await getProducts()).map((p) => [p.sku.toUpperCase(), p.name]));
       await notifyOrder({
         code: String(data.code), name: input.name, phone: input.phone, delivery: input.delivery, province: input.province, ward: input.ward,
-        street: input.street, note: input.note, subtotal: Number(data.subtotal) || 0, shippingFee: data.shipping_fee == null ? null : Number(data.shipping_fee),
+        street: input.street, note: input.note, subtotal: Number(data.subtotal) || 0, shippingFee: data.shipping_fee == null ? null : Number(data.shipping_fee), paymentPending: input.pay === "bank",
         items: (Array.isArray(input.items) ? input.items : []).map((it) => ({ name: catalog.get(String(it.sku).toUpperCase()) ?? String(it.sku), qty: it.qty })),
       });
     } catch { /* không để lỗi báo tin ảnh hưởng gì */ }
@@ -44,6 +44,9 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
 
 export type LookupResult = {
   code: string; status: string; delivery: string; subtotal: number; shipping_fee: number | null;
+  payment_method?: "cod" | "cash" | "bank"; payment_status?: "unpaid" | "paid";
+  payment_acceptance?: "pending" | "accepted" | "review" | null;
+  payment_hold_until?: string | null; payment_auto_until?: string | null;
   tracking_code: string | null; items: { name: string; qty: number; unit_price: number }[];
 } | null;
 

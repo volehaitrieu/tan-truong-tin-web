@@ -48,7 +48,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/don
                   <td className="px-3">{o.customer_name}<small className="num block text-ink-2">{o.phone}</small></td>
                   <td className="px-3">{DELIVERY_LABEL[o.delivery]}</td>
                   <td className="num px-3">{formatVnd(o.subtotal + (o.shipping_fee ?? 0))}{o.shipping_fee === null && <small className="block text-ask">Chưa có phí ship</small>}</td>
-                  <td className="px-3">{o.payment_status === "paid" ? <Badge tone="ok">Đã thanh toán</Badge> : o.payment_method === "bank" ? "Chuyển khoản · chờ tiền" : "COD · chưa thu"}</td>
+                  <td className="px-3">{o.payment_acceptance === "review" ? <Badge tone="warn">Đã nhận tiền · cần xử lý</Badge> : o.payment_status === "paid" ? <Badge tone="ok">Đã thanh toán</Badge> : o.payment_method === "bank" ? "Chuyển khoản · chờ tiền" : "COD · chưa thu"}</td>
                   <td className="px-3"><Badge tone={STATUS_TONE[o.status]}>{STATUS_LABEL[o.status]}</Badge>{o.needs_restock && <small className="mt-1 block text-ask">Cần đặt hàng</small>}</td>
                 </tr>
               ))}
@@ -62,7 +62,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/don
                   <p className="mt-1 text-sm">{o.customer_name} · <span className="num">{o.phone}</span></p>
                   <p className="mt-1 text-xs text-ink-2">{DELIVERY_LABEL[o.delivery]} · {fmtTime(o.created_at)}{o.shipping_fee === null && " · chưa có phí ship"}</p>
                   <b className="num mt-2 block">{formatVnd(o.subtotal + (o.shipping_fee ?? 0))}</b>
-                  <span className="mt-1 block text-xs text-ink-2">{o.payment_status === "paid" ? "Đã thanh toán" : o.payment_method === "bank" ? "Chuyển khoản · chờ tiền" : "COD · chưa thu"}</span>
+                  <span className="mt-1 block text-xs text-ink-2">{o.payment_acceptance === "review" ? "Đã nhận tiền · cần xử lý" : o.payment_status === "paid" ? "Đã thanh toán" : o.payment_method === "bank" ? "Chuyển khoản · chờ tiền" : "COD · chưa thu"}</span>
                 </Link>
               </li>
             ))}

@@ -22,3 +22,10 @@ test('Phí ship chưa có hiện "báo sau"; báo giá có SĐT và nội dung',
   const q = quoteMessage('10 ống PVC', '0911111111');
   assert.ok(q.includes('YÊU CẦU BÁO GIÁ') && q.includes('0911111111') && q.includes('10 ống PVC'));
 });
+
+test('Mã chuyển khoản chờ tiền không được báo là đơn mới đã thành công', () => {
+  const t = orderMessage({ ...base, paymentPending: true });
+  assert.ok(t.startsWith('MÃ CHUYỂN KHOẢN CHỜ TIỀN TTT-0001'));
+  assert.ok(t.includes('Chưa xác nhận đặt hàng; đợi SePay hoặc shop đối chiếu đủ tiền'));
+  assert.ok(!t.includes('ĐƠN MỚI'));
+});
