@@ -772,3 +772,8 @@
 - Đã dùng `vercel promote` tạo production `dpl_1B1BztcnGEVSGAM3D3L1jLPqdsqi` READY. `vercel inspect tantruongtin.com` xác nhận đúng deployment mới và alias cả `tantruongtin.com`, `www.tantruongtin.com`. Kiểm trực tiếp HTTP các trang như trên; log runtime lỗi và HTTP 5xx đều 0 trong cửa sổ kiểm.
 - Trên tên miền chính ở 375px, giỏ thử 305.000đ + phí giao 15.000đ hiển thị 320.000đ; chuyển khoản chọn được và nút “Tạo mã thanh toán” hiện đúng. Không gửi đơn; trang thành công không báo thành công khi chưa có đơn; trang không tràn ngang, console sạch.
 - Chưa kiểm một chuyển khoản ngân hàng thật sau phát hành hoặc đăng nhập trang quản trị bằng tài khoản nhân viên. Chưa commit, push GitHub hay gộp nhánh. Mã nguồn và migration mới còn ở worktree local; GitHub chưa có đợt này.
+
+## 10/11/2026 — Đồng bộ GitHub sau phát hành
+
+- Đã chọn đúng 22 tệp của luồng thanh toán, migration và nhật ký; không đưa `.env.local`, route thử phí ship, `.superpowers/`, nghiên cứu hay tệp tạm Supabase vào commit. Commit `44b02dc` đã đẩy fast-forward lên `origin/main` và `origin/worktree-website-v2`; cập nhật nhánh `main` trên máy cùng commit. Vercel không gắn GitHub nên lần đẩy này không tạo deployment mới.
+- Ghi chú bổ sung trạng thái GitHub vào bàn giao; cần xác minh SHA từ remote sau commit tài liệu này.
