@@ -829,3 +829,17 @@
 - ponytail-review các sửa hôm nay: chỉ còn mục link Messenger (đã sửa). tsc, ESLint `components/storefront`, diff-check đạt. Không build cục bộ để tránh ghi đè `.next` của máy chủ thử; Vercel build từ xa thành công.
 - Deploy **bản xem thử** (target preview, Ready): https://tan-truong-tin-p3q8foh5a-trieuvolehai-2530.vercel.app — có bảo vệ Vercel. HTTP 200: /, /danh-muc, /gio-hang, /thanh-toan, chi tiết SP, /admin/dang-nhap; /kiem-tra-phi-ship 404 (đã loại đúng). Trang SP có link Facebook mới và accordion phẳng.
 - Chưa promote tantruongtin.com, chưa commit/push, không ghi DB.
+
+## 12/11/2026 — Claude: rà dữ liệu ảnh và thông tin sản phẩm (chỉ đọc DB)
+
+- 114 SP hiển thị: 112 SP chỉ có ảnh minh họa (`is_illustration`); 2 SP có ảnh đánh dấu thật: QUATSAN-20-CHINGHAI-FF2399, QUATBAN-16-AIRPORT-B4. Ảnh "thật" của Airport B439 thực tế là ảnh chữ không liên quan sản phẩm — cần thay.
+- 4 ấm siêu tốc thiếu cả mô tả và dòng thông số: AMSIEUTOC3LOP1-8LSUNHOUSEMAMA, AMSIEUTOC-PANA-17, AMSIEUTOCTHUYTINH1-7LSUNHOUSE, AMSIEUTOCPHILIPS1L. Các SP còn lại có mô tả, hướng dẫn, bảo hành, xuất xứ.
+- Không ghi DB. Chờ chủ shop cung cấp ảnh/thông số thật.
+
+## 12/11/2026 — Claude: phát hành production và gán ảnh minh họa theo loại
+
+- Phát hiện 112 SP dùng chung ảnh banner `/ai/hardware-hero.jpg` (có máy khoan, ống nước) → không khớp sản phẩm. Vẽ 8 SVG trong `public/minh-hoa/` (ấm siêu tốc; quạt bàn/đứng/lửng/sàn/treo/trần/hộp). Commit `d82bd9a`.
+- Chủ shop chọn "phát hành rồi gán" để web chính không lỗi ảnh. `vercel deploy --prod` READY (`tan-truong-tin-hrudd6wd3`). Kiểm tantruongtin.com: /, /danh-muc, /gio-hang, /thanh-toan, /cho-thanh-toan, chi tiết SP, /admin/dang-nhap 200; /kiem-tra-phi-ship 404; 2 SVG 200; robots vẫn `Disallow: /`; có accordion phẳng và link Facebook mới.
+- Ghi DB (Supabase thật, một giao dịch, chủ shop duyệt): đổi `product_images.url` các dòng banner sang SVG theo từ thứ 2 của tên SP (`lỡ`→quạt lửng); ảnh chữ sai của QUATBAN-16-AIRPORT-B4 cũng đổi sang `quat-ban.svg`, `is_illustration=true`. Kết quả: 114 dòng `/minh-hoa/`, 0 dòng banner. Ảnh thật của ChingHai FF2399 giữ nguyên. Airport có 2 dòng ảnh cùng `quat-ban.svg` (trùng, vô hại; dọn khi có ảnh thật). File ảnh cũ trong Storage không xóa.
+- Trang chủ tự làm mới sau 60 giây (revalidate); kiểm 375px: ảnh mới hiện, 0 ảnh lỗi.
+- Chưa: thông số 4 ấm (chờ file có mã model), ảnh thật, gộp `main`.
