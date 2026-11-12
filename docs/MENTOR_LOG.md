@@ -777,3 +777,55 @@
 
 - Đã chọn đúng 22 tệp của luồng thanh toán, migration và nhật ký; không đưa `.env.local`, route thử phí ship, `.superpowers/`, nghiên cứu hay tệp tạm Supabase vào commit. Commit `44b02dc` đã đẩy fast-forward lên `origin/main` và `origin/worktree-website-v2`; cập nhật nhánh `main` trên máy cùng commit. Vercel không gắn GitHub nên lần đẩy này không tạo deployment mới.
 - Ghi chú bổ sung trạng thái GitHub vào bàn giao; cần xác minh SHA từ remote sau commit tài liệu này.
+## 11/11/2026 — Bản thử phong cách mới cho trang khách
+
+- Chủ shop chốt: chỉ trang khách; ba mục Thông số, Mô tả & Bảo hành, Hướng dẫn sử dụng mở ra toàn bộ nội dung; nội dung thiếu hiện “Đang cập nhật”.
+- Đã sửa mã cục bộ trên worktree `worktree-website-v2`: bảng màu trắng/xanh đậm/xanh teal, banner trang chủ, thẻ ngành hàng, màu thẻ sản phẩm, nút mua, trang tài khoản khách; trang quản trị giữ bảng màu hiện tại. Ba mục chi tiết đổi thành nhóm mở/đóng, mục Thông số mở sẵn, mở mục khác thì mục trước đóng. Không sửa nghiệp vụ mua hàng, DB hay dữ liệu sản phẩm.
+- Đã kiểm: TypeScript và ESLint tệp sửa đạt; 31 kiểm thử hiện có đạt; `git diff --check` đạt. Bản dựng Webpack biên dịch giao diện và TypeScript thành công, nhưng không hoàn tất bước lấy dữ liệu vì môi trường thử không phân giải được địa chỉ Supabase.
+- Chưa kiểm bằng mắt trên trình duyệt ở 375px: trình duyệt của phiên không kết nối được máy chủ cục bộ. Chưa commit, push, deploy hay ghi DB. Cần kiểm giao diện thật trên bản thử có kết nối dữ liệu trước khi cập nhật tên miền chính.
+
+## 11/11/2026 — Bản xem thử phong cách mới
+
+- Chủ shop duyệt bản xem thử riêng, chưa cập nhật tên miền chính. Đã rà gói tải lên và loại tài liệu nội bộ, báo cáo, tệp môi trường và tệp tạm bằng .vercelignore; bản xem thử hiện tại: https://tan-truong-tin-guj9h3ogr-trieuvolehai-2530.vercel.app (deployment dpl_AftCfn5YWt57UoKucVftEubqsQwC, READY, không phải production).
+- Đã chỉnh trang chủ để bỏ cột danh mục trống ở desktop; vùng danh mục hiện ngay dưới banner. Ở 375px đã xem trang chủ và trang chi tiết một sản phẩm. Ba mục Thông số, Mô tả & Bảo hành, Hướng dẫn sử dụng hiện đúng; mở Mô tả & Bảo hành thì Thông số đóng, nội dung đầy đủ. Đã lưu ảnh kiểm tra tại docs/website-v2/preview-product-mobile-2026-11-11.png.
+- Kiểm tuyến /, /danh-muc, /gio-hang, /thanh-toan, /admin/dang-nhap trên bản thử: 200; tuyến thử phí ship: 404. TypeScript, ESLint trang chủ và git diff --check đạt sau chỉnh bố cục.
+- Bản thử có bảo vệ đăng nhập Vercel; người xem cần có quyền truy cập Vercel. Chưa thử mua hàng hoặc chuyển khoản ở bản thử; không ghi DB. Chưa commit, push GitHub, promote hoặc cập nhật tantruongtin.com. Ảnh minh họa sản phẩm chưa được thay bằng ảnh thật.
+
+## 12/11/2026 — Ba mục thông tin sản phẩm dạng danh sách phẳng
+
+- Theo bản mẫu chủ shop duyệt, đổi ProductInfoAccordion trên trang chi tiết: bỏ nền, viền bao và góc bo; chỉ giữ đường phân cách giữa ba mục, đặt mũi tên ở bên phải và canh nội dung theo lề chung. Giữ thao tác mở/đóng, hiệu ứng, vùng bấm và thuộc tính trợ năng.
+- Đã kiểm `npx tsc --noEmit`, `npx eslint components/storefront/ProductInfoAccordion.tsx` và `git diff --check`: đạt. Chưa kiểm trực quan mã mới trong trình duyệt; ảnh 375px chỉ là bản mẫu tĩnh đã duyệt.
+- Chưa commit, push, deploy hoặc ghi DB. Bản xem thử Vercel trước đó và tantruongtin.com chưa có thay đổi này. Các thay đổi khác có sẵn trong worktree được giữ nguyên.
+
+## 12/11/2026 — Bàn giao trở lại cho Claude
+
+- Theo yêu cầu chủ shop, đã tổng hợp việc Codex và chủ shop làm từ 08–12/11 vào `docs/website-v2/BAN_GIAO_CHO_CLAUDE_2026-11-12.md`, đồng thời đặt liên kết ở các tệp bàn giao cũ để Claude thấy trạng thái mới nhất.
+- Chỉ đọc mã, Git cục bộ và nhật ký; không tái kiểm GitHub API (không kết nối được), Vercel, Supabase hay giao dịch ngân hàng. Không sửa ứng dụng, ghi DB, commit, push hoặc deploy trong lượt bàn giao.
+
+## 12/11/2026 — Claude kiểm trực quan mã mới nhất ở 375px
+
+- `git status` khớp bàn giao (24 tệp sửa + các mục chưa theo dõi); `ProductInfoAccordion.tsx` vẫn là bản danh sách phẳng. Không sửa mã.
+- Chạy localhost:3000 (Next 16.4.2, DB thật, chỉ đọc). Trang chi tiết `QUATBAN-16-AIRPORT-B4` ở 375px: ba mục không nền/viền/bo góc, chỉ 2 đường ngang; mũi tên sát lề phải; Thông số mở sẵn; chỉ một mục mở một lúc; Enter mở/đóng, viền focus rõ; mục đóng có `inert`; không tràn ngang; console không lỗi.
+- Ghi chú: cú bấm chuột của công cụ trình duyệt lệch tọa độ khi giả lập 375px (rơi vào dòng "Sản xuất tại"), không phải lỗi trang — điểm giữa nút trả về đúng nút, sự kiện click vào nút mở đúng mục.
+- Trang chủ, /danh-muc, /gio-hang (1 món), /thanh-toan: không tràn ngang. Không gửi đơn, không ghi DB.
+- Điểm để chủ shop cân nhắc (chưa sửa): nút nổi Zalo/gọi che một phần chữ phí giao ở giỏ; giỏ có khối tóm tắt + thanh dưới lặp nội dung "Đặt hàng"/phí giao; số bước thanh toán hiện 1, 2, 4 khi chọn lấy tại cửa hàng; trang danh mục chỉ có một nhóm "Đồ gia dụng".
+- Chưa commit, push, deploy.
+
+## 12/11/2026 — Claude sửa 2 điểm giao diện nhỏ (chủ shop duyệt)
+
+- Giỏ hàng (CartControls): trên điện thoại ẩn nút "Đặt hàng" và dòng phí giao trong khối Tóm tắt (chỉ hiện từ lg); thanh dưới giữ nguyên. Kiểm 375px: chỉ 1 nút Đặt hàng + 1 dòng phí hiển thị, không tràn ngang.
+- Thanh toán (CheckoutForm): bước Thanh toán đánh số 3 khi lấy tại cửa hàng, 4 khi giao tận nơi. Kiểm 375px chuyển qua lại đúng.
+- Danh mục chỉ có "Đồ gia dụng" là do dữ liệu (114 SP đều thuộc gia dụng), không sửa mã.
+- Nút nổi: chủ shop muốn thu nhỏ, chỉ còn Messenger + Zalo; đang chờ link Messenger của shop, chưa sửa.
+- `npx tsc --noEmit`, ESLint 2 tệp, `git diff --check`: đạt. Chưa commit, push, deploy.
+- Bổ sung: FloatActions đổi sang 2 nút 40px (trước 48px): Messenger + Zalo, bỏ nút gọi, mở tab mới. Link Messenger đang là **mẫu tạm** `https://www.messenger.com/` (hằng `MESSENGER_URL`) — phải thay bằng link trang Facebook thật trước khi phát hành. Kiểm 375px ở giỏ và chi tiết SP: hiển thị đúng; tsc/ESLint đạt.
+- Bổ sung: trang thanh toán (điện thoại), khung Đơn hàng thu gọn hiện ảnh nhỏ 40px cạnh tên sản phẩm theo yêu cầu chủ shop. tsc/ESLint đạt.
+- Bổ sung: khi mở chi tiết đơn ở thanh toán (điện thoại), nút "Thu gọn đơn hàng" chuyển xuống ngay dưới "Sửa giỏ hàng". Kiểm 375px mở/thu gọn đúng; tsc/ESLint đạt.
+- Bổ sung (ui-ux-pro-max): khung Đơn hàng ở thanh toán — "Sửa giỏ hàng" (trái) và "Thu gọn đơn hàng" (phải, màu phụ) cùng một hàng, cao 44px, cách phần tổng tiền 12px. Kiểm 375px; tsc/ESLint đạt.
+
+## 12/11/2026 — Claude: link Messenger và bản xem thử mới
+
+- Link Messenger thay bằng link Facebook chủ shop gửi: `https://www.facebook.com/trieu.vo.697369` (trang cá nhân, chưa phải Fanpage; bỏ tham số `locale`).
+- ponytail-review các sửa hôm nay: chỉ còn mục link Messenger (đã sửa). tsc, ESLint `components/storefront`, diff-check đạt. Không build cục bộ để tránh ghi đè `.next` của máy chủ thử; Vercel build từ xa thành công.
+- Deploy **bản xem thử** (target preview, Ready): https://tan-truong-tin-p3q8foh5a-trieuvolehai-2530.vercel.app — có bảo vệ Vercel. HTTP 200: /, /danh-muc, /gio-hang, /thanh-toan, chi tiết SP, /admin/dang-nhap; /kiem-tra-phi-ship 404 (đã loại đúng). Trang SP có link Facebook mới và accordion phẳng.
+- Chưa promote tantruongtin.com, chưa commit/push, không ghi DB.

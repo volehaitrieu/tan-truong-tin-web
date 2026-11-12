@@ -1,5 +1,7 @@
 # Bàn giao hiện hành — Tân Trường Tín
 
+> **Bàn giao mới nhất 12/11/2026:** đọc `docs/website-v2/BAN_GIAO_CHO_CLAUDE_2026-11-12.md` để tiếp tục phần Codex đã làm từ 08–12/11. Tài liệu cũ bên dưới là lịch sử.
+
 > **Mới nhất (28-10, cuối ngày): đọc [docs/BAN_GIAO_TIEP_TUC.md](docs/BAN_GIAO_TIEP_TUC.md) trước** — trạng thái đã kiểm chứng, việc còn dở và quy tắc an toàn.
 
 Cập nhật 28-10-2026. Chủ shop chuyển trách nhiệm code hệ thống sang Claude Code.
