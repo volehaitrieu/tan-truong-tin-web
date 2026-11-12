@@ -909,3 +909,4 @@
 - Migration `20261112190000_customer_favorites_20261112.sql` đã áp (chủ shop duyệt): bảng `customer_favorites`, RLS chỉ của mình, tối đa 200. Kiểm hoàn tác: A lưu được, tim trùng không nhân bản; B không thấy/xóa/thêm cho A.
 - Code: `app/(store)/yeu-thich-actions.ts` (syncFavorites, setFavorite); `FavoriteButton.tsx` đồng bộ 1 lần/trang khi có cookie đăng nhập, gộp danh sách trên máy; trang tài khoản thêm mục Sản phẩm yêu thích.
 - Thử thật Chrome (localhost): tim khi chưa đăng nhập → đăng ký → mục yêu thích có SP; xóa localStorage → tải lại → tim khôi phục từ tài khoản; bỏ tim → DB 0. Đã xóa tài khoản thử. Máy chủ thử bị app dừng, đã bật lại. Chưa làm: xóa tim khỏi máy khi đăng xuất. Chưa phát hành.
+- Phát hành production đợt 3 theo yêu cầu chủ shop.
