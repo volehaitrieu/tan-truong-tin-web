@@ -1,7 +1,8 @@
 "use client";
-import { useActionState, useEffect, useRef, type ReactNode } from "react";
+import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
+import { PROVINCES } from "@/lib/mock/address";
 import { TurnstileWidget, useCaptcha } from "@/components/TurnstileWidget";
-import { changeCustomerPassword, saveProfile, type AuthResult, type Field } from "@/app/(store)/tai-khoan/actions";
+import { changeCustomerPassword, saveAddress, saveProfile, type AuthResult, type Field } from "@/app/(store)/tai-khoan/actions";
 
 const input = (bad: boolean) => `mt-1 h-12 w-full rounded-xl border bg-white px-3 text-[15px] ${bad ? "border-danger" : "border-line"}`;
 
@@ -40,5 +41,29 @@ export function PasswordForm() {
     {state.error && <p role="alert" className="text-sm text-danger">{state.error}</p>}
     {state.ok && <p role="status" className="text-sm text-ok">Đã đổi mật khẩu.</p>}
     <button disabled={pending || captcha.waiting} className="h-11 rounded-xl border border-brand px-5 font-semibold text-brand hover:bg-brand-tint disabled:opacity-60">{captcha.waiting ? "Đang xác minh…" : pending ? "Đang đổi…" : "Đổi mật khẩu"}</button>
+  </form>;
+}
+
+// Địa chỉ nhận hàng: cùng danh sách Tỉnh/Phường với trang thanh toán để tự điền khớp
+export function AddressForm({ province, ward, street }: { province: string; ward: string; street: string }) {
+  const [state, action, pending] = useActionState<AuthResult, FormData>(saveAddress, {});
+  const [p, setP] = useState(PROVINCES[province] ? province : "Khánh Hòa");
+  const wards = PROVINCES[p] ?? [];
+  const sel = "mt-1 h-12 w-full rounded-xl border border-line bg-white px-3 text-[15px]";
+  return <form action={action} className="space-y-3">
+    <div className="grid gap-3 sm:grid-cols-2">
+      <label className="block text-sm font-medium">Tỉnh / Thành phố
+        <select name="province" value={p} onChange={(e) => setP(e.target.value)} className={sel}>{Object.keys(PROVINCES).map((x) => <option key={x}>{x}</option>)}</select>
+      </label>
+      <label className="block text-sm font-medium">Phường / Xã
+        <select key={p} name="ward" defaultValue={wards.includes(ward) ? ward : ""} className={sel}><option value="">Chọn phường / xã</option>{wards.map((w) => <option key={w}>{w}</option>)}</select>
+      </label>
+    </div>
+    <label className="block text-sm font-medium">Số nhà, tên đường
+      <input name="street" defaultValue={street} maxLength={200} autoComplete="street-address" placeholder="Ví dụ: 12 Lê Thánh Tôn" className={sel} />
+    </label>
+    {state.error && <p role="alert" className="text-sm text-danger">{state.error}</p>}
+    {state.ok && <p role="status" className="text-sm text-ok">Đã lưu địa chỉ.</p>}
+    <button disabled={pending} className="h-11 rounded-xl border border-brand px-5 font-semibold text-brand hover:bg-brand-tint disabled:opacity-60">{pending ? "Đang lưu…" : "Lưu địa chỉ"}</button>
   </form>;
 }

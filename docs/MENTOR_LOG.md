@@ -895,3 +895,10 @@
 - Thử thật trên Chrome (localhost, DB thật): đăng ký 0900000099 → vào trang tài khoản, email "Chưa xác minh"; đăng ký trùng SĐT + email khác hoa thường → 2 báo đỏ "Thông tin này đã được sử dụng."; đăng nhập SĐT có dấu cách thành công; khách vào /admin bị chuyển /admin/dang-nhap; đăng xuất đúng. Đã xóa tài khoản thử. Trình duyệt trong app không qua được Turnstile (môi trường tự động), Chrome thật tự qua ngầm.
 - tsc/ESLint đạt; nút Google ẩn trên production. Chưa phát hành.
 - Phát hành production theo yêu cầu chủ shop.
+
+## 12/11/2026 — Tài khoản khách đợt 2
+
+- Migration `20261112170000_customer_orders_20261112.sql` đã áp (chủ shop duyệt): địa chỉ trong customers; `orders.customer_id`; `place_order` gắn khách theo auth.uid() (logic tiền/tồn giữ nguyên); `customer_orders()`.
+- Kiểm hoàn tác: A đặt đơn → gắn A, A thấy 1 đơn; B thấy 0 và không thấy địa chỉ A; khách vãng lai đặt bình thường, không gắn. Lưu ý: chuỗi mã đơn đã dùng TTT001074–1075 trong lúc thử (đơn thật tiếp theo nhảy số).
+- Code: `app/(store)/actions.ts` gọi place_order bằng phiên (createClient); `CheckoutForm` nhận prefill; `thanh-toan/page.tsx`; `AddressForm`, `saveAddress`; `OrderHistory.tsx`; trang tài khoản thêm Đơn hàng và Địa chỉ.
+- Thử thật trên Chrome (localhost): đăng ký, lưu địa chỉ, thanh toán tự điền đúng tên/SĐT/tỉnh/phường/số nhà. Không đặt đơn thật. Đã xóa tài khoản thử, bỏ món thử khỏi giỏ. tsc/ESLint đạt. Chưa phát hành.

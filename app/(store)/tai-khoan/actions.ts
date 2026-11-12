@@ -118,3 +118,21 @@ export async function changeCustomerPassword(_: AuthResult, form: FormData): Pro
   const { error } = await db.auth.updateUser({ password: next });
   return error ? { error: "Không đổi được mật khẩu. Vui lòng thử lại." } : { ok: true };
 }
+
+// Địa chỉ nhận hàng thường dùng (tự điền ở trang thanh toán). Để trống cả 3 ô = xóa địa chỉ.
+export async function saveAddress(_: AuthResult, form: FormData): Promise<AuthResult> {
+  const province = str(form, "province").trim();
+  const ward = str(form, "ward").trim();
+  const street = str(form, "street").trim();
+  if (province.length > 80 || ward.length > 80 || street.length > 200) return { error: "Địa chỉ quá dài." };
+  if ((ward || street) && (!province || !ward || !street)) return { error: "Nhập đủ Tỉnh/Thành, Phường/Xã và số nhà, tên đường." };
+  const db = await createClient();
+  const { data: { user } } = await db.auth.getUser();
+  if (!user || !isCustomerLogin(user.email)) return { error: "Phiên đăng nhập đã hết, vui lòng đăng nhập lại." };
+  const empty = !ward && !street;
+  const { error } = await db.from("customers")
+    .update({ province: empty ? null : province, ward: empty ? null : ward, street: empty ? null : street }).eq("id", user.id);
+  if (error) return { error: "Chưa lưu được địa chỉ. Vui lòng thử lại." };
+  revalidatePath("/tai-khoan");
+  return { ok: true };
+}

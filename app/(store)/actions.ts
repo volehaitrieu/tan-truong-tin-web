@@ -3,6 +3,7 @@ import { after } from "next/server";
 import { getProducts } from "@/lib/catalog";
 import { notifyOrder, notifyQuote } from "@/lib/notify/telegram";
 import { createPublicClient } from "@/lib/supabase/public";
+import { createClient } from "@/lib/supabase/server";
 import type { Product } from "@/lib/mock/store";
 
 // Hàm server cho trang bán hàng. Mọi kiểm tra tiền/số lượng nằm trong hàm Postgres (place_order…);
@@ -26,7 +27,8 @@ const tooBig = (v: unknown) => JSON.stringify(v ?? "").length > 20000;
 
 export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResult> {
   if (!input || tooBig(input)) return { ok: false, error: "Dữ liệu đơn hàng không hợp lệ." };
-  const { data, error } = await createPublicClient().rpc("place_order", { payload: input });
+  // Gọi kèm phiên đăng nhập (nếu có) để DB tự gắn đơn vào tài khoản khách bằng auth.uid(); khách vãng lai vẫn như cũ
+  const { data, error } = await (await createClient()).rpc("place_order", { payload: input });
   if (error) return { ok: false, error: friendly(error.message) };
   // Báo cho chủ shop qua Telegram SAU khi đã trả lời khách; lỗi báo tin không ảnh hưởng đơn (đơn đã lưu trong DB).
   after(async () => {

@@ -19,13 +19,21 @@ function Field({ label, error, children }: { label: ReactNode; error?: string; c
   return <label className="block text-sm font-medium">{label}{children}{error && <span role="alert" className="mt-1 block text-[13px] font-normal text-danger">{error}</span>}</label>;
 }
 
-export function CheckoutForm({ innerFee, freeFrom, bankReady = false, shippingPolicy }: { innerFee: number | null; freeFrom: number | null; bankReady?: boolean; shippingPolicy?: string }) {
+export type CheckoutPrefill = { name: string; phone: string; province?: string | null; ward?: string | null; street?: string | null };
+
+// prefill: thông tin của khách đang đăng nhập (tự điền, khách vẫn sửa được)
+export function CheckoutForm({ innerFee, freeFrom, bankReady = false, shippingPolicy, prefill }: { innerFee: number | null; freeFrom: number | null; bankReady?: boolean; shippingPolicy?: string; prefill?: CheckoutPrefill }) {
   const cart = useCartLines();
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [method, setMethod] = useState<Method>("pickup");
   const [pay, setPay] = useState<"cod" | "bank">("cod");
-  const [f, setF] = useState({ name: "", phone: "", province: "Khánh Hòa", ward: "", street: "", note: "" });
+  const [f, setF] = useState({
+    name: prefill?.name ?? "", phone: prefill?.phone ?? "",
+    province: prefill?.province && PROVINCES[prefill.province] ? prefill.province : "Khánh Hòa",
+    ward: prefill?.province && PROVINCES[prefill.province]?.includes(prefill.ward ?? "") ? prefill.ward ?? "" : "",
+    street: prefill?.street ?? "", note: "",
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [placed, setPlaced] = useState(false);
   const [sending, setSending] = useState(false);

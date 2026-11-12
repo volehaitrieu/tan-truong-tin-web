@@ -3,7 +3,9 @@ import Link from "next/link";
 import { ArrowRight, LogOut, MapPin, PackageCheck, UserRound } from "lucide-react";
 import { getCustomerSession } from "@/lib/customer";
 import { logoutCustomer } from "@/app/(store)/tai-khoan/actions";
-import { PasswordForm, ProfileForm } from "@/components/storefront/AccountForms";
+import { AddressForm, PasswordForm, ProfileForm } from "@/components/storefront/AccountForms";
+import { OrderHistory, type HistoryOrder } from "@/components/storefront/OrderHistory";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Tài khoản khách hàng" };
 export const dynamic = "force-dynamic";
@@ -13,6 +15,11 @@ const card = "rounded-md border border-line bg-white p-5 sm:p-6";
 export default async function CustomerAccountPage({ searchParams }: { searchParams: Promise<{ "email-trung"?: string }> }) {
   const session = await getCustomerSession();
   const emailTaken = (await searchParams)["email-trung"] === "1";
+  let orders: HistoryOrder[] = [];
+  if (session.kind === "customer" && session.customer) {
+    const { data } = await (await createClient()).rpc("customer_orders");
+    orders = Array.isArray(data) ? (data as HistoryOrder[]) : [];
+  }
   return (
     <div className="mx-auto max-w-4xl">
       <div hidden data-theme-v2 />
@@ -59,6 +66,19 @@ export default async function CustomerAccountPage({ searchParams }: { searchPara
               </div>
             </section>
             {session.customer && (
+              <section className={card} aria-labelledby="orders-title">
+                <h2 id="orders-title" className="flex items-center gap-2 text-lg font-bold"><PackageCheck className="size-5 text-brand" aria-hidden />Đơn hàng của bạn</h2>
+                <div className="mt-3"><OrderHistory orders={orders} /></div>
+              </section>
+            )}
+            {session.customer && (
+              <section className={card} aria-labelledby="addr-title">
+                <h2 id="addr-title" className="flex items-center gap-2 text-lg font-bold"><MapPin className="size-5 text-brand" aria-hidden />Địa chỉ nhận hàng</h2>
+                <p className="mt-1 text-sm text-ink-2">Tự điền khi bạn đặt hàng.</p>
+                <div className="mt-3"><AddressForm province={session.customer.province ?? ""} ward={session.customer.ward ?? ""} street={session.customer.street ?? ""} /></div>
+              </section>
+            )}
+            {session.customer && (
               <section className={card} aria-labelledby="pw-title">
                 <h2 id="pw-title" className="text-lg font-bold">Đổi mật khẩu</h2>
                 <div className="mt-3"><PasswordForm /></div>
@@ -68,7 +88,7 @@ export default async function CustomerAccountPage({ searchParams }: { searchPara
               <button className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-white px-5 font-semibold text-ink hover:bg-sunk"><LogOut className="size-4" aria-hidden />Đăng xuất</button>
             </form>
           </div>
-          <Side />
+          <aside><Link href="/tra-cuu" className="flex min-h-11 items-center justify-center rounded-md border border-brand bg-white px-4 text-sm font-semibold text-brand hover:bg-brand-tint">Tra cứu đơn bằng mã</Link></aside>
         </div>
       )}
     </div>
@@ -81,12 +101,12 @@ function Side() {
       <div className="rounded-md border border-line bg-white p-4">
         <PackageCheck className="size-5 text-brand" aria-hidden />
         <h2 className="mt-2 font-semibold">Lịch sử đơn hàng</h2>
-        <p className="mt-1 text-sm text-ink-2">Sắp có: đơn đặt khi đã đăng nhập sẽ hiện tại đây.</p>
+        <p className="mt-1 text-sm text-ink-2">Đăng nhập để xem các đơn bạn đã đặt.</p>
       </div>
       <div className="rounded-md border border-line bg-white p-4">
         <MapPin className="size-5 text-brand" aria-hidden />
         <h2 className="mt-2 font-semibold">Địa chỉ nhận hàng</h2>
-        <p className="mt-1 text-sm text-ink-2">Sắp có: lưu địa chỉ để đặt hàng nhanh hơn.</p>
+        <p className="mt-1 text-sm text-ink-2">Lưu địa chỉ để đặt hàng nhanh hơn.</p>
       </div>
       <Link href="/tra-cuu" className="flex min-h-11 items-center justify-center rounded-md border border-brand bg-white px-4 text-sm font-semibold text-brand hover:bg-brand-tint">Tra cứu đơn hiện tại</Link>
     </aside>
