@@ -1,5 +1,7 @@
 # Bàn giao hiện hành — Tân Trường Tín
 
+> **Bàn giao mới nhất 13/11/2026 (Claude → Codex):** đọc `docs/website-v2/BAN_GIAO_CHO_CODEX_2026-11-13.md` — trạng thái môi trường, việc tiếp theo và danh sách việc của chủ shop. Các ghi chú bên dưới là lịch sử.
+
 > **Bàn giao mới nhất 12/11/2026:** đọc `docs/website-v2/BAN_GIAO_CHO_CLAUDE_2026-11-12.md` để tiếp tục phần Codex đã làm từ 08–12/11. Tài liệu cũ bên dưới là lịch sử.
 
 > **Mới nhất (28-10, cuối ngày): đọc [docs/BAN_GIAO_TIEP_TUC.md](docs/BAN_GIAO_TIEP_TUC.md) trước** — trạng thái đã kiểm chứng, việc còn dở và quy tắc an toàn.

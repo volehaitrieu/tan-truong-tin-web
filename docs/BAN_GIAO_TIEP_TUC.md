@@ -1,5 +1,7 @@
 # Bàn giao tiếp tục — Tân Trường Tín
 
+> **Mới nhất 13/11/2026:** xem `docs/website-v2/BAN_GIAO_CHO_CODEX_2026-11-13.md`.
+
 > **Bàn giao mới nhất 12/11/2026:** xem `docs/website-v2/BAN_GIAO_CHO_CLAUDE_2026-11-12.md` trước khi tiếp tục. Các trạng thái bên dưới có thể là lịch sử.
 
 **Cập nhật:** 30-10-2026 · **Người viết:** Claude Code · **Nhánh Git:** `codex/desktop-storefront-upgrade` (không phải `main`)
