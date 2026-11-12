@@ -849,3 +849,14 @@
 - Từ `Downloads/Kho-App-Am-sieu-toc-doi-chieu-2026-11-09-ban2.xlsx` tạo `Downloads/Kho-App-Am-sieu-toc-2026-11-12-bo-4-am-chua-model.xlsx`: bỏ 4 SKU (AMSIEUTOC3LOP1-8LSUNHOUSEMAMA, AMSIEUTOC-PANA-17, AMSIEUTOCTHUYTINH1-7LSUNHOUSE, AMSIEUTOCPHILIPS1L) ở sheet SanPham (14→10 SP) và Nguon doi chieu. File gốc giữ nguyên. Chưa đổi DB/website.
 - Chủ shop xác nhận xóa vĩnh viễn 4 ấm trên DB thật (0 đơn hàng liên quan; kèm tồn kho, 13 dòng lịch sử kho, giá nhập, ảnh theo CASCADE). Một giao dịch; còn 110 SP hiển thị, 10 ấm.
 - Kiểm tantruongtin.com: trang chủ không còn 4 ấm; link chi tiết cũ hiện "Không tìm thấy sản phẩm".
+
+## 12/11/2026 — Claude: đối chiếu SePay và rà chính sách (chỉ đọc)
+
+- TTT001067: đơn `paid`/`completed` (590.000đ). Bản ghi SePay 590.000đ ở `review` vì khách chuyển qua ZaloPay — nội dung bị thay ("…dung Zalopay chuyen tien…"), không có mã TTT. Thêm 2 khoản `review` 100.000đ (10/11) và 75.000đ (10/11) là chuyển khoản cá nhân không có mã đơn, không gắn đơn nào. Không sửa; chủ shop xử lý ở Admin › Giao dịch.
+- Rủi ro vận hành: chuyển qua ví (ZaloPay/MoMo) có thể làm mất mã đơn → không tự xác nhận; tài khoản nhận dùng chung chuyển khoản cá nhân → sẽ có thêm bản ghi `review`.
+- Chính sách: `settings.return_policy` trống → mục Đổi trả đang hiện "đang chờ chủ shop chốt". Vận chuyển/thanh toán/bảo mật/bảo hành đã có nội dung theo cài đặt hiện hành.
+
+## 12/11/2026 — Claude: đưa chính sách đổi hàng lên web
+
+- Chủ shop chốt nội dung (đổi trong 2 ngày; lỗi NSX đổi mới cùng mẫu; giao sai đổi đúng hàng; đổi ý chỉ sang hàng giá cao hơn, bù chênh lệch; không áp dụng hàng thanh lý; không trả hàng/không hoàn tiền). Bản gốc: `docs/website-v2/NHAP_CHINH_SACH_DOI_TRA_2026-11-12.md`.
+- Ghi `settings.return_policy` (id=1, 1.181 ký tự) theo yêu cầu chủ shop. tantruongtin.com/chinh-sach đã hiện nội dung mới, không còn câu "đang chờ chủ shop chốt". Lưu ý pháp lý (không hoàn tiền) đã báo chủ shop; chưa đối chiếu luật.
