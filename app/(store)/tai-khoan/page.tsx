@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, LogOut, MapPin, PackageCheck, UserRound } from "lucide-react";
+import { ArrowRight, Heart, LogOut, MapPin, PackageCheck, UserRound } from "lucide-react";
+import { getProducts } from "@/lib/catalog";
+import { ProductCard } from "@/components/storefront/ProductCard";
+import type { Product } from "@/lib/mock/store";
 import { getCustomerSession } from "@/lib/customer";
 import { logoutCustomer } from "@/app/(store)/tai-khoan/actions";
 import { AddressForm, PasswordForm, ProfileForm } from "@/components/storefront/AccountForms";
@@ -16,9 +19,17 @@ export default async function CustomerAccountPage({ searchParams }: { searchPara
   const session = await getCustomerSession();
   const emailTaken = (await searchParams)["email-trung"] === "1";
   let orders: HistoryOrder[] = [];
+  let favorites: Product[] = [];
   if (session.kind === "customer" && session.customer) {
-    const { data } = await (await createClient()).rpc("customer_orders");
+    const db = await createClient();
+    const [{ data }, { data: favs }, products] = await Promise.all([
+      db.rpc("customer_orders"),
+      db.from("customer_favorites").select("products(sku)").eq("customer_id", session.customer.id),
+      getProducts(),
+    ]);
     orders = Array.isArray(data) ? (data as HistoryOrder[]) : [];
+    const skus = new Set((favs ?? []).flatMap((r) => { const p = r.products as unknown as { sku: string } | null; return p ? [p.sku] : []; }));
+    favorites = products.filter((p) => skus.has(p.sku));
   }
   return (
     <div className="mx-auto max-w-4xl">
@@ -69,6 +80,14 @@ export default async function CustomerAccountPage({ searchParams }: { searchPara
               <section className={card} aria-labelledby="orders-title">
                 <h2 id="orders-title" className="flex items-center gap-2 text-lg font-bold"><PackageCheck className="size-5 text-brand" aria-hidden />Đơn hàng của bạn</h2>
                 <div className="mt-3"><OrderHistory orders={orders} /></div>
+              </section>
+            )}
+            {session.customer && (
+              <section className={card} aria-labelledby="fav-title">
+                <h2 id="fav-title" className="flex items-center gap-2 text-lg font-bold"><Heart className="size-5 text-brand" aria-hidden />Sản phẩm yêu thích</h2>
+                {favorites.length === 0
+                  ? <p className="mt-2 text-sm text-ink-2">Bấm hình trái tim trên sản phẩm để lưu vào đây.</p>
+                  : <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">{favorites.map((p) => <ProductCard key={p.sku} p={p} />)}</div>}
               </section>
             )}
             {session.customer && (

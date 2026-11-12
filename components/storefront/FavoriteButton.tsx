@@ -2,6 +2,7 @@
 
 import { Heart } from "lucide-react";
 import { useEffect, useState } from "react";
+import { setFavorite as saveFavorite, syncFavorites } from "@/app/(store)/yeu-thich-actions";
 
 const KEY = "ttt-favorite-products";
 const EVENT = "ttt-favorites-change";
@@ -15,12 +16,30 @@ function readFavorites() {
   }
 }
 
+function writeFavorites(list: string[]) {
+  try { localStorage.setItem(KEY, JSON.stringify(list)); } catch { /* bộ nhớ trình duyệt bị chặn */ }
+  window.dispatchEvent(new Event(EVENT));
+}
+
+// Đồng bộ một lần mỗi lần tải trang: khách đăng nhập → gộp danh sách trên máy vào tài khoản và dùng danh sách tài khoản.
+let synced: Promise<boolean> | null = null;
+function syncOnce(): Promise<boolean> {
+  // Chưa có cookie đăng nhập Supabase → chắc chắn là khách vãng lai, khỏi gọi máy chủ
+  if (!document.cookie.includes("-auth-token")) return Promise.resolve(false);
+  synced ??= syncFavorites(readFavorites()).then((list) => {
+    if (list) writeFavorites(list);
+    return list !== null;
+  }).catch(() => false);
+  return synced;
+}
+
 export function FavoriteButton({ sku, name }: { sku: string; name: string }) {
   const [favorite, setFavorite] = useState(false);
 
   useEffect(() => {
     const sync = () => setFavorite(readFavorites().includes(sku));
     sync();
+    void syncOnce();
     window.addEventListener(EVENT, sync);
     window.addEventListener("storage", sync);
     return () => {
@@ -32,14 +51,11 @@ export function FavoriteButton({ sku, name }: { sku: string; name: string }) {
   const toggle = () => {
     const current = readFavorites();
     const next = current.includes(sku) ? current.filter((item) => item !== sku) : [...current, sku];
-    try {
-      localStorage.setItem(KEY, JSON.stringify(next));
-      setFavorite(next.includes(sku));
-      window.dispatchEvent(new Event(EVENT));
-    } catch {
-      // Keep the control usable in this page even when browser storage is unavailable.
-      setFavorite((value) => !value);
-    }
+    const on = next.includes(sku);
+    setFavorite(on);
+    writeFavorites(next);
+    // Đã đăng nhập thì lưu lên tài khoản; lỗi mạng không làm mất trạng thái trên máy
+    void syncOnce().then((loggedIn) => { if (loggedIn) void saveFavorite(sku, on); });
   };
 
   return (

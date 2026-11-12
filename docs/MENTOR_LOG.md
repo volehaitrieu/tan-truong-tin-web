@@ -903,3 +903,9 @@
 - Code: `app/(store)/actions.ts` gọi place_order bằng phiên (createClient); `CheckoutForm` nhận prefill; `thanh-toan/page.tsx`; `AddressForm`, `saveAddress`; `OrderHistory.tsx`; trang tài khoản thêm Đơn hàng và Địa chỉ.
 - Thử thật trên Chrome (localhost): đăng ký, lưu địa chỉ, thanh toán tự điền đúng tên/SĐT/tỉnh/phường/số nhà. Không đặt đơn thật. Đã xóa tài khoản thử, bỏ món thử khỏi giỏ. tsc/ESLint đạt. Chưa phát hành.
 - Phát hành production đợt 2 theo yêu cầu chủ shop.
+
+## 12/11/2026 — Tài khoản khách đợt 3: yêu thích
+
+- Migration `20261112190000_customer_favorites_20261112.sql` đã áp (chủ shop duyệt): bảng `customer_favorites`, RLS chỉ của mình, tối đa 200. Kiểm hoàn tác: A lưu được, tim trùng không nhân bản; B không thấy/xóa/thêm cho A.
+- Code: `app/(store)/yeu-thich-actions.ts` (syncFavorites, setFavorite); `FavoriteButton.tsx` đồng bộ 1 lần/trang khi có cookie đăng nhập, gộp danh sách trên máy; trang tài khoản thêm mục Sản phẩm yêu thích.
+- Thử thật Chrome (localhost): tim khi chưa đăng nhập → đăng ký → mục yêu thích có SP; xóa localStorage → tải lại → tim khôi phục từ tài khoản; bỏ tim → DB 0. Đã xóa tài khoản thử. Máy chủ thử bị app dừng, đã bật lại. Chưa làm: xóa tim khỏi máy khi đăng xuất. Chưa phát hành.
