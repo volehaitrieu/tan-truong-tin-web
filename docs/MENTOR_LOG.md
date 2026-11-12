@@ -902,3 +902,4 @@
 - Kiểm hoàn tác: A đặt đơn → gắn A, A thấy 1 đơn; B thấy 0 và không thấy địa chỉ A; khách vãng lai đặt bình thường, không gắn. Lưu ý: chuỗi mã đơn đã dùng TTT001074–1075 trong lúc thử (đơn thật tiếp theo nhảy số).
 - Code: `app/(store)/actions.ts` gọi place_order bằng phiên (createClient); `CheckoutForm` nhận prefill; `thanh-toan/page.tsx`; `AddressForm`, `saveAddress`; `OrderHistory.tsx`; trang tài khoản thêm Đơn hàng và Địa chỉ.
 - Thử thật trên Chrome (localhost): đăng ký, lưu địa chỉ, thanh toán tự điền đúng tên/SĐT/tỉnh/phường/số nhà. Không đặt đơn thật. Đã xóa tài khoản thử, bỏ món thử khỏi giỏ. tsc/ESLint đạt. Chưa phát hành.
+- Phát hành production đợt 2 theo yêu cầu chủ shop.
