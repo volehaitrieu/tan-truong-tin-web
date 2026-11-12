@@ -33,7 +33,7 @@ export default async function CategoryIndex({ searchParams }: PageProps<"/danh-m
       <div hidden data-theme-v2 />
       <div className="md:hidden -mx-4 -mt-5 flex h-[calc(100dvh-9rem)] min-h-[480px] flex-col">
         <header className="flex h-12 shrink-0 items-center bg-white px-3">
-          <h1 className="text-[14px] font-medium text-[#252A31]">Danh mục sản phẩm</h1>
+          <h1 className="text-[14px] font-medium text-ink">Danh mục sản phẩm</h1>
         </header>
         <div className="flex min-h-0 flex-1 px-0 pt-2"><CategoryIndexClient menu={menu} /></div>
       </div>

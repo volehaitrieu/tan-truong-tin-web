@@ -139,14 +139,14 @@ export function CatalogBrowser({ products }: { products: Product[] }) {
 
       <div className="mt-3.5 flex items-center gap-2.5">
         {industry && (
-          <button type="button" onClick={() => setSheet(true)} aria-haspopup="dialog" aria-label={activeCount ? `Bộ lọc, đang chọn ${activeCount} mục` : "Bộ lọc"} className={`flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-[background-color,transform] duration-150 active:scale-[0.97] ${activeCount ? "border-brand bg-brand text-white" : "border-[#918b85] bg-surface hover:bg-sunk"}`}>
+          <button type="button" onClick={() => setSheet(true)} aria-haspopup="dialog" aria-label={activeCount ? `Bộ lọc, đang chọn ${activeCount} mục` : "Bộ lọc"} className={`flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-[background-color,transform] duration-150 active:scale-[0.97] ${activeCount ? "border-brand bg-brand text-white" : "border-line bg-surface hover:bg-sunk"}`}>
             <SlidersHorizontal className="size-5" aria-hidden />
             Bộ lọc{activeCount > 0 && <span className="num"> · {activeCount}</span>}
           </button>
         )}
         <div className="relative min-w-0 flex-1">
           <label className="sr-only" htmlFor="sort">Sắp xếp</label>
-          <select id="sort" value={sort} onChange={(e) => replaceParams((p) => (e.target.value === "pho-bien" ? p.delete("sort") : p.set("sort", e.target.value)))} className="min-h-11 w-full appearance-none rounded-full border border-[#918b85] bg-surface pl-4 pr-10 text-sm font-semibold text-ink">
+          <select id="sort" value={sort} onChange={(e) => replaceParams((p) => (e.target.value === "pho-bien" ? p.delete("sort") : p.set("sort", e.target.value)))} className="min-h-11 w-full appearance-none rounded-full border border-line bg-surface pl-4 pr-10 text-sm font-semibold text-ink">
             {SORTS.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
           </select>
           <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2" aria-hidden />

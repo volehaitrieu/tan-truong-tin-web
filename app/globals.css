@@ -72,13 +72,16 @@ svg.lucide { stroke-width: 1.75; }
 @media (prefers-reduced-motion: reduce) { .img-shimmer::after { animation: none; display: none; } }
 .product-card:hover .product-art { transform: scale(1.03); }
 
-/* Banner đầu trang chủ: ảnh phủ kín, cửa hàng bên phải, chữ nửa trái (đơn vị cqw theo bề rộng thẻ) */
-.shop-banner { position: relative; container-type: inline-size; width: 100%; max-width: 560px; aspect-ratio: 343 / 222; border-radius: 16px; overflow: hidden; background: var(--color-sunk); isolation: isolate; }
-.shop-banner-bg, .shop-banner-photo { position: absolute; max-width: none; height: auto; display: block; }
-.shop-banner-bg { width: 170cqw; left: -40cqw; top: -78cqw; z-index: 0; }
-.shop-banner-photo { width: 125cqw; left: 22cqw; top: -56cqw; z-index: 1; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 24%); mask-image: linear-gradient(90deg, transparent 0, #000 24%); }
-.shop-banner-scrim { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(90deg, rgba(32, 37, 45, 0.92) 0, rgba(32, 37, 45, 0.84) 34%, rgba(32, 37, 45, 0) 56%); }
-.shop-banner-body { position: absolute; z-index: 3; left: 4.4cqw; top: 0; bottom: 0; width: 43cqw; display: flex; flex-direction: column; justify-content: space-between; padding: 14px 0; }
+/* Banner theo bản mẫu: chữ ở nền xanh đậm, ảnh cửa hàng ở nửa phải trên màn hình rộng. */
+.shop-banner { display: grid; min-height: 230px; overflow: hidden; border-radius: 16px; background: #17324d; color: white; }
+.shop-banner-body { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 22px 18px; }
+.shop-banner-photo { position: relative; display: none; min-height: 260px; overflow: hidden; }
+.shop-banner-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, #17324d 0%, transparent 30%); pointer-events: none; }
+@media (min-width: 768px) {
+  .shop-banner { grid-template-columns: minmax(0, 1fr) minmax(0, .85fr); min-height: 280px; }
+  .shop-banner-body { padding: 36px 42px; }
+  .shop-banner-photo { display: block; }
+}
 
 @keyframes brand-page-in {
   from { opacity: 0; transform: translateY(6px); }
@@ -100,33 +103,31 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-brand); 
   box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-brand);
   border-radius: var(--radius-ctl);
 }
-/* Bảng màu mới (chủ shop chốt 3/11/2026), áp TỪNG TRANG: chỉ trang nào có phần tử [data-theme-v2] mới đổi màu (đầu/chân trang dùng chung cũng đổi theo trang đó).
-   Chỉ đổi màu, không đổi bố cục. Trang quản trị và trang đăng nhập/đăng ký không nằm trong .store nên không bị ảnh hưởng.
-   Bảng màu: docs/website-v2/BANG_MAU_VA_BO_CUC.md */
-.store:has([data-theme-v2]) {
-  --color-brand: #1b1b1b;
-  --color-brand-deep: #2f2f2f;
-  --color-brand-hover: #d5d0d0;
-  --color-brand-tint: #ece7e9;
-  --color-brand-line: #b8b2ab;
-  --color-brand-selection: #d5d0d0;
-  --color-ground: #fffbf7;
-  --color-surface: #fffbf7;
-  --color-sunk: #ece7e9;
-  --color-line: #d5d0d0;
-  --color-ink: #181818;
-  --color-ink-2: #6b655e;
-  --color-ink-3: #6b655e;
-  --color-ok: #3e9b6a;
-  --color-ask: #6b655e;
+/* Bảng màu bản mẫu chỉ dành cho trang khách hàng; quản trị giữ nguyên. */
+.store {
+  --color-brand: #0b6972;
+  --color-brand-deep: #07545c;
+  --color-brand-hover: #d8e9eb;
+  --color-brand-tint: #e8f0f1;
+  --color-brand-line: #b6d4d7;
+  --color-brand-selection: #d8e9eb;
+  --color-ground: #f5f8f9;
+  --color-surface: #ffffff;
+  --color-sunk: #e8f0f1;
+  --color-line: #dce5e9;
+  --color-ink: #16252e;
+  --color-ink-2: #60717b;
+  --color-ink-3: #60717b;
+  --color-ok: #1b7a47;
+  --color-ask: #9a572d;
+  --shadow-soft: 0 8px 28px -14px rgba(23, 50, 77, .23);
+  --shadow-float: 0 8px 24px -4px rgba(11, 105, 114, .18);
   background: var(--color-ground);
-  /* Chữ không gắn màu riêng (tiêu đề, nhãn…) kế thừa từ body = ink cũ; đặt lại theo ink mới của trang */
   color: var(--color-ink);
 }
-.store:has([data-theme-v2]) .bg-white { background-color: var(--color-surface); }
-.store:has([data-theme-v2]) main a.bg-white { background-color: var(--color-sunk); }
-.store:has([data-theme-v2]) form[role="search"] { background: #ebe6e8; border-color: #918b85; }
-.store:has([data-theme-v2]) :focus-visible { box-shadow: 0 0 0 2px var(--color-ground), 0 0 0 4px var(--color-ink); }
+.store form[role="search"] { background: var(--color-ground); border-color: var(--color-line); }
+.store .product-card { border-radius: 16px; }
+.store .product-card:hover { box-shadow: var(--shadow-soft); }
 /* Trang bán hàng: viền focus cobalt có vòng sáng */
 .store :focus-visible { box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-brand); }
 

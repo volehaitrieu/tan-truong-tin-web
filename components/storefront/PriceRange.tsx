@@ -130,7 +130,7 @@ export function PriceRange({ min, max, step, lo, hi, error, onChange, onError, l
     return (
       <div>
         <label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-ink-2">{label}</label>
-        <div className={`flex h-[52px] items-center gap-1.5 rounded-lg border px-3 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink ${bad ? "border-danger bg-danger-tint" : "border-[#918b85] bg-[#ebe6e8]"}`}>
+        <div className={`flex h-[52px] items-center gap-1.5 rounded-lg border px-3 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink ${bad ? "border-danger bg-danger-tint" : "border-line bg-sunk"}`}>
           <input
             ref={ref}
             id={id}

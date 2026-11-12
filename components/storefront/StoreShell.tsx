@@ -25,15 +25,15 @@ export async function StoreShell({ children }: { children: ReactNode }) {
   const categoryMenu = await getCategoryMenu();
   return (
     <div className="store flex min-h-screen flex-col pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0">
-      <header className="sticky top-0 z-30 border-b border-line bg-ground/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[1240px] items-center gap-3 px-4 py-3 sm:gap-6">
+      <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-[1180px] items-center gap-3 px-4 py-3 sm:gap-6">
           <Link href="/" className="hdr-logo shrink-0" aria-label="Tân Trường Tín — Trang chủ">
             {/* Điện thoại: chữ thương hiệu như thiết kế v2 (logo ảnh đang hoãn); máy tính vẫn dùng logo hiện có */}
             <span className="flex flex-col leading-tight md:hidden">
-              <span className="text-lg font-bold tracking-tight text-brand">Tân Trường Tín</span>
+              <span className="text-lg font-bold tracking-tight text-[#17324d]">Tân Trường Tín</span>
               <span className="text-xs text-ink-2">Điện nước · Quạt · Gia dụng</span>
             </span>
-            <span className="hidden md:block"><Logo size={40} subtitle={SHOP.tagline} subtitleClassName="hidden lg:block" /></span>
+            <span className="hidden md:block"><Logo size={40} subtitle={SHOP.tagline} subtitleClassName="hidden lg:block" tone="ink" /></span>
           </Link>
           <div className="hidden min-w-0 flex-1 sm:block"><StoreSearch /></div>
           <Link href="/tra-cuu" className="ml-auto hidden min-h-11 items-center gap-1.5 text-sm font-medium text-brand hover:underline sm:ml-0 md:flex">
@@ -52,15 +52,15 @@ export async function StoreShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[1240px] flex-1 px-4 pb-10 pt-5">
+      <main className="mx-auto w-full max-w-[1180px] flex-1 px-4 pb-10 pt-5">
         <StoreBackButton />
         {children}
       </main>
 
-      <footer className="border-t border-line bg-ground text-ink md:bg-sunk">
+      <footer className="border-t border-line bg-surface text-ink">
         {/* Điện thoại: chân trang gọn, căn giữa theo thiết kế v2 */}
         <div className="flex flex-col items-center px-4 py-6 text-center md:hidden">
-          <span className="text-lg font-bold tracking-tight text-brand">Tân Trường Tín</span>
+          <span className="text-lg font-bold tracking-tight text-[#17324d]">Tân Trường Tín</span>
           <span className="mt-0.5 text-[13px] text-ink-2">{SHOP.tagline}</span>
           <ul className="mt-4 grid w-full max-w-xs grid-cols-3 gap-2">
             {POLICIES.map(([id, label]) => (
@@ -74,9 +74,9 @@ export async function StoreShell({ children }: { children: ReactNode }) {
           </a>
           <p className="mt-4 max-w-xs text-[13px] leading-relaxed text-ink-2">© 2026 Tân Trường Tín. {SHOP.address}.</p>
         </div>
-        <div className="mx-auto hidden max-w-[1240px] gap-8 px-4 py-10 md:grid md:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr]">
+        <div className="mx-auto hidden max-w-[1180px] gap-8 px-4 py-10 md:grid md:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr]">
           <div>
-            <Logo size={40} subtitle={SHOP.tagline} />
+            <Logo size={40} subtitle={SHOP.tagline} tone="ink" />
             <p className="mt-4 text-sm italic text-ink-2">“{SHOP.slogan}”</p>
             <p className="mt-3 text-sm text-ink-2">{SHOP.address}</p>
             <p className="flex flex-wrap gap-x-4 text-sm text-ink-2">

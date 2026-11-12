@@ -1,35 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Phone } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { SHOP } from "@/lib/shop";
 
-// Banner đầu trang chủ (mẫu 4 chủ shop chọn): ảnh mặt tiền phủ kín thẻ, cửa hàng nằm bên phải,
-// chữ và nút chỉ ở nửa trái. Lớp dưới là bản mờ của chính tấm ảnh để lấp phần trái.
 export function ShopBanner() {
   return (
     <section aria-label="Cửa hàng Tân Trường Tín" className="shop-banner mb-6">
-      <Image src="/shop/mat-tien-mo.webp" alt="" width={96} height={128} unoptimized aria-hidden className="shop-banner-bg" />
-      <Image
-        src="/shop/mat-tien.webp"
-        alt="Mặt tiền cửa hàng Tân Trường Tín trên đường 2/4, Nha Trang"
-        width={765}
-        height={1020}
-        sizes="(min-width: 640px) 700px, 440px"
-        priority
-        className="shop-banner-photo"
-      />
-      <div className="shop-banner-scrim" aria-hidden />
       <div className="shop-banner-body">
-        <div>
-          <h2 className="text-base font-bold leading-snug tracking-tight text-white">Xem quạt, ấm siêu tốc tại cửa hàng</h2>
-          <p className="mt-1.5 text-xs leading-snug text-[#d8dce4]">Mở {SHOP.hours} hằng ngày</p>
+        <p className="text-xs font-semibold uppercase tracking-[.14em] text-white/75">Tân Trường Tín · Nha Trang</p>
+        <h2 className="mt-3 max-w-xl text-[24px] font-extrabold leading-[1.16] tracking-tight text-white sm:text-[36px]">Chọn đúng món, mua thật dễ</h2>
+        <p className="mt-3 max-w-md text-sm leading-6 text-white/85">Xem hàng theo ngành, so sánh sản phẩm và đặt hàng dễ dàng.</p>
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          <Link href="/danh-muc" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-[#17324d] transition-colors hover:bg-[#e8f0f1]">Xem sản phẩm <ArrowRight className="size-4" aria-hidden /></Link>
+          <span className="text-xs text-white/75">Mở {SHOP.hours} hằng ngày</span>
         </div>
-        <div className="flex items-center gap-2">
-          <Link href="/danh-muc/quat" className="inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-brand px-[13px] text-[13px] font-semibold text-white hover:bg-brand-deep active:scale-[0.98]">Xem quạt</Link>
-          <a href="tel:0948732064" aria-label={`Gọi shop ${SHOP.phone}`} className="grid size-11 shrink-0 place-items-center rounded-full border-[1.5px] border-white bg-white text-brand hover:bg-brand-tint active:scale-[0.98]">
-            <Phone className="size-5" aria-hidden />
-          </a>
-        </div>
+      </div>
+      <div className="shop-banner-photo">
+        <Image src="/shop/mat-tien.webp" alt="Mặt tiền cửa hàng Tân Trường Tín trên đường 2/4, Nha Trang" fill sizes="(min-width: 768px) 45vw, 100vw" priority className="object-cover object-center" />
       </div>
     </section>
   );

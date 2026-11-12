@@ -3,8 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Banknote, ChevronRight, ShieldCheck, Store, Truck } from "lucide-react";
 import { BuyBox } from "@/components/storefront/CartControls";
-import { AnimatedDisclosure } from "@/components/storefront/AnimatedDisclosure";
-import { ReadMoreLines, ReadMoreSpecs } from "@/components/storefront/ReadMore";
+import { ProductInfoAccordion } from "@/components/storefront/ProductInfoAccordion";
 import { ProductCard, ProductImage } from "@/components/storefront/ProductCard";
 import { getCategories, getProduct, getProducts } from "@/lib/catalog";
 import { formatVnd, SHOP } from "@/lib/shop";
@@ -40,11 +39,11 @@ export default async function ProductPage({ params }: PageProps<"/san-pham/[sku]
   const cat = categories.find((c) => c.slug === p.cat) ?? { slug: p.cat, name: p.sub };
   const related = all.filter((x) => x.cat === p.cat && x.sku !== p.sku).slice(0, 4);
   const more = related.length ? related : all.filter((x) => x.sku !== p.sku).slice(0, 4);
-  const specRows: [string, string][] = [["Đơn vị tính", p.unit], ...p.specs];
+  const specRows: [string, string][] = p.specs.length > 0 ? [["Đơn vị tính", p.unit], ...p.specs] : [];
   // Mỗi hàng: biểu tượng, một dòng, liên kết sang trang Chính sách có sẵn của shop
   const policyRows = [
     { Icon: Store, text: "Lấy tại cửa hàng", href: "/chinh-sach#van-chuyen" },
-    { Icon: Truck, text: "Giao nội thành", href: "/chinh-sach#van-chuyen" },
+    { Icon: Truck, text: "Giao hàng tận nơi", href: "/chinh-sach#van-chuyen" },
     { Icon: Banknote, text: "Trả tiền mặt khi nhận hàng (COD)", href: "/chinh-sach#thanh-toan" },
     { Icon: ShieldCheck, text: `Bảo hành: ${p.warranty}`, href: "/chinh-sach#bao-hanh" },
   ];
@@ -63,52 +62,46 @@ export default async function ProductPage({ params }: PageProps<"/san-pham/[sku]
         <div className="min-w-0">
           <h1 className="text-[26px] font-extrabold leading-tight sm:text-[32px]">{p.name}</h1>
           <div className="mt-4 flex flex-wrap items-baseline gap-x-3">
-            <b className="num text-[32px] font-extrabold text-ink">{formatVnd(p.price)}</b>
+            <b className="num text-[32px] font-extrabold text-[#17324d]">{formatVnd(p.price)}</b>
             {p.old && <del className="num text-ink-2">{formatVnd(p.old)}</del>}
             <span className="text-sm text-ink-2">/ {p.unit.toLowerCase()}</span>
           </div>
 
           <BuyBox sku={p.sku} name={p.name} available={p.stock} price={p.price} unit={p.unit} />
 
-          <div className="mt-6 space-y-3">
-            <AnimatedDisclosure title="Thông số" meta={`${specRows.length} mục`} className="overflow-hidden rounded-3xl bg-sunk">
-              <div className="px-5 pb-5">
-                <ReadMoreSpecs rows={specRows} notes={p.specNotes ?? []} />
-              </div>
-            </AnimatedDisclosure>
-
-            <AnimatedDisclosure title="Mô tả & Bảo hành" className="overflow-hidden rounded-3xl border border-line">
-              <div className="px-5 pb-5">
-                <ReadMoreLines>
-                  {p.description ? (
-                    // Đã làm sạch ở server (lib/rich-text): chỉ còn thẻ định dạng cho phép
-                    <div className="rich-text text-[15px] leading-6 text-ink-2" dangerouslySetInnerHTML={{ __html: p.description }} />
-                  ) : (
-                    <p className="text-[15px] leading-6 text-ink-2">{p.name}{p.spec ? ` — ${p.spec.toLowerCase()}` : ""}. Phù hợp dùng trong gia đình, phòng trọ và công trình nhỏ. Cần tư vấn chọn loại, gọi shop{" "}
-                      <a href="tel:0948732064" className="font-semibold text-ink underline underline-offset-[3px]">0948 732 064</a>.
-                    </p>
-                  )}
-                </ReadMoreLines>
-                <p className="mt-3 text-sm"><b>Bảo hành:</b> {p.warranty}</p>
-              </div>
-            </AnimatedDisclosure>
-
-            {p.usageGuide && p.usageGuide.length > 0 && (
-              <AnimatedDisclosure title="Hướng dẫn sử dụng" className="overflow-hidden rounded-3xl border border-line">
-                <div className="px-5 pb-5">
-                  <ReadMoreLines>
-                    <div>
-                      <ol className="list-decimal space-y-3 pl-5 marker:font-semibold marker:text-brand">
-                        {p.usageGuide.map((step, i) => (
-                          <li key={i} className="text-[15px] leading-6">{step}</li>
-                        ))}
-                      </ol>
-                      <p className="mt-4 text-sm text-ink-2">Hướng dẫn chung theo loại sản phẩm. Xem sách hướng dẫn của hãng đi kèm sản phẩm.</p>
-                    </div>
-                  </ReadMoreLines>
-                </div>
-              </AnimatedDisclosure>
-            )}
+          <div className="mt-6">
+            <ProductInfoAccordion sections={[
+              {
+                title: "Thông số",
+                content: specRows.length > 0 || (p.specNotes?.length ?? 0) > 0 ? <>
+                  {specRows.length > 0 && <dl className="divide-y divide-line">
+                    {specRows.map(([key, value], index) => <div key={`${key}-${index}`} className="flex justify-between gap-4 py-2.5">
+                      <dt>{key}</dt><dd className="text-right font-semibold text-ink">{value}</dd>
+                    </div>)}
+                  </dl>}
+                  {(p.specNotes ?? []).length > 0 && <ul className="mt-3 list-disc space-y-1 pl-5">
+                    {p.specNotes?.map((note) => <li key={note}>{note}</li>)}
+                  </ul>}
+                </> : <p>Đang cập nhật.</p>,
+              },
+              {
+                title: "Mô tả & Bảo hành",
+                content: <>
+                  {p.description
+                    ? <div className="rich-text" dangerouslySetInnerHTML={{ __html: p.description }} />
+                    : <p>Đang cập nhật.</p>}
+                  <p className="mt-3"><b className="text-ink">Bảo hành:</b> {p.warranty}</p>
+                </>,
+              },
+              {
+                title: "Hướng dẫn sử dụng",
+                content: p.usageGuide?.length
+                  ? <ol className="list-decimal space-y-3 pl-5 marker:font-semibold marker:text-brand">
+                    {p.usageGuide.map((step, index) => <li key={index}>{step}</li>)}
+                  </ol>
+                  : <p>Đang cập nhật.</p>,
+              },
+            ]} />
           </div>
 
           <ul className="mt-5 overflow-hidden rounded-2xl bg-sunk">

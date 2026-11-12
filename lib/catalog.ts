@@ -152,7 +152,7 @@ function toProduct(r: Row, labels: Map<string, { label: string; unit?: string }>
     specNotes: specs.notes,
     description: r.description ? sanitizeHtml(r.description) : "",
     usageGuide: parseGuide(r.usage_guide),
-    warranty: r.warranty ?? "Theo chính sách của hãng",
+    warranty: r.warranty?.trim() || "Đang cập nhật.",
   };
 }
 

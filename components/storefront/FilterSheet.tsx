@@ -204,7 +204,7 @@ export function FilterSheet({ title, brandOptions, bounds, initial, countFor, on
                 const on = draft.brands.includes(b.name);
                 return (
                   <button key={b.name} type="button" role="checkbox" aria-checked={on} onClick={() => toggleBrand(b.name)} style={rise(3.5 + index * 0.45)} className={`anim-rise flex min-h-12 w-full items-center gap-2.5 rounded-lg border px-3 text-left text-sm transition-[background-color,border-color,transform] duration-150 active:scale-[0.97] ${on ? "border-brand-deep bg-brand-deep font-bold text-white" : "border-line bg-surface text-ink hover:bg-sunk"}`}>
-                    <span className={`grid size-5 shrink-0 place-items-center rounded-[5px] border-[1.5px] transition-colors duration-150 ${on ? "border-surface bg-surface" : "border-[#918b85]"}`}>
+                    <span className={`grid size-5 shrink-0 place-items-center rounded-[5px] border-[1.5px] transition-colors duration-150 ${on ? "border-surface bg-surface" : "border-line"}`}>
                       {on && <Check className="anim-tick size-3.5 text-brand-deep" strokeWidth={3} aria-hidden />}
                     </span>
                     <span className="min-w-0 flex-1 py-2">
@@ -255,7 +255,7 @@ export function FilterSheet({ title, brandOptions, bounds, initial, countFor, on
             )}
           </p>
           <div className="flex gap-2.5">
-            <button type="button" onClick={reset} className="h-12 shrink-0 rounded-full border border-[#918b85] px-5 text-[15px] font-semibold transition-[background-color,transform] duration-150 hover:bg-sunk active:scale-[0.97]">Đặt lại</button>
+            <button type="button" onClick={reset} className="h-12 shrink-0 rounded-full border border-line px-5 text-[15px] font-semibold transition-[background-color,transform] duration-150 hover:bg-sunk active:scale-[0.97]">Đặt lại</button>
             <button type="button" onClick={apply} disabled={count === 0} className="group flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-brand text-[15px] font-semibold text-white transition-[background-color,transform] duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-line disabled:text-ink-2">
               Áp dụng bộ lọc
               <ArrowRight className="size-5 transition-transform duration-150 group-hover:translate-x-0.5 group-active:translate-x-1" aria-hidden />

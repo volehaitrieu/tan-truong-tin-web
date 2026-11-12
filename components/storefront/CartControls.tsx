@@ -114,7 +114,7 @@ export function AddToCartButton({ sku, name, available = true, inline = false }:
           addToCart(sku);
           setToast(name);
         }}
-        className={`${inline ? "min-w-0 flex-1 whitespace-nowrap px-1 text-[13px] sm:text-sm" : "mt-3 w-full text-sm"} flex h-11 items-center justify-center rounded-full font-semibold transition duration-150 active:scale-[0.98] ${available ? "bg-brand text-white hover:bg-brand-deep" : "border border-brand bg-white text-brand hover:bg-brand-tint"}`}
+        className={`${inline ? "min-w-0 flex-1 whitespace-nowrap px-1 text-[13px] sm:text-sm" : "mt-3 w-full text-sm"} flex h-11 items-center justify-center rounded-xl font-semibold transition duration-150 active:scale-[0.98] ${available ? "bg-brand text-white hover:bg-brand-deep" : "border border-brand bg-white text-brand hover:bg-brand-tint"}`}
       >
         {available ? "Thêm vào giỏ" : "Đặt trước"}
       </button>
@@ -177,11 +177,11 @@ export function BuyBox({ sku, name, available, price, unit }: { sku: string; nam
         <button
           type="button"
           onClick={add}
-          className={`flex h-12 flex-1 items-center justify-center rounded-full px-5 font-bold transition duration-150 active:scale-[0.98] sm:flex-none ${available ? "bg-brand text-white hover:bg-brand-deep" : "border border-brand bg-white text-brand"}`}
+          className={`flex h-12 flex-1 items-center justify-center rounded-xl px-5 font-bold transition duration-150 active:scale-[0.98] sm:flex-none ${available ? "bg-brand text-white hover:bg-brand-deep" : "border border-brand bg-white text-brand"}`}
         >
           {available ? "Thêm vào giỏ" : "Đặt trước"}
         </button>
-        <a href="https://zalo.me/0948732064" className="flex h-12 items-center rounded-full border border-brand bg-white px-5 font-semibold text-brand hover:bg-brand-tint">
+        <a href="https://zalo.me/0948732064" className="flex h-12 items-center rounded-xl border border-brand bg-white px-5 font-semibold text-brand hover:bg-brand-tint">
           Chat Zalo
         </a>
       </div>
@@ -191,7 +191,7 @@ export function BuyBox({ sku, name, available, price, unit }: { sku: string; nam
             <b className="num block truncate text-lg font-extrabold leading-tight">{formatVnd(price * qty)}</b>
             <span className="block text-xs text-ink-2">{qty} × {unit.toLowerCase()}</span>
           </div>
-          <button type="button" onClick={add} className={`flex h-12 shrink-0 items-center justify-center rounded-full px-4 text-sm font-bold transition duration-150 active:scale-[0.98] ${available ? "bg-brand text-white hover:bg-brand-deep" : "border-2 border-brand bg-surface text-brand hover:bg-brand-tint"}`}>
+          <button type="button" onClick={add} className={`flex h-12 shrink-0 items-center justify-center rounded-xl px-4 text-sm font-bold transition duration-150 active:scale-[0.98] ${available ? "bg-brand text-white hover:bg-brand-deep" : "border-2 border-brand bg-surface text-brand hover:bg-brand-tint"}`}>
             {available ? "Thêm vào giỏ" : "Đặt trước"}{qty > 1 && <span className="num ml-1.5 font-semibold">× {qty}</span>}
           </button>
       </div>
@@ -290,13 +290,13 @@ export function CartPanel({ shippingPolicy }: { shippingPolicy?: string }) {
       <aside className="h-fit rounded-xl bg-white p-4 lg:sticky lg:top-28">
         <h2 className="font-bold">Tóm tắt đơn hàng</h2>
         <p className="mt-4 flex justify-between text-sm">Tiền hàng <b className="num">{formatVnd(total)}</b></p>
-        <p className="mt-2 text-xs text-ink-2">{shippingPolicy === FLAT_SHIPPING_POLICY ? "Giao hàng: 15.000₫ · miễn phí từ 500.000₫ · Lấy tại cửa hàng: miễn phí" : "Phí ship tính ở bước sau"}</p>
-        <Link href="/thanh-toan" className="mt-5 flex h-12 items-center justify-center rounded-full bg-brand font-bold text-white hover:bg-brand-deep">Đặt hàng</Link>
+        <p className="mt-2 hidden text-xs text-ink-2 lg:block">{shippingPolicy === FLAT_SHIPPING_POLICY ? "Giao hàng: 15.000₫ · miễn phí từ 500.000₫ · Lấy tại cửa hàng: miễn phí" : "Phí ship tính ở bước sau"}</p>
+        <Link href="/thanh-toan" className="mt-5 hidden h-12 lg:flex items-center justify-center rounded-xl bg-brand font-bold text-white hover:bg-brand-deep">Đặt hàng</Link>
         <Link href="/danh-muc" className="mt-2 flex h-11 items-center justify-center text-sm font-semibold text-brand">Mua thêm sản phẩm →</Link>
       </aside>
       <div className="fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-40 border-t border-line bg-surface px-4 py-3 shadow-[var(--shadow-soft)] lg:hidden">
         <p className="flex justify-between text-sm font-medium">Tiền hàng <b className="num text-base">{formatVnd(total)}</b></p><p className="mt-0.5 text-xs text-ink-2">{shippingPolicy === FLAT_SHIPPING_POLICY ? "Giao hàng: 15.000₫ · miễn phí từ 500.000₫ · Lấy tại cửa hàng: miễn phí" : "Phí ship tính ở bước sau"}</p>
-        <div className="mt-2 flex gap-2"><a href="https://zalo.me/0948732064" className="flex h-12 shrink-0 items-center rounded-full border border-brand px-4 text-sm font-semibold text-brand">Zalo</a><Link href="/thanh-toan" className="flex h-12 flex-1 items-center justify-center rounded-full bg-brand font-bold text-white">Đặt hàng</Link></div>
+        <div className="mt-2 flex gap-2"><a href="https://zalo.me/0948732064" className="flex h-12 shrink-0 items-center rounded-xl border border-brand px-4 text-sm font-semibold text-brand">Zalo</a><Link href="/thanh-toan" className="flex h-12 flex-1 items-center justify-center rounded-xl bg-brand font-bold text-white">Đặt hàng</Link></div>
       </div>
     </div>
   );

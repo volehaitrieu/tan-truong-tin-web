@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ChevronRight, Clock, CookingPot, Fan, MapPin, Phone } from "lucide-react";
+import { ArrowRight, Clock, MapPin, Phone } from "lucide-react";
 import { BrandRotator } from "@/components/storefront/BrandRotator";
 import { ShopBanner } from "@/components/storefront/ShopBanner";
 import { FadeImage } from "@/components/storefront/FadeImage";
@@ -14,7 +14,6 @@ export const revalidate = 60;
 
 export default async function Home() {
   const [CATEGORIES, PRODUCTS] = await Promise.all([getCategories(), getProducts()]);
-  const NAV_CATEGORIES = CATEGORIES.filter((category) => category.slug === "gia-dung");
   const brandCounts = new Map<string, number>();
   for (const p of PRODUCTS) if (p.brand) brandCounts.set(p.brand, (brandCounts.get(p.brand) ?? 0) + 1);
   const BRANDS = [...brandCounts].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "vi"));
@@ -33,47 +32,24 @@ export default async function Home() {
 
       <ShopBanner />
 
-      {/* Ngành hàng (lấy theo dữ liệu Excel đã nhập); máy tính có thêm menu danh mục bên trái. Đã bỏ banner theo thiết kế v2. */}
-      <section className="grid items-start gap-4 lg:grid-cols-[240px_minmax(0,1fr)]" aria-labelledby="h-danh-muc">
-        <nav aria-label="Danh mục hàng hóa" className="relative hidden min-h-[200px] rounded-xl border border-line bg-surface p-2 shadow-[var(--shadow-soft)] lg:block">
-          {NAV_CATEGORIES.map((c) => (
-            <div key={c.slug} className="group/item relative rounded-lg transition-colors hover:bg-brand-tint focus-within:bg-brand-tint">
-              <Link href={`/danh-muc/${c.slug}`} className="flex min-h-11 items-center gap-3 rounded-lg py-2 pl-3 pr-12 text-[13.5px] hover:text-brand">
-                <CategoryIcon icon={c.icon} className="size-4 text-brand" />
-                <span className="flex-1">Đồ gia dụng</span>
-              </Link>
-              <ChevronRight className="pointer-events-none absolute right-3 top-3.5 size-4 text-brand" aria-hidden />
-              <div aria-label="Danh mục con Đồ gia dụng" className="invisible absolute left-full top-0 z-20 w-[560px] rounded-xl border border-line bg-surface p-4 opacity-0 shadow-lg transition-opacity duration-150 group-hover/item:visible group-hover/item:opacity-100 group-focus-within/item:visible group-focus-within/item:opacity-100">
-                <b className="text-sm">Danh mục con</b>
-                <div className="mt-3 grid grid-cols-3 gap-2">
-                  {(c.subcategories ?? []).map((sub) => {
-                    const Icon = /quạt/i.test(sub.name) ? Fan : CookingPot;
-                    return <Link key={sub.slug} href={`/danh-muc/${sub.slug}`} className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border border-line bg-white px-3 py-3 text-center transition-colors hover:border-brand hover:bg-brand-tint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
-                      <span className="grid size-10 place-items-center rounded-full bg-sunk text-brand"><Icon className="size-5" aria-hidden /></span>
-                      <span className="text-[13px] font-semibold leading-4">{sub.name}</span>
-                      <span className="num text-xs text-ink-2">{sub.count} sản phẩm</span>
-                    </Link>;
-                  })}
-                </div>
-              </div>
-            </div>
-          ))}
-        </nav>
-
+      {/* Ngành hàng lấy từ sản phẩm thật; hai ngành hiện có không tạo cột điều hướng trống trên máy tính. */}
+      <section aria-labelledby="h-danh-muc">
         <div className="min-w-0">
           <div className="mb-3 flex items-end justify-between">
             <h2 id="h-danh-muc" className="text-lg font-bold sm:text-[22px]">Danh mục</h2>
             <a href="#tat-ca" className="flex min-h-11 items-center gap-1 text-sm font-semibold text-brand">Tất cả sản phẩm <ArrowRight className="size-4" aria-hidden /></a>
           </div>
-          <div className="grid grid-cols-4 gap-2 sm:gap-3 xl:grid-cols-6">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {INDUSTRIES.map((industry) => {
               const count = PRODUCTS.filter((p) => p.industry.trim() === industry).length;
               const icon: "fan" | "home" = /quạt/i.test(industry) ? "fan" : "home";
               return (
-                <Link key={industry} href={`/danh-muc?industry=${encodeURIComponent(industry)}`} className="flex min-h-24 min-w-0 flex-col items-center rounded-xl border border-line bg-surface px-1 py-2.5 text-center sm:px-2 sm:py-3 shadow-[var(--shadow-soft)] transition-colors duration-150 hover:border-brand-line hover:bg-brand-tint active:bg-brand-tint">
-                  <span className="grid size-11 place-items-center rounded-full bg-sunk text-brand"><CategoryIcon icon={icon} className="size-6" /></span>
-                  <span className="mt-1.5 break-words text-xs font-semibold leading-4 [overflow-wrap:anywhere] sm:mt-2 sm:text-[13px]">{industry}</span>
-                  <span className="num mt-0.5 hidden text-xs text-ink-2 sm:block">{count} sản phẩm</span>
+                <Link key={industry} href={`/danh-muc?industry=${encodeURIComponent(industry)}`} className="flex min-h-24 min-w-0 items-center justify-between gap-1 overflow-hidden rounded-2xl border border-line bg-surface py-3 pl-3 pr-2 shadow-[var(--shadow-soft)] transition-colors duration-150 hover:border-brand-line hover:bg-brand-tint active:bg-brand-tint sm:pl-4">
+                  <span className="min-w-0">
+                    <span className="block break-words text-[13px] font-bold leading-5 text-ink [overflow-wrap:anywhere] sm:text-sm">{industry}</span>
+                    <span className="num mt-1 block text-xs text-ink-2">{count} sản phẩm</span>
+                  </span>
+                  <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-sunk text-brand"><CategoryIcon icon={icon} className="size-6" /></span>
                 </Link>
               );
             })}

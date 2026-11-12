@@ -52,7 +52,7 @@ export function ProductCard({ p }: { p: Product }) {
           </div>
         ) : null}
         <div className={`flex flex-wrap items-baseline gap-x-1.5 ${p.old ? "mt-0.5" : "mt-2"}`}>
-          <b className="num text-lg font-extrabold text-brand">{formatVnd(p.price)}</b>
+          <b className="num text-lg font-extrabold text-[#17324d]">{formatVnd(p.price)}</b>
           <span className="text-xs text-ink-2">/ {p.unit.toLowerCase()}</span>
         </div>
         <div className="mt-auto flex items-center gap-1.5 pt-3 sm:gap-2">

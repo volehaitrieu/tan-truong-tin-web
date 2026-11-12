@@ -19,7 +19,7 @@ export default function CustomerAccountPage() {
           <h2 id="account-login-title" className="mt-4 text-xl font-bold">Đăng nhập hoặc tạo tài khoản</h2>
           <p className="mt-2 text-sm leading-6 text-ink-2">Giao diện tài khoản đang được chuẩn bị. Bạn vẫn đặt hàng và tra cứu đơn không cần tài khoản.</p>
           <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-            <Link href="/tai-khoan/dang-nhap" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#181818] px-6 font-semibold text-[#ECE7E9] hover:bg-[#2F2F2F]">Đăng nhập <ArrowRight className="size-4" aria-hidden /></Link>
+            <Link href="/tai-khoan/dang-nhap" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#0B6972] px-6 font-semibold text-[#FFFFFF] hover:bg-[#07545C]">Đăng nhập <ArrowRight className="size-4" aria-hidden /></Link>
             <Link href="/tai-khoan/dang-ky" className="inline-flex h-12 items-center justify-center rounded-full border border-line bg-white px-6 font-semibold text-ink hover:bg-sunk">Tạo tài khoản mới</Link>
           </div>
           <p className="mt-3 text-xs text-ink-2">Bản xem trước · Chưa tạo tài khoản thật.</p>

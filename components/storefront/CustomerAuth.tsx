@@ -39,10 +39,10 @@ function check(key: Key, vals: Vals, login = false): string {
   }
 }
 
-// Ô xám đặc #EBE6E8 + viền #918B85 (viền đạt khoảng 3:1 so với nền kem, ô xám một mình chỉ khoảng 1,2:1)
+// Ô nhập sáng, viền rõ và trạng thái focus theo bảng màu trang khách.
 const boxCls = (invalid: boolean) =>
-  `relative flex h-[52px] items-center rounded-[20px] border bg-[#EBE6E8] transition-[border-color,box-shadow] duration-150 focus-within:shadow-[0_0_0_3px_rgba(24,24,24,0.14)] ${invalid ? "border-danger" : "border-[#918B85] focus-within:border-[#181818]"}`;
-const inputCls = "h-full w-full min-w-0 bg-transparent pl-12 pr-4 text-[15px] text-[#181818] outline-none shadow-none focus-visible:!rounded-none focus-visible:!shadow-none placeholder:text-[#6B655E]";
+  `relative flex h-[52px] items-center rounded-[20px] border bg-[#E8F0F1] transition-[border-color,box-shadow] duration-150 focus-within:shadow-[0_0_0_3px_rgba(24,24,24,0.14)] ${invalid ? "border-danger" : "border-[#6F8992] focus-within:border-[#17324D]"}`;
+const inputCls = "h-full w-full min-w-0 bg-transparent pl-12 pr-4 text-[15px] text-[#17324D] outline-none shadow-none focus-visible:!rounded-none focus-visible:!shadow-none placeholder:text-[#60717B]";
 
 // Một bước trong form. `data-step-box` để hiệu ứng rung tìm đúng ô.
 // Ô tùy chọn ghi "(không bắt buộc)" bằng chữ mờ nhỏ (không bẻ giữa chừng: nhãn dài thì cả khối xuống dòng dưới); ô bắt buộc không ghi gì,
@@ -50,13 +50,13 @@ const inputCls = "h-full w-full min-w-0 bg-transparent pl-12 pr-4 text-[15px] te
 function Step({ no, label, required, optional, icon, error, children, tall }: { no?: number; label: ReactNode; required?: boolean; optional?: boolean; icon: ReactNode; error?: string; children: ReactNode; tall?: boolean }) {
   return (
     <label className="group block">
-      <span className="mb-1.5 block text-sm font-semibold leading-snug text-[#181818] transition duration-150 group-focus-within:-translate-y-0.5">
+      <span className="mb-1.5 block text-sm font-semibold leading-snug text-[#17324D] transition duration-150 group-focus-within:-translate-y-0.5">
         {no && <>{no}. </>}{label}
         {required && <span className="sr-only"> (bắt buộc)</span>}
-        {optional && <> <span className="inline-block whitespace-nowrap text-xs font-normal text-[#6B655E]">(không bắt buộc)</span></>}
+        {optional && <> <span className="inline-block whitespace-nowrap text-xs font-normal text-[#60717B]">(không bắt buộc)</span></>}
       </span>
       <span data-step-box className={`${boxCls(!!error)} ${tall ? "!h-auto min-h-[52px] items-start" : ""}`}>
-        <span className={`pointer-events-none absolute left-4 grid size-5 place-items-center text-[#6B655E] ${tall ? "top-[15px]" : ""}`} aria-hidden>{icon}</span>
+        <span className={`pointer-events-none absolute left-4 grid size-5 place-items-center text-[#60717B] ${tall ? "top-[15px]" : ""}`} aria-hidden>{icon}</span>
         {children}
       </span>
       {error && <span role="alert" className="mt-1.5 block text-sm text-danger">{error}</span>}
@@ -69,7 +69,7 @@ function PasswordInput({ name, label, autoComplete, invalid }: { name: string; l
   return (
     <>
       <input name={name} type={show ? "text" : "password"} autoComplete={autoComplete} placeholder={label} aria-invalid={invalid} className={`${inputCls} pr-14`} />
-      <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? "Ẩn mật khẩu" : "Hiện mật khẩu"} className="absolute right-1 top-1 grid size-11 place-items-center rounded-2xl text-[#6B655E] hover:bg-black/5">
+      <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? "Ẩn mật khẩu" : "Hiện mật khẩu"} className="absolute right-1 top-1 grid size-11 place-items-center rounded-2xl text-[#60717B] hover:bg-black/5">
         {show ? <EyeOff className="size-5" aria-hidden /> : <Eye className="size-5" aria-hidden />}
       </button>
     </>
@@ -130,26 +130,26 @@ export function CustomerAuth({ mode }: { mode: "login" | "register" }) {
   };
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[460px] flex-col overflow-hidden bg-[#FFFBF7] md:min-h-0 md:rounded-3xl md:border md:border-white/70 md:shadow-[0_24px_60px_-24px_rgba(24,24,24,0.35)]">
+    <div className="mx-auto flex min-h-dvh w-full max-w-[460px] flex-col overflow-hidden bg-white md:min-h-0 md:rounded-3xl md:border md:border-white/70 md:shadow-[0_24px_60px_-24px_rgba(24,24,24,0.35)]">
       <div className="relative h-[270px] shrink-0">
         <Image src="/shop/mat-tien.webp" alt="Mặt tiền cửa hàng Tân Trường Tín trên đường 2/4, Nha Trang" fill priority sizes="(min-width: 640px) 460px, 100vw" className="object-cover object-[50%_59%]" />
-        <Link href="/" aria-label="Quay lại trang bán hàng" className="absolute left-3 top-3 z-10 inline-flex h-11 items-center gap-1.5 rounded-full bg-white pl-3 pr-4 text-sm font-semibold text-[#181818] shadow-[0_4px_14px_-6px_rgba(24,24,24,0.4)] transition duration-150 hover:bg-[#F6F2F3] active:scale-95">
+        <Link href="/" aria-label="Quay lại trang bán hàng" className="absolute left-3 top-3 z-10 inline-flex h-11 items-center gap-1.5 rounded-full bg-white pl-3 pr-4 text-sm font-semibold text-[#17324D] shadow-[0_4px_14px_-6px_rgba(24,24,24,0.4)] transition duration-150 hover:bg-[#E8F0F1] active:scale-95">
           <ArrowLeft className="size-5" aria-hidden />Quay lại
         </Link>
       </div>
-      <div className="relative -mt-7 flex flex-1 flex-col rounded-t-[28px] bg-[#FFFBF7] px-[22px] pb-8 pt-6">
-        <h1 className="text-[26px] font-bold leading-tight tracking-tight text-[#181818]">{isLogin ? "Đăng nhập" : "Đăng ký tài khoản"}</h1>
+      <div className="relative -mt-7 flex flex-1 flex-col rounded-t-[28px] bg-white px-[22px] pb-8 pt-6">
+        <h1 className="text-[26px] font-bold leading-tight tracking-tight text-[#17324D]">{isLogin ? "Đăng nhập" : "Đăng ký tài khoản"}</h1>
         {!isLogin && (
           <div className="mt-3">
-            <p role="status" aria-live="polite" className="text-[13px] text-[#544E4B]">Đã xong {doneCount} trên {steps.length} bước</p>
+            <p role="status" aria-live="polite" className="text-[13px] text-[#60717B]">Đã xong {doneCount} trên {steps.length} bước</p>
             <div aria-hidden className="mt-2.5 flex items-center">
               {steps.map((s, i) => (
                 <Fragment key={s.key}>
-                  <span className={`grid size-7 shrink-0 place-items-center rounded-full border-2 text-xs font-bold transition-colors duration-300 ${i === firstOpen ? "text-[#181818]" : "text-[#6B655E]"}`} style={{ borderColor: done[i] ? GREEN : i === firstOpen ? "#181818" : "#B8B2AB", background: done[i] ? GREEN : "#FFFBF7" }}>
+                  <span className={`grid size-7 shrink-0 place-items-center rounded-full border-2 text-xs font-bold transition-colors duration-300 ${i === firstOpen ? "text-[#17324D]" : "text-[#60717B]"}`} style={{ borderColor: done[i] ? GREEN : i === firstOpen ? "#17324D" : "#B6D4D7", background: done[i] ? GREEN : "#FFFFFF" }}>
                     {done[i] ? <Check className="size-4 text-white" strokeWidth={3} /> : i + 1}
                   </span>
                   {i < steps.length - 1 && (
-                    <span className="h-[3px] flex-1 overflow-hidden rounded-full bg-[#D5D0D0]">
+                    <span className="h-[3px] flex-1 overflow-hidden rounded-full bg-[#DCE5E9]">
                       <span className="block h-full w-full origin-left transition-transform duration-500 ease-out motion-reduce:transition-none" style={{ background: GREEN, transform: `scaleX(${done[i] ? 1 : 0})` }} />
                     </span>
                   )}
@@ -190,25 +190,25 @@ export function CustomerAuth({ mode }: { mode: "login" | "register" }) {
           {captcha.enabled && <TurnstileWidget key={captcha.round} onStatus={captcha.setStatus} />}
 
           {notice && (
-            <p role="status" className="rounded-2xl border border-[#D5D0D0] bg-[#F6F2F3] px-3.5 py-3 text-sm leading-6 text-[#181818]">
+            <p role="status" className="rounded-2xl border border-[#DCE5E9] bg-[#E8F0F1] px-3.5 py-3 text-sm leading-6 text-[#17324D]">
               Tài khoản khách hàng đang được chuẩn bị nên shop chưa lưu thông tin của bạn. Bạn vẫn đặt hàng và tra cứu đơn như bình thường, không cần tài khoản.
             </p>
           )}
 
-          <button type="submit" disabled={captcha.waiting} onPointerDown={(e) => rippleAt(e, "rgba(255,255,255,0.35)")} className={`relative mt-1 flex h-[52px] w-full items-center justify-center overflow-hidden rounded-full bg-[#1B1B1B] text-[15px] font-semibold text-white transition duration-150 hover:bg-[#2F2F2F] active:scale-[0.98] disabled:opacity-60 ${done.every(Boolean) ? "" : "opacity-70"}`}>
+          <button type="submit" disabled={captcha.waiting} onPointerDown={(e) => rippleAt(e, "rgba(255,255,255,0.35)")} className={`relative mt-1 flex h-[52px] w-full items-center justify-center overflow-hidden rounded-xl bg-[#0B6972] text-[15px] font-semibold text-white transition duration-150 hover:bg-[#07545C] active:scale-[0.98] disabled:opacity-60 ${done.every(Boolean) ? "" : "opacity-70"}`}>
             {captcha.waiting ? "Đang xác minh…" : isLogin ? "Đăng nhập" : "Tạo tài khoản"}
           </button>
           {GOOGLE_READY && (
-            <button type="button" onClick={() => { setSubmitted(false); setNotice(true); }} onPointerDown={(e) => rippleAt(e, "rgba(24,24,24,0.12)")} className="relative flex h-[52px] w-full items-center justify-center gap-2.5 overflow-hidden rounded-full border border-[#E2DDDA] bg-white text-[15px] font-semibold text-[#181818] transition duration-150 hover:bg-[#F6F2F3] active:scale-[0.98]">
+            <button type="button" onClick={() => { setSubmitted(false); setNotice(true); }} onPointerDown={(e) => rippleAt(e, "rgba(24,24,24,0.12)")} className="relative flex h-[52px] w-full items-center justify-center gap-2.5 overflow-hidden rounded-full border border-[#DCE5E9] bg-white text-[15px] font-semibold text-[#17324D] transition duration-150 hover:bg-[#E8F0F1] active:scale-[0.98]">
               <GoogleG />Tiếp tục với Google
             </button>
           )}
-          <Link href={isLogin ? "/tai-khoan/dang-ky" : "/tai-khoan/dang-nhap"} className="mx-auto inline-flex h-11 items-center px-2 text-[15px] font-semibold text-[#181818] underline underline-offset-4">
+          <Link href={isLogin ? "/tai-khoan/dang-ky" : "/tai-khoan/dang-nhap"} className="mx-auto inline-flex h-11 items-center px-2 text-[15px] font-semibold text-[#17324D] underline underline-offset-4">
             {isLogin ? "Tạo tài khoản mới" : "Tôi đã có tài khoản"}
           </Link>
           {isLogin && (
-            <p className="-mt-2 text-center text-[13px] text-[#6B655E]">
-              Quên mật khẩu? <a href="tel:0948732064" className="font-semibold text-[#181818] underline underline-offset-2">Gọi shop {SHOP.phone}</a>
+            <p className="-mt-2 text-center text-[13px] text-[#60717B]">
+              Quên mật khẩu? <a href="tel:0948732064" className="font-semibold text-[#17324D] underline underline-offset-2">Gọi shop {SHOP.phone}</a>
             </p>
           )}
         </form>
