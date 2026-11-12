@@ -894,3 +894,4 @@
 - Code đợt 1: `lib/customer.ts`, `app/(store)/tai-khoan/actions.ts` + `page.tsx`, `AccountForms.tsx`, `CustomerAuth.tsx` (nối máy chủ, bỏ ô nhu cầu). Cloudflare Turnstile đã sẵn Managed, hostname localhost + tantruongtin.com (không đổi).
 - Thử thật trên Chrome (localhost, DB thật): đăng ký 0900000099 → vào trang tài khoản, email "Chưa xác minh"; đăng ký trùng SĐT + email khác hoa thường → 2 báo đỏ "Thông tin này đã được sử dụng."; đăng nhập SĐT có dấu cách thành công; khách vào /admin bị chuyển /admin/dang-nhap; đăng xuất đúng. Đã xóa tài khoản thử. Trình duyệt trong app không qua được Turnstile (môi trường tự động), Chrome thật tự qua ngầm.
 - tsc/ESLint đạt; nút Google ẩn trên production. Chưa phát hành.
+- Phát hành production theo yêu cầu chủ shop.
