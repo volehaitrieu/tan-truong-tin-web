@@ -871,3 +871,9 @@
 
 - Migration `20261112120000_sepay_ignore_review_20261112.sql` (chủ shop duyệt) đã áp trên DB thật: hàm `sepay_ignore_review` — chỉ owner; chỉ tiền vào `review` chưa gắn đơn → `ignored` + lý do. Kiểm: anon không có quyền; authenticated không phải owner bị từ chối (thử trong giao dịch hoàn tác).
 - Admin › Giao dịch: nút "Bỏ qua — không phải tiền đơn hàng" có bước xác nhận (`IgnoreReview.tsx`, action `ignoreReview`). tsc/ESLint đạt; ponytail-review: Ship. Chưa bấm thử bằng tài khoản chủ shop.
+
+## 12/11/2026 — Kế hoạch gọn trang Admin › Giao dịch (chờ duyệt bắt đầu)
+
+- Chủ shop chọn: mặc định hiện tất cả, khoản Cần kiểm tra lên đầu; trên thẻ hiện số tiền + trạng thái, thời gian, nội dung chuyển khoản, mã đơn đã khớp (link); mã giao dịch và số tài khoản ẩn vào "Chi tiết" (cảnh báo nếu tài khoản khác tài khoản shop); Gắn đơn giữ cách gõ mã; nút Gắn đơn/Bỏ qua cạnh nhau, chỉ ở khoản Cần kiểm tra. Không đổi DB.
+- Đã làm (cục bộ): `PaymentList.tsx` (thẻ gọn: số tiền + nhãn trạng thái màu, thời gian, nội dung, link đơn đã khớp; Chi tiết ẩn mã GD/tài khoản; cảnh báo tài khoản khác), `ReviewActions.tsx` (2 nút Gắn vào đơn/Bỏ qua cạnh nhau), `IgnoreReview.tsx` thành bước xác nhận. Trang sắp Cần kiểm tra lên đầu, tiêu đề phụ đếm số khoản cần kiểm tra. Xem thử 375px bằng dữ liệu mẫu (route tạm đã xóa); tsc/ESLint đạt. Chưa phát hành.
+- Chủ shop duyệt giao diện trên localhost; phát hành production.
