@@ -877,3 +877,20 @@
 - Chủ shop chọn: mặc định hiện tất cả, khoản Cần kiểm tra lên đầu; trên thẻ hiện số tiền + trạng thái, thời gian, nội dung chuyển khoản, mã đơn đã khớp (link); mã giao dịch và số tài khoản ẩn vào "Chi tiết" (cảnh báo nếu tài khoản khác tài khoản shop); Gắn đơn giữ cách gõ mã; nút Gắn đơn/Bỏ qua cạnh nhau, chỉ ở khoản Cần kiểm tra. Không đổi DB.
 - Đã làm (cục bộ): `PaymentList.tsx` (thẻ gọn: số tiền + nhãn trạng thái màu, thời gian, nội dung, link đơn đã khớp; Chi tiết ẩn mã GD/tài khoản; cảnh báo tài khoản khác), `ReviewActions.tsx` (2 nút Gắn vào đơn/Bỏ qua cạnh nhau), `IgnoreReview.tsx` thành bước xác nhận. Trang sắp Cần kiểm tra lên đầu, tiêu đề phụ đếm số khoản cần kiểm tra. Xem thử 375px bằng dữ liệu mẫu (route tạm đã xóa); tsc/ESLint đạt. Chưa phát hành.
 - Chủ shop duyệt giao diện trên localhost; phát hành production.
+
+## 12/11/2026 — Phân tích tài khoản khách
+
+- Kế hoạch 4 đợt: `docs/website-v2/KE_HOACH_TAI_KHOAN_KHACH_2026-11-12.md`. Chốt: SĐT/email + mật khẩu (+ Google/Facebook ở đợt 4), không SMS, tắt xác nhận email, bỏ ô nhu cầu; lịch sử đơn chỉ gồm đơn đặt khi đã đăng nhập. Chưa sửa mã/DB.
+
+## 12/11/2026 — Captcha
+
+- Chủ shop chọn để Turnstile tự quyết (chế độ Managed). Mã đã dùng `appearance: "interaction-only"` (ô chỉ hiện khi cần khách tương tác). Chế độ Widget Mode = Managed phải kiểm trong Cloudflare (chủ shop). Đề xuất đợt sau: captcha + giới hạn cho Đặt hàng, Tra cứu đơn, Báo giá (cần khóa bí mật Turnstile trong Vercel).
+
+## 12/11/2026 — Đợt 1 tài khoản khách: DB và Supabase
+
+- Migration `20261112150000_customer_accounts_20261112.sql` đã áp (chủ shop duyệt). Kiểm hoàn tác: khách chỉ thấy/sửa hồ sơ mình, không sửa được SĐT, không thấy đơn/giao dịch/giá nhập; email trùng (khác hoa thường) bị chặn; hàm kiểm trùng đúng.
+- Supabase Auth (chủ shop đăng nhập, Claude đổi): "Allow new users to sign up" vốn đã bật; "Confirm email" bật → tắt, đã lưu và kiểm lại. Captcha Turnstile đang bật.
+- Cloudflare: chờ chủ shop đăng nhập để đặt Turnstile Managed.
+- Code đợt 1: `lib/customer.ts`, `app/(store)/tai-khoan/actions.ts` + `page.tsx`, `AccountForms.tsx`, `CustomerAuth.tsx` (nối máy chủ, bỏ ô nhu cầu). Cloudflare Turnstile đã sẵn Managed, hostname localhost + tantruongtin.com (không đổi).
+- Thử thật trên Chrome (localhost, DB thật): đăng ký 0900000099 → vào trang tài khoản, email "Chưa xác minh"; đăng ký trùng SĐT + email khác hoa thường → 2 báo đỏ "Thông tin này đã được sử dụng."; đăng nhập SĐT có dấu cách thành công; khách vào /admin bị chuyển /admin/dang-nhap; đăng xuất đúng. Đã xóa tài khoản thử. Trình duyệt trong app không qua được Turnstile (môi trường tự động), Chrome thật tự qua ngầm.
+- tsc/ESLint đạt; nút Google ẩn trên production. Chưa phát hành.

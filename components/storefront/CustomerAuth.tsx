@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Fragment, useState, type ReactNode } from "react";
-import { ArrowLeft, Check, Eye, EyeOff, Lock, Mail, Phone, Search, UserRound } from "lucide-react";
+import { Fragment, useState, useTransition, type ReactNode } from "react";
+import { ArrowLeft, Check, Eye, EyeOff, Lock, Mail, Phone, UserRound } from "lucide-react";
 import { TurnstileWidget, useCaptcha } from "@/components/TurnstileWidget";
 import { bounceField, rippleAt, shakeField } from "@/lib/ui-effects";
 import { SHOP } from "@/lib/shop";
 import { passwordProblem } from "@/lib/password-rule";
+import { loginCustomer, registerCustomer, type AuthResult } from "@/app/(store)/tai-khoan/actions";
 
-// Đăng nhập / Đăng ký khách hàng (giao diện v2, trang đứng riêng). CHƯA nối máy chủ: bấm gửi chỉ kiểm tra ô nhập rồi báo rõ là tài khoản đang chuẩn bị.
+// Đăng nhập / Đăng ký khách hàng (giao diện v2, trang đứng riêng). Kiểm ô ở trình duyệt, rồi gửi máy chủ (app/(store)/tai-khoan/actions.ts);
+// lỗi trùng SĐT/email từ máy chủ hiện đỏ dưới đúng ô. Email không xác minh (chủ shop chốt 12/11).
 // Khách vẫn đặt hàng và tra cứu đơn không cần tài khoản. Không nhắc điểm, mã giảm giá, ưu đãi, thông báo (chủ shop chưa chốt).
 // Kiểu theo bản mẫu chủ shop gửi 3/11/2026: ảnh mặt tiền phía trên mép dưới rõ nét, tấm nền kem bo góc lớn trượt lên đè ảnh, tiêu đề căn trái,
 // tiến trình ngang, ô nhập xám đặc có viền mảnh (viền để ô đủ rõ so với nền), nút đen mực, "Tôi đã có tài khoản" là chữ gạch chân.
@@ -17,10 +19,10 @@ import { passwordProblem } from "@/lib/password-rule";
 const GOOGLE_READY = process.env.NEXT_PUBLIC_GOOGLE_LOGIN === "1";
 const GREEN = "#3E9B6A";
 
-type Key = "name" | "phone" | "email" | "password" | "password2" | "need";
+type Key = "name" | "phone" | "email" | "password" | "password2";
 type Vals = Partial<Record<Key, string>>;
 const STEPS: { key: Key; optional?: boolean }[] = [
-  { key: "name" }, { key: "phone" }, { key: "email", optional: true }, { key: "password" }, { key: "password2" }, { key: "need", optional: true },
+  { key: "name" }, { key: "phone" }, { key: "email", optional: true }, { key: "password" }, { key: "password2" },
 ];
 
 // Trả về lời báo lỗi tiếng Việt, hoặc "" nếu ô hợp lệ (ô tùy chọn để trống là hợp lệ)
@@ -92,7 +94,8 @@ export function CustomerAuth({ mode }: { mode: "login" | "register" }) {
   const steps = isLogin ? STEPS.filter((s) => s.key === "phone").concat({ key: "password" }) : STEPS;
   const [vals, setVals] = useState<Vals>({});
   const [submitted, setSubmitted] = useState(false);
-  const [notice, setNotice] = useState(false);
+  const [server, setServer] = useState<AuthResult>({});
+  const [pending, start] = useTransition();
   const captcha = useCaptcha();
 
   // Điền từ trên xuống: một bước tính là xong khi mọi bước phía trên đã xong và ô hợp lệ (ô tùy chọn để trống thì bỏ qua)
@@ -104,13 +107,13 @@ export function CustomerAuth({ mode }: { mode: "login" | "register" }) {
   });
   const firstOpen = done.indexOf(false);
   const doneCount = done.filter(Boolean).length;
-  const err = (key: Key) => (submitted ? check(key, vals, isLogin) : "");
+  const err = (key: Key) => (submitted ? check(key, vals, isLogin) : "") || server.fields?.[key] || "";
 
   const onInput = (e: React.FormEvent<HTMLFormElement>) => {
     const t = e.target as HTMLInputElement | HTMLTextAreaElement;
     if (!t.name) return;
     setVals((v) => ({ ...v, [t.name]: t.value }));
-    setNotice(false);
+    setServer((r) => (r.fields?.[t.name as Key] || r.error ? { ...r, error: undefined, fields: { ...r.fields, [t.name]: undefined } } : r));
     bounceField(t.closest("label")?.querySelector<HTMLElement>("span:last-of-type") ?? t.parentElement);
   };
 
@@ -122,11 +125,14 @@ export function CustomerAuth({ mode }: { mode: "login" | "register" }) {
     const bad = steps.find((s) => check(s.key, vals, isLogin) !== "");
     if (bad) {
       e.currentTarget.querySelector<HTMLElement>(`[name=${bad.key}]`)?.focus();
-      setNotice(false);
       return;
     }
-    captcha.renew();
-    setNotice(true);
+    const data = new FormData(e.currentTarget);
+    start(async () => {
+      const r = await (isLogin ? loginCustomer(data) : registerCustomer(data));
+      setServer(r ?? {});
+      captcha.renew();
+    });
   };
 
   return (
@@ -180,26 +186,18 @@ export function CustomerAuth({ mode }: { mode: "login" | "register" }) {
               <Step no={5} label="Nhập lại mật khẩu" required icon={<Lock className="size-5" />} error={err("password2")}>
                 <PasswordInput name="password2" label="Nhập lại mật khẩu" autoComplete="new-password" invalid={!!err("password2")} />
               </Step>
-              <Step no={6} label="Sản phẩm anh chị cần tìm là gì?" optional icon={<Search className="size-5" />} tall>
-                {/* Hai dòng để gợi ý không bị cắt chữ trên màn hẹp */}
-                <textarea name="need" rows={2} maxLength={120} placeholder="Tủ lạnh, Tai nghe, Màn hình rời,..." className={`${inputCls} resize-none py-3.5 leading-5`} />
-              </Step>
             </>
           )}
 
           {captcha.enabled && <TurnstileWidget key={captcha.round} onStatus={captcha.setStatus} />}
 
-          {notice && (
-            <p role="status" className="rounded-2xl border border-[#DCE5E9] bg-[#E8F0F1] px-3.5 py-3 text-sm leading-6 text-[#17324D]">
-              Tài khoản khách hàng đang được chuẩn bị nên shop chưa lưu thông tin của bạn. Bạn vẫn đặt hàng và tra cứu đơn như bình thường, không cần tài khoản.
-            </p>
-          )}
+          {server.error && <p role="alert" className="rounded-2xl border border-danger/40 bg-[#fef2f2] px-3.5 py-3 text-sm leading-6 text-danger">{server.error}</p>}
 
-          <button type="submit" disabled={captcha.waiting} onPointerDown={(e) => rippleAt(e, "rgba(255,255,255,0.35)")} className={`relative mt-1 flex h-[52px] w-full items-center justify-center overflow-hidden rounded-xl bg-[#0B6972] text-[15px] font-semibold text-white transition duration-150 hover:bg-[#07545C] active:scale-[0.98] disabled:opacity-60 ${done.every(Boolean) ? "" : "opacity-70"}`}>
-            {captcha.waiting ? "Đang xác minh…" : isLogin ? "Đăng nhập" : "Tạo tài khoản"}
+          <button type="submit" disabled={captcha.waiting || pending} onPointerDown={(e) => rippleAt(e, "rgba(255,255,255,0.35)")} className={`relative mt-1 flex h-[52px] w-full items-center justify-center overflow-hidden rounded-xl bg-[#0B6972] text-[15px] font-semibold text-white transition duration-150 hover:bg-[#07545C] active:scale-[0.98] disabled:opacity-60 ${done.every(Boolean) ? "" : "opacity-70"}`}>
+            {captcha.waiting ? "Đang xác minh…" : pending ? "Đang xử lý…" : isLogin ? "Đăng nhập" : "Tạo tài khoản"}
           </button>
           {GOOGLE_READY && (
-            <button type="button" onClick={() => { setSubmitted(false); setNotice(true); }} onPointerDown={(e) => rippleAt(e, "rgba(24,24,24,0.12)")} className="relative flex h-[52px] w-full items-center justify-center gap-2.5 overflow-hidden rounded-full border border-[#DCE5E9] bg-white text-[15px] font-semibold text-[#17324D] transition duration-150 hover:bg-[#E8F0F1] active:scale-[0.98]">
+            <button type="button" onClick={() => { setSubmitted(false); setServer({ error: "Đăng nhập bằng Google đang được chuẩn bị." }); }} onPointerDown={(e) => rippleAt(e, "rgba(24,24,24,0.12)")} className="relative flex h-[52px] w-full items-center justify-center gap-2.5 overflow-hidden rounded-full border border-[#DCE5E9] bg-white text-[15px] font-semibold text-[#17324D] transition duration-150 hover:bg-[#E8F0F1] active:scale-[0.98]">
               <GoogleG />Tiếp tục với Google
             </button>
           )}
