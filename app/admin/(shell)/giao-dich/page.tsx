@@ -5,6 +5,7 @@ import { requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatVnd } from "@/lib/shop";
 import { ResolveReview } from "@/components/admin/orders/ResolveReview";
+import { IgnoreReview } from "@/components/admin/orders/IgnoreReview";
 
 export const metadata: Metadata = { title: "Giao dịch chuyển khoản" };
 
@@ -40,6 +41,7 @@ export default async function PaymentsPage() {
           <p className="text-ink-2">Mã đơn nhận diện: {row.payment_code || "không thấy"}{row.order_id && codes.has(row.order_id) ? <> · <Link className="font-semibold text-brand underline" href={`/admin/don-hang/${codes.get(row.order_id)}`}>{codes.get(row.order_id)}</Link></> : ""}</p>
           {row.review_reason && <p role="status" className="text-gold-ink">{row.review_reason}</p>}
           {staff.role === "owner" && row.status === "review" && row.transfer_type === "in" && <ResolveReview transactionId={row.id} />}
+          {staff.role === "owner" && row.status === "review" && row.transfer_type === "in" && row.order_id === null && <IgnoreReview transactionId={row.id} />}
           <time className="block text-xs text-ink-2" dateTime={row.created_at}>{new Intl.DateTimeFormat("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "short", timeStyle: "short" }).format(new Date(row.created_at))}</time>
         </li>)}
       </ul>}

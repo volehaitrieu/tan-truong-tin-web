@@ -17,3 +17,14 @@ export async function resolveReview(transactionId: number, code: string): Promis
   revalidatePath("/admin/don-hang");
   return { ok: true };
 }
+
+export async function ignoreReview(transactionId: number): Promise<{ ok: boolean; error?: string }> {
+  const staff = await requireStaff("process_orders");
+  if (staff.role !== "owner") return { ok: false, error: "Chỉ chủ shop được bỏ qua giao dịch." };
+  if (!Number.isSafeInteger(transactionId) || transactionId <= 0) return { ok: false, error: "Giao dịch không hợp lệ." };
+  const db = await createClient();
+  const { error } = await db.rpc("sepay_ignore_review", { p_transaction_id: transactionId });
+  if (error) return { ok: false, error: /[À-ỹ]/.test(error.message) ? error.message : "Chưa bỏ qua được. Vui lòng thử lại." };
+  revalidatePath("/admin/giao-dich");
+  return { ok: true };
+}

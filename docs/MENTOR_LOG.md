@@ -860,3 +860,14 @@
 
 - Chủ shop chốt nội dung (đổi trong 2 ngày; lỗi NSX đổi mới cùng mẫu; giao sai đổi đúng hàng; đổi ý chỉ sang hàng giá cao hơn, bù chênh lệch; không áp dụng hàng thanh lý; không trả hàng/không hoàn tiền). Bản gốc: `docs/website-v2/NHAP_CHINH_SACH_DOI_TRA_2026-11-12.md`.
 - Ghi `settings.return_policy` (id=1, 1.181 ký tự) theo yêu cầu chủ shop. tantruongtin.com/chinh-sach đã hiện nội dung mới, không còn câu "đang chờ chủ shop chốt". Lưu ý pháp lý (không hoàn tiền) đã báo chủ shop; chưa đối chiếu luật.
+
+## 12/11/2026 — Việc để sau (chủ shop chốt)
+
+- Ảnh thật sản phẩm: chủ shop gửi sau; hiện dùng 8 ảnh minh họa theo loại.
+- Hỏi người có chuyên môn về câu "không trả hàng, không hoàn tiền" trong chính sách đổi hàng trước khi bán thật.
+- Giao dịch SePay "cần kiểm tra": khoản 590.000đ gắn được vào TTT001067 ở Admin › Giao dịch (đơn cũ đã `paid` → hàm chỉ đánh dấu `matched`, không cộng tiền lần 2). Hai khoản 100.000đ/75.000đ là tiền cá nhân: Admin chưa có nút "bỏ qua" (DB có trạng thái `ignored` nhưng giao diện không có) → để nguyên, vô hại.
+
+## 12/11/2026 — Claude: nút Bỏ qua giao dịch SePay
+
+- Migration `20261112120000_sepay_ignore_review_20261112.sql` (chủ shop duyệt) đã áp trên DB thật: hàm `sepay_ignore_review` — chỉ owner; chỉ tiền vào `review` chưa gắn đơn → `ignored` + lý do. Kiểm: anon không có quyền; authenticated không phải owner bị từ chối (thử trong giao dịch hoàn tác).
+- Admin › Giao dịch: nút "Bỏ qua — không phải tiền đơn hàng" có bước xác nhận (`IgnoreReview.tsx`, action `ignoreReview`). tsc/ESLint đạt; ponytail-review: Ship. Chưa bấm thử bằng tài khoản chủ shop.
