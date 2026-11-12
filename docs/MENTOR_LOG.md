@@ -843,3 +843,9 @@
 - Ghi DB (Supabase thật, một giao dịch, chủ shop duyệt): đổi `product_images.url` các dòng banner sang SVG theo từ thứ 2 của tên SP (`lỡ`→quạt lửng); ảnh chữ sai của QUATBAN-16-AIRPORT-B4 cũng đổi sang `quat-ban.svg`, `is_illustration=true`. Kết quả: 114 dòng `/minh-hoa/`, 0 dòng banner. Ảnh thật của ChingHai FF2399 giữ nguyên. Airport có 2 dòng ảnh cùng `quat-ban.svg` (trùng, vô hại; dọn khi có ảnh thật). File ảnh cũ trong Storage không xóa.
 - Trang chủ tự làm mới sau 60 giây (revalidate); kiểm 375px: ảnh mới hiện, 0 ảnh lỗi.
 - Chưa: thông số 4 ấm (chờ file có mã model), ảnh thật, gộp `main`.
+
+## 12/11/2026 — Claude: file ấm bỏ 4 SP chưa có model
+
+- Từ `Downloads/Kho-App-Am-sieu-toc-doi-chieu-2026-11-09-ban2.xlsx` tạo `Downloads/Kho-App-Am-sieu-toc-2026-11-12-bo-4-am-chua-model.xlsx`: bỏ 4 SKU (AMSIEUTOC3LOP1-8LSUNHOUSEMAMA, AMSIEUTOC-PANA-17, AMSIEUTOCTHUYTINH1-7LSUNHOUSE, AMSIEUTOCPHILIPS1L) ở sheet SanPham (14→10 SP) và Nguon doi chieu. File gốc giữ nguyên. Chưa đổi DB/website.
+- Chủ shop xác nhận xóa vĩnh viễn 4 ấm trên DB thật (0 đơn hàng liên quan; kèm tồn kho, 13 dòng lịch sử kho, giá nhập, ảnh theo CASCADE). Một giao dịch; còn 110 SP hiển thị, 10 ấm.
+- Kiểm tantruongtin.com: trang chủ không còn 4 ấm; link chi tiết cũ hiện "Không tìm thấy sản phẩm".
