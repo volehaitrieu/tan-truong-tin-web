@@ -75,7 +75,7 @@ export default async function CustomerAccountPage({ searchParams }: { searchPara
               </dl>
               {emailTaken && !session.customer && <p role="alert" className="mt-3 text-sm text-danger">Email bạn nhập đã được sử dụng. Nhập email khác hoặc để trống.</p>}
               <div className="mt-4 border-t border-line pt-4">
-                <ProfileForm name={session.customer?.full_name ?? ""} email={session.customer?.email ?? session.providerEmail ?? ""} complete={!session.customer} needPhone={!session.customer && !session.phoneLogin} />
+                <ProfileForm name={session.customer?.full_name ?? session.providerFullName ?? ""} email={session.customer?.email ?? session.providerEmail ?? ""} complete={!session.customer} needPhone={!session.customer && !session.phoneLogin} />
               </div>
             </section>
             {session.customer && (

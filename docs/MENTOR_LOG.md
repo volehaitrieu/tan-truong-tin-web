@@ -918,3 +918,6 @@
 - Sửa lỗi đợt 1: `proxy.ts` làm mới phiên cho /tai-khoan, /thanh-toan (trước chỉ /admin → khách có thể bị đăng xuất sau 1 giờ); chỉ chạy khi có cookie đăng nhập.
 - Supabase URL Configuration (Claude đổi): Site URL localhost → https://tantruongtin.com; Redirect URLs: https://tantruongtin.com/auth/callback, http://localhost:3000/auth/callback.
 - Chờ chủ shop tạo ứng dụng Google/Facebook và dán khóa vào Supabase. Chưa phát hành.
+- Google Cloud (chủ shop đăng nhập, bật 2SV; chủ shop đồng ý User Data Policy): dự án `tan-truong-tin-web`; Branding: tên "Tân Trường Tín", External; OAuth client Web "Website Tan Truong Tin", redirect https://ztbwxfzklznpqbofbwlk.supabase.co/auth/v1/callback. Claude không đọc/sao chép Client Secret; chủ shop tự dán vào Supabase.
+- Supabase: Google provider bật (chủ shop dán Client ID/Secret; Claude bật công tắc Enable), kiểm lại ENABLED.
+- Thử thật Chrome (localhost): bấm Tiếp tục với Google → chủ shop chọn tài khoản → về /tai-khoan bước Hoàn tất hồ sơ, email điền sẵn; nhập SĐT 0900000088 → "Đã lưu thông tin", nhãn "Đã xác minh qua Google", không có đổi mật khẩu. Thêm điền sẵn họ tên từ Google. Đã xóa tài khoản thử. Facebook chưa làm. Chưa phát hành.

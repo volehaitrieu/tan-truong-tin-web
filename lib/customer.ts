@@ -38,6 +38,7 @@ export type CustomerSession =
       phoneLogin: boolean;           // false = Google/Facebook (không có mật khẩu, phải tự nhập SĐT)
       providerEmail: string | null;  // email Google/Facebook đã được nhà cung cấp xác minh
       providerName: string | null;   // "Google" | "Facebook"
+      providerFullName: string | null; // tên trên tài khoản Google/Facebook (điền sẵn khi hoàn tất hồ sơ)
     };
 
 export async function getCustomerSession(): Promise<CustomerSession> {
@@ -55,5 +56,6 @@ export async function getCustomerSession(): Promise<CustomerSession> {
     phone: customer?.phone ?? (phoneLogin ? user.email!.split("@")[0] : null),
     providerEmail: phoneLogin ? null : user.email ?? null,
     providerName: provider === "google" ? "Google" : provider === "facebook" ? "Facebook" : null,
+    providerFullName: phoneLogin ? null : String(user.user_metadata?.full_name ?? user.user_metadata?.name ?? "").slice(0, 80) || null,
   };
 }
