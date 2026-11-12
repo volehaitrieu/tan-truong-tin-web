@@ -11,7 +11,11 @@ const LAST_SEEN_COOKIE = {
 
 // Làm mới phiên đăng nhập Supabase và chặn khách chưa đăng nhập vào /admin.
 // Kiểm quyền chi tiết nằm ở server (lib/auth.ts) và RLS — đây chỉ là lớp chặn đầu.
+// Trang khách cần phiên (/tai-khoan, /thanh-toan): chỉ làm mới phiên để khách không bị đăng xuất sau 1 giờ
+// (trang máy chủ không tự ghi được cookie mới). Không chặn, không tính thời gian chờ như /admin.
 export async function proxy(request: NextRequest) {
+  const isAdmin = request.nextUrl.pathname.startsWith("/admin");
+  if (!isAdmin && !request.cookies.getAll().some((c) => c.name.includes("-auth-token"))) return NextResponse.next({ request });
   let response = NextResponse.next({ request });
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
     cookies: {
@@ -26,6 +30,7 @@ export async function proxy(request: NextRequest) {
   // getClaims: kiểm chữ ký JWT ngay tại máy chủ web (khóa ES256), làm mới phiên khi hết hạn — không cần hỏi Supabase mỗi lần
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims?.sub ? { id: data.claims.sub } : null;
+  if (!isAdmin) return response;
 
   const now = Date.now();
   const lastSeen = Number(request.cookies.get(LAST_SEEN)?.value) || now; // chưa có cookie (phiên cũ) → tính từ bây giờ
@@ -47,5 +52,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/tai-khoan/:path*", "/thanh-toan"],
 };

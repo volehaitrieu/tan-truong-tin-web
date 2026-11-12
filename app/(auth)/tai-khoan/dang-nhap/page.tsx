@@ -3,6 +3,6 @@ import { CustomerAuth } from "@/components/storefront/CustomerAuth";
 
 export const metadata: Metadata = { title: "Đăng nhập" };
 
-export default function CustomerLoginPage() {
-  return <CustomerAuth mode="login" />;
+export default async function CustomerLoginPage({ searchParams }: { searchParams: Promise<{ loi?: string }> }) {
+  return <CustomerAuth mode="login" oauthError={(await searchParams).loi} />;
 }

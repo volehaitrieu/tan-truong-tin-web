@@ -13,11 +13,12 @@ function Row({ label, name, error, children }: { label: string; name: Field; err
 }
 
 // Sửa họ tên, email; cũng dùng để hoàn tất hồ sơ khi đăng ký bị gián đoạn
-export function ProfileForm({ name, email, complete }: { name: string; email: string; complete?: boolean }) {
+export function ProfileForm({ name, email, complete, needPhone }: { name: string; email: string; complete?: boolean; needPhone?: boolean }) {
   const [state, action, pending] = useActionState<AuthResult, FormData>(saveProfile, {});
   const f = state.fields ?? {};
   return <form action={action} noValidate className="space-y-3">
     <Row label="Họ tên" name="name" error={f.name}><input id="f-name" name="name" defaultValue={name} maxLength={80} autoComplete="name" className={input(!!f.name)} /></Row>
+    {needPhone && <Row label="Số điện thoại" name="phone" error={f.phone}><input id="f-phone" name="phone" type="tel" inputMode="tel" maxLength={20} autoComplete="tel" className={input(!!f.phone)} /></Row>}
     <Row label="Email (không bắt buộc)" name="email" error={f.email}><input id="f-email" name="email" type="email" defaultValue={email} maxLength={120} autoComplete="email" className={input(!!f.email)} /></Row>
     {state.error && <p role="alert" className="text-sm text-danger">{state.error}</p>}
     {state.ok && <p role="status" className="text-sm text-ok">Đã lưu thông tin.</p>}

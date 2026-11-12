@@ -8,7 +8,7 @@ import { TurnstileWidget, useCaptcha } from "@/components/TurnstileWidget";
 import { bounceField, rippleAt, shakeField } from "@/lib/ui-effects";
 import { SHOP } from "@/lib/shop";
 import { passwordProblem } from "@/lib/password-rule";
-import { loginCustomer, registerCustomer, type AuthResult } from "@/app/(store)/tai-khoan/actions";
+import { loginCustomer, oauthLogin, registerCustomer, type AuthResult } from "@/app/(store)/tai-khoan/actions";
 
 // Đăng nhập / Đăng ký khách hàng (giao diện v2, trang đứng riêng). Kiểm ô ở trình duyệt, rồi gửi máy chủ (app/(store)/tai-khoan/actions.ts);
 // lỗi trùng SĐT/email từ máy chủ hiện đỏ dưới đúng ô. Email không xác minh (chủ shop chốt 12/11).
@@ -17,6 +17,12 @@ import { loginCustomer, registerCustomer, type AuthResult } from "@/app/(store)/
 // tiến trình ngang, ô nhập xám đặc có viền mảnh (viền để ô đủ rõ so với nền), nút đen mực, "Tôi đã có tài khoản" là chữ gạch chân.
 // Nút Google chỉ hiện khi đặt NEXT_PUBLIC_GOOGLE_LOGIN=1 (xem thử nội bộ); trên web thật phải ẩn cho tới khi nối xong.
 const GOOGLE_READY = process.env.NEXT_PUBLIC_GOOGLE_LOGIN === "1";
+// Nút Facebook chỉ hiện khi đã bật ứng dụng Facebook trong Supabase và đặt NEXT_PUBLIC_FACEBOOK_LOGIN=1
+const FACEBOOK_READY = process.env.NEXT_PUBLIC_FACEBOOK_LOGIN === "1";
+const OAUTH_ERROR: Record<string, string> = {
+  "dang-nhap": "Chưa đăng nhập được bằng Google/Facebook. Vui lòng thử lại hoặc dùng số điện thoại.",
+  "nhan-vien": "Tài khoản nhân viên đăng nhập ở trang quản trị, không dùng khu vực khách hàng.",
+};
 const GREEN = "#3E9B6A";
 
 type Key = "name" | "phone" | "email" | "password" | "password2";
@@ -89,14 +95,16 @@ function GoogleG() {
   );
 }
 
-export function CustomerAuth({ mode }: { mode: "login" | "register" }) {
+// oauthError: mã lỗi khi quay về từ Google/Facebook (?loi=…)
+export function CustomerAuth({ mode, oauthError }: { mode: "login" | "register"; oauthError?: string }) {
   const isLogin = mode === "login";
   const steps = isLogin ? STEPS.filter((s) => s.key === "phone").concat({ key: "password" }) : STEPS;
   const [vals, setVals] = useState<Vals>({});
   const [submitted, setSubmitted] = useState(false);
-  const [server, setServer] = useState<AuthResult>({});
+  const [server, setServer] = useState<AuthResult>(() => (oauthError && OAUTH_ERROR[oauthError] ? { error: OAUTH_ERROR[oauthError] } : {}));
   const [pending, start] = useTransition();
   const captcha = useCaptcha();
+  const social = (provider: "google" | "facebook") => start(async () => { setSubmitted(false); setServer((await oauthLogin(provider)) ?? {}); });
 
   // Điền từ trên xuống: một bước tính là xong khi mọi bước phía trên đã xong và ô hợp lệ (ô tùy chọn để trống thì bỏ qua)
   const done: boolean[] = [];
@@ -197,8 +205,13 @@ export function CustomerAuth({ mode }: { mode: "login" | "register" }) {
             {captcha.waiting ? "Đang xác minh…" : pending ? "Đang xử lý…" : isLogin ? "Đăng nhập" : "Tạo tài khoản"}
           </button>
           {GOOGLE_READY && (
-            <button type="button" onClick={() => { setSubmitted(false); setServer({ error: "Đăng nhập bằng Google đang được chuẩn bị." }); }} onPointerDown={(e) => rippleAt(e, "rgba(24,24,24,0.12)")} className="relative flex h-[52px] w-full items-center justify-center gap-2.5 overflow-hidden rounded-full border border-[#DCE5E9] bg-white text-[15px] font-semibold text-[#17324D] transition duration-150 hover:bg-[#E8F0F1] active:scale-[0.98]">
+            <button type="button" disabled={pending} onClick={() => social("google")} onPointerDown={(e) => rippleAt(e, "rgba(24,24,24,0.12)")} className="relative flex h-[52px] w-full items-center justify-center gap-2.5 overflow-hidden rounded-full border border-[#DCE5E9] bg-white text-[15px] font-semibold text-[#17324D] transition duration-150 hover:bg-[#E8F0F1] active:scale-[0.98]">
               <GoogleG />Tiếp tục với Google
+            </button>
+          )}
+          {FACEBOOK_READY && (
+            <button type="button" disabled={pending} onClick={() => social("facebook")} className="relative flex h-[52px] w-full items-center justify-center gap-2.5 overflow-hidden rounded-full bg-[#1877F2] text-[15px] font-semibold text-white transition duration-150 hover:bg-[#166FE5] active:scale-[0.98] disabled:opacity-60">
+              <svg viewBox="0 0 24 24" className="size-5" aria-hidden><path fill="currentColor" d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.69 4.54-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.25h3.33l-.53 3.49h-2.8V24C19.6 23.1 24 18.1 24 12.07z" /></svg>Tiếp tục với Facebook
             </button>
           )}
           <Link href={isLogin ? "/tai-khoan/dang-ky" : "/tai-khoan/dang-nhap"} className="mx-auto inline-flex h-11 items-center px-2 text-[15px] font-semibold text-[#17324D] underline underline-offset-4">

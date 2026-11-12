@@ -65,15 +65,17 @@ export default async function CustomerAccountPage({ searchParams }: { searchPara
             <section className={card} aria-labelledby="profile-title">
               <h2 id="profile-title" className="text-lg font-bold">{session.customer ? "Thông tin của bạn" : "Hoàn tất hồ sơ"}</h2>
               <dl className="mt-3 grid grid-cols-[110px_minmax(0,1fr)] gap-y-2 text-sm">
-                <dt className="text-ink-2">Số điện thoại</dt><dd className="num font-medium">{session.phone}</dd>
+                <dt className="text-ink-2">Số điện thoại</dt><dd className="num font-medium">{session.phone ?? <span className="font-normal text-ink-2">Chưa có</span>}</dd>
                 <dt className="text-ink-2">Email</dt>
                 <dd className="min-w-0 break-words">{session.customer?.email
-                  ? <>{session.customer.email} <span className="ml-1 inline-block rounded-full bg-[#fff4d6] px-2 py-0.5 text-xs font-semibold text-gold-ink">Chưa xác minh</span></>
+                  ? <>{session.customer.email} {session.providerName && session.customer.email === session.providerEmail?.toLowerCase()
+                      ? <span className="ml-1 inline-block rounded-full bg-brand-tint px-2 py-0.5 text-xs font-semibold text-ok">Đã xác minh qua {session.providerName}</span>
+                      : <span className="ml-1 inline-block rounded-full bg-[#fff4d6] px-2 py-0.5 text-xs font-semibold text-gold-ink">Chưa xác minh</span>}</>
                   : <span className="text-ink-2">Chưa có</span>}</dd>
               </dl>
               {emailTaken && !session.customer && <p role="alert" className="mt-3 text-sm text-danger">Email bạn nhập đã được sử dụng. Nhập email khác hoặc để trống.</p>}
               <div className="mt-4 border-t border-line pt-4">
-                <ProfileForm name={session.customer?.full_name ?? ""} email={session.customer?.email ?? ""} complete={!session.customer} />
+                <ProfileForm name={session.customer?.full_name ?? ""} email={session.customer?.email ?? session.providerEmail ?? ""} complete={!session.customer} needPhone={!session.customer && !session.phoneLogin} />
               </div>
             </section>
             {session.customer && (
@@ -97,7 +99,7 @@ export default async function CustomerAccountPage({ searchParams }: { searchPara
                 <div className="mt-3"><AddressForm province={session.customer.province ?? ""} ward={session.customer.ward ?? ""} street={session.customer.street ?? ""} /></div>
               </section>
             )}
-            {session.customer && (
+            {session.customer && session.phoneLogin && (
               <section className={card} aria-labelledby="pw-title">
                 <h2 id="pw-title" className="text-lg font-bold">Đổi mật khẩu</h2>
                 <div className="mt-3"><PasswordForm /></div>

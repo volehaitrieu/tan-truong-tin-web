@@ -1,9 +1,10 @@
 "use server";
 import { createClient as createSupabase } from "@supabase/supabase-js";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { customerLoginEmail, isCustomerLogin, normalizePhone } from "@/lib/customer";
+import { customerLoginEmail, getCustomerUser, isCustomerLogin, normalizePhone } from "@/lib/customer";
 import { passwordProblem } from "@/lib/password-rule";
 import { CAPTCHA_FAILED, captchaOption, isCaptchaError } from "@/lib/turnstile";
 
@@ -21,6 +22,8 @@ function cleanEmail(raw: string): string | null | false {
 }
 
 const isUnique = (e: { code?: string } | null) => e?.code === "23505";
+// Trùng SĐT hay trùng email (dựa trên tên ràng buộc / lời báo của DB)
+const dupField = (e: { message?: string; details?: string } | null): Field => /phone/.test(`${e?.message} ${e?.details}`) ? "phone" : "email";
 
 export async function registerCustomer(form: FormData): Promise<AuthResult> {
   const name = str(form, "name").trim();
@@ -75,22 +78,25 @@ export async function logoutCustomer() {
   redirect("/tai-khoan");
 }
 
-// Hoàn tất hồ sơ (khi đăng ký bị gián đoạn) hoặc sửa họ tên/email
+// Hoàn tất hồ sơ (đăng ký bị gián đoạn, hoặc lần đầu vào bằng Google/Facebook — cần nhập SĐT) hoặc sửa họ tên/email
 export async function saveProfile(_: AuthResult, form: FormData): Promise<AuthResult> {
   const name = str(form, "name").trim();
   const email = cleanEmail(str(form, "email"));
   const fields: AuthResult["fields"] = {};
   if (name.length < 2 || name.length > 80) fields.name = "Bạn nhập họ tên giúp shop nhé.";
   if (email === false) fields.email = "Email chưa đúng dạng, ví dụ ten@gmail.com.";
-  if (Object.keys(fields).length) return { fields };
   const db = await createClient();
-  const { data: { user } } = await db.auth.getUser();
-  if (!user || !isCustomerLogin(user.email)) return { error: "Phiên đăng nhập đã hết, vui lòng đăng nhập lại." };
+  const user = await getCustomerUser(db);
+  if (!user) return { error: "Phiên đăng nhập đã hết, vui lòng đăng nhập lại." };
   const { data: existing } = await db.from("customers").select("id").eq("id", user.id).maybeSingle();
+  // Tài khoản Google/Facebook chưa có hồ sơ: SĐT bắt buộc (tài khoản SĐT thì DB tự lấy từ tên đăng nhập)
+  const phone = !existing && !isCustomerLogin(user.email) ? normalizePhone(str(form, "phone")) : null;
+  if (!existing && !isCustomerLogin(user.email) && !phone) fields.phone = "Số điện thoại cần 10 số, bắt đầu bằng 0.";
+  if (Object.keys(fields).length) return { fields };
   const { error } = existing
     ? await db.from("customers").update({ full_name: name, email: email || null }).eq("id", user.id)
-    : await db.rpc("customer_register", { p_full_name: name, p_email: email || null });
-  if (isUnique(error)) return { fields: { email: TAKEN } };
+    : await db.rpc("customer_register", { p_full_name: name, p_email: email || null, p_phone: phone });
+  if (isUnique(error)) return { fields: { [dupField(error)]: TAKEN } };
   if (error) return { error: "Chưa lưu được. Vui lòng thử lại." };
   revalidatePath("/tai-khoan");
   return { ok: true };
@@ -108,6 +114,7 @@ export async function changeCustomerPassword(_: AuthResult, form: FormData): Pro
   if (Object.keys(fields).length) return { fields };
   const db = await createClient();
   const { data: { user } } = await db.auth.getUser();
+  // Chỉ tài khoản SĐT có mật khẩu; tài khoản Google/Facebook đổi mật khẩu ở nhà cung cấp
   if (!user?.email || !isCustomerLogin(user.email)) return { error: "Phiên đăng nhập đã hết, vui lòng đăng nhập lại." };
   // Kiểm mật khẩu cũ bằng phiên tạm riêng, không đụng phiên đang dùng (giống trang quản trị)
   const probe = createSupabase(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, { auth: { persistSession: false, autoRefreshToken: false } });
@@ -127,12 +134,23 @@ export async function saveAddress(_: AuthResult, form: FormData): Promise<AuthRe
   if (province.length > 80 || ward.length > 80 || street.length > 200) return { error: "Địa chỉ quá dài." };
   if ((ward || street) && (!province || !ward || !street)) return { error: "Nhập đủ Tỉnh/Thành, Phường/Xã và số nhà, tên đường." };
   const db = await createClient();
-  const { data: { user } } = await db.auth.getUser();
-  if (!user || !isCustomerLogin(user.email)) return { error: "Phiên đăng nhập đã hết, vui lòng đăng nhập lại." };
+  const user = await getCustomerUser(db);
+  if (!user) return { error: "Phiên đăng nhập đã hết, vui lòng đăng nhập lại." };
   const empty = !ward && !street;
   const { error } = await db.from("customers")
     .update({ province: empty ? null : province, ward: empty ? null : ward, street: empty ? null : street }).eq("id", user.id);
   if (error) return { error: "Chưa lưu được địa chỉ. Vui lòng thử lại." };
   revalidatePath("/tai-khoan");
   return { ok: true };
+}
+
+// Đăng nhập bằng Google/Facebook: Supabase chuyển khách sang trang nhà cung cấp rồi về /auth/callback
+export async function oauthLogin(provider: "google" | "facebook"): Promise<AuthResult> {
+  if (provider !== "google" && provider !== "facebook") return { error: "Cách đăng nhập không hợp lệ." };
+  const h = await headers();
+  const origin = h.get("origin") ?? `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`;
+  const db = await createClient();
+  const { data, error } = await db.auth.signInWithOAuth({ provider, options: { redirectTo: `${origin}/auth/callback` } });
+  if (error || !data.url) return { error: "Chưa mở được trang đăng nhập. Vui lòng thử lại hoặc dùng số điện thoại." };
+  redirect(data.url);
 }

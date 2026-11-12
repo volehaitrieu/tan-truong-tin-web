@@ -910,3 +910,11 @@
 - Code: `app/(store)/yeu-thich-actions.ts` (syncFavorites, setFavorite); `FavoriteButton.tsx` đồng bộ 1 lần/trang khi có cookie đăng nhập, gộp danh sách trên máy; trang tài khoản thêm mục Sản phẩm yêu thích.
 - Thử thật Chrome (localhost): tim khi chưa đăng nhập → đăng ký → mục yêu thích có SP; xóa localStorage → tải lại → tim khôi phục từ tài khoản; bỏ tim → DB 0. Đã xóa tài khoản thử. Máy chủ thử bị app dừng, đã bật lại. Chưa làm: xóa tim khỏi máy khi đăng xuất. Chưa phát hành.
 - Phát hành production đợt 3 theo yêu cầu chủ shop.
+
+## 12/11/2026 — Tài khoản khách đợt 4 (Google/Facebook) — phần mã
+
+- Migration `20261112210000_customer_oauth_register_20261112.sql` đã áp (chủ shop duyệt): customer_register nhận p_phone cho tài khoản Google/Facebook; tài khoản SĐT như cũ. Kiểm hoàn tác: thiếu SĐT bị chặn; SĐT trùng (tên đăng nhập SĐT hoặc hồ sơ khác) bị chặn.
+- Code: nút Google/Facebook (bật bằng NEXT_PUBLIC_GOOGLE_LOGIN / NEXT_PUBLIC_FACEBOOK_LOGIN), `oauthLogin`, `app/auth/callback/route.ts` (nhân viên bị đăng xuất), hoàn tất hồ sơ có SĐT, nhãn "Đã xác minh qua Google", ẩn đổi mật khẩu cho tài khoản OAuth; nhận biết khách theo không có hồ sơ profiles (`getCustomerUser`).
+- Sửa lỗi đợt 1: `proxy.ts` làm mới phiên cho /tai-khoan, /thanh-toan (trước chỉ /admin → khách có thể bị đăng xuất sau 1 giờ); chỉ chạy khi có cookie đăng nhập.
+- Supabase URL Configuration (Claude đổi): Site URL localhost → https://tantruongtin.com; Redirect URLs: https://tantruongtin.com/auth/callback, http://localhost:3000/auth/callback.
+- Chờ chủ shop tạo ứng dụng Google/Facebook và dán khóa vào Supabase. Chưa phát hành.

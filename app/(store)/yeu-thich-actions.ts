@@ -1,6 +1,6 @@
 "use server";
 import { createClient } from "@/lib/supabase/server";
-import { isCustomerLogin } from "@/lib/customer";
+import { getCustomerUser } from "@/lib/customer";
 
 // Yêu thích theo tài khoản khách. Khách vãng lai/nhân viên → null (trình duyệt tự lưu trên máy như cũ).
 // Mã sản phẩm nhận từ trình duyệt chỉ dùng để tra id sản phẩm; quyền ghi do RLS (customer_id = auth.uid()).
@@ -10,8 +10,8 @@ const clean = (skus: unknown) =>
 
 async function customerDb() {
   const db = await createClient();
-  const { data: { user } } = await db.auth.getUser();
-  return user && isCustomerLogin(user.email) ? { db, uid: user.id } : null;
+  const user = await getCustomerUser(db);
+  return user ? { db, uid: user.id } : null;
 }
 
 // Gộp danh sách trên máy vào tài khoản rồi trả về danh sách đầy đủ của tài khoản
