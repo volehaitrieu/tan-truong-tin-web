@@ -938,3 +938,9 @@
 - Đọc advisor, RLS/grants/functions và thử quyền read-only với UUID giả: không đọc được dữ liệu nhạy cảm. Không tạo đơn/tài khoản, không ghi DB, không commit/push/deploy.
 - Dự thảo migration security_audit_hardening chưa chạy, cần duyệt và kiểm PostgreSQL trước áp dụng. Chống bot/captcha cho API công khai vẫn chưa hoàn tất; React #418 trên production chưa xác định gốc lỗi.
 - Báo cáo, bằng chứng, giới hạn và bước duyệt tiếp: docs/website-v2/KIEM_TRA_BAO_MAT_2026-11-13.md.
+
+## 13/11/2026 — Claude phát hành bản vá bảo mật của Codex
+
+- Chủ shop không bàn giao, Claude làm tiếp. Rà migration `20261112180823_security_audit_hardening.sql` (Codex) với DB: submit_quote giống bản cũ + khóa; place_order giữ logic + kiểm đầu vào, khóa tuần tự, ≤3 đơn bank giữ hàng/SĐT. Thử hoàn tác: anon gọi customer_identifiers_taken bị chặn; COD/bank chạy; SĐT/delivery sai bị chặn. place_order_legacy có sẵn giới hạn đặt liên tiếp. Mã đơn đã nhảy tới TTT001080.
+- 39/39 test (gồm check-security.mjs), tsc, ESLint (4 cảnh báo). Commit `4002b10`. Phát hành mã TRƯỚC (production READY, trang chính 200), rồi áp migration; kiểm grants: probe anon/auth false, place_order/submit_quote mở, có advisory lock.
+- Còn mở: React #418 trên trang chủ production (vẫn tái hiện sau phát hành, nghi Cloudflare chỉnh HTML hoặc cache, chưa điều tra); captcha phía máy chủ cho đặt hàng/tra cứu/báo giá (cần khóa bí mật Turnstile trong Vercel).
