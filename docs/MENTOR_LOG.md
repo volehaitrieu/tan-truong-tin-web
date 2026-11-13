@@ -965,3 +965,11 @@
 - Chủ shop yêu cầu thêm ngành Đồ công nghệ (bàn phím, chuột, sạc dự phòng, USB, lót chuột) và Đồ dùng nhà bếp (dao, kéo, thớt), hiển thị như hàng thật, ảnh thật, tồn giả định. ChatGPT web (chế độ Tức thì) cho dữ liệu thiếu nguồn/ảnh → bỏ; Codex (chuyên sâu) ghi `Downloads/san-pham-mau.json`: 24 mẫu, nguồn TGDĐ/ĐMX, 42/42 ảnh tải được.
 - Đã bỏ câu ưu đãi riêng của nguồn, chuẩn hóa bảo hành. Ảnh `public/mau/` (commit `7451bd3`, phát hành trước). DB: 10 danh mục, thương hiệu, 24 SP, 42 ảnh, tồn 132 (8 mẫu hết hàng). Kiểm production: trang chủ có ngành mới, /danh-muc có 2 nhóm, trang SP hiện giá/thông số/ảnh.
 - Danh sách SKU + cách xóa: `docs/website-v2/SAN_PHAM_MAU_2026-11-13.md`. Phải xóa/thay trước khi mở lại đặt hàng.
+
+## 13/11 — Rà giao diện với sản phẩm mẫu, băng ngành hàng, nút menu, Voucher (Claude)
+- Rà 375px với 24 SP mẫu. Sửa: alt ảnh thật bỏ "Ảnh minh họa"; hàng hết khi tạm ngưng đặt hàng hiện "Hết hàng · Gọi shop" (gọi điện, không vào giỏ). Báo nhầm về chip ngành ở /danh-muc (thuộc giao diện máy tính, ẩn trên điện thoại) nên không sửa.
+- Trang chủ "Danh mục": băng ô kiểu Nguyễn Kim (`IndustryCarousel`): 4 ô/trang điện thoại, 10 ô máy tính, tự chuyển 4s, vuốt và kéo chuột, dừng khi chạm/rê, tôn trọng giảm chuyển động. Ảnh nền trắng, không viền, 56/72px.
+- Ảnh ngành ở `public/nganh/` (cắt vuông 200px webp): quạt/ấm từ CellphoneS (Senko DH1600, Sunhouse SHD1351), dao/kéo/thớt từ sunhouse.com.vn, 5 ảnh công nghệ từ ảnh SP mẫu. Ảnh của nhà bán/hãng: nên thay bằng ảnh tự chụp. Danh mục con (bảng menu) dùng cùng ảnh qua SUBCATEGORY_TILE_IMAGES.
+- Header điện thoại: nút ☰ (`HeaderMenuButton`) mở bảng danh mục (CategoryDrawer có sẵn); vòng sáng gợi ý 3 lần cho khách mới (localStorage `ttt-menu-hint-seen`).
+- Thanh dưới: bỏ Danh mục, thêm Voucher → `/voucher` trạng thái trống (chưa có hệ thống voucher; cần làm phần quản lý khi có chương trình thật).
+- Kiểm: tsc, eslint sạch; xem trên máy thử 375px. Commit 798bf4b, đẩy nhánh và main; `vercel deploy --prod` READY, tantruongtin.com: /, /voucher, /danh-muc, ảnh /nganh 200. Chưa rà bản máy tính kỹ.
