@@ -6,7 +6,7 @@ import { Minus, Package, Plus, Trash2 } from "lucide-react";
 import { cartProducts } from "@/app/(store)/actions";
 import type { Product } from "@/lib/mock/store";
 import { FLAT_SHIPPING_POLICY } from "@/lib/shipping";
-import { formatVnd } from "@/lib/shop";
+import { formatVnd, ORDERING_PAUSED, ORDERING_PAUSED_MESSAGE } from "@/lib/shop";
 
 // Giỏ hàng lưu trong trình duyệt (chưa có backend): [{ sku, quantity }]
 const KEY = "ttt-cart-v2";
@@ -302,12 +302,12 @@ export function CartPanel({ shippingPolicy }: { shippingPolicy?: string }) {
         <h2 className="font-bold">Tóm tắt đơn hàng</h2>
         <p className="mt-4 flex justify-between text-sm">Tiền hàng <b className="num">{formatVnd(total)}</b></p>
         <p className="mt-2 hidden text-xs text-ink-2 lg:block">{shippingPolicy === FLAT_SHIPPING_POLICY ? "Giao hàng: 15.000₫ · miễn phí từ 500.000₫ · Lấy tại cửa hàng: miễn phí" : "Phí ship tính ở bước sau"}</p>
-        <Link href="/thanh-toan" className="mt-5 hidden h-12 lg:flex items-center justify-center rounded-xl bg-brand font-bold text-white hover:bg-brand-deep">Đặt hàng</Link>
+        {ORDERING_PAUSED ? <p role="status" className="mt-5 hidden rounded-xl bg-[#fff4d6] p-3 text-sm text-gold-ink lg:block">{ORDERING_PAUSED_MESSAGE}</p> : <Link href="/thanh-toan" className="mt-5 hidden h-12 lg:flex items-center justify-center rounded-xl bg-brand font-bold text-white hover:bg-brand-deep">Đặt hàng</Link>}
         <Link href="/danh-muc" className="mt-2 flex h-11 items-center justify-center text-sm font-semibold text-brand">Mua thêm sản phẩm →</Link>
       </aside>
       <div className="fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-40 border-t border-line bg-surface px-4 py-3 shadow-[var(--shadow-soft)] lg:hidden">
         <p className="flex justify-between text-sm font-medium">Tiền hàng <b className="num text-base">{formatVnd(total)}</b></p><p className="mt-0.5 text-xs text-ink-2">{shippingPolicy === FLAT_SHIPPING_POLICY ? "Giao hàng: 15.000₫ · miễn phí từ 500.000₫ · Lấy tại cửa hàng: miễn phí" : "Phí ship tính ở bước sau"}</p>
-        <div className="mt-2 flex gap-2"><a href="https://zalo.me/0948732064" className="flex h-12 shrink-0 items-center rounded-xl border border-brand px-4 text-sm font-semibold text-brand">Zalo</a><Link href="/thanh-toan" className="flex h-12 flex-1 items-center justify-center rounded-xl bg-brand font-bold text-white">Đặt hàng</Link></div>
+        <div className="mt-2 flex gap-2"><a href="https://zalo.me/0948732064" className="flex h-12 shrink-0 items-center rounded-xl border border-brand px-4 text-sm font-semibold text-brand">Zalo</a>{ORDERING_PAUSED ? <a href="tel:0948732064" className="flex h-12 flex-1 items-center justify-center rounded-xl bg-brand font-bold text-white">Gọi đặt hàng</a> : <Link href="/thanh-toan" className="flex h-12 flex-1 items-center justify-center rounded-xl bg-brand font-bold text-white">Đặt hàng</Link>}</div>{ORDERING_PAUSED && <p className="mt-2 text-xs text-gold-ink">{ORDERING_PAUSED_MESSAGE}</p>}
       </div>
     </div>
   );

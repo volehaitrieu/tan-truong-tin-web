@@ -4,6 +4,7 @@ import { getProducts } from "@/lib/catalog";
 import { notifyOrder, notifyQuote } from "@/lib/notify/telegram";
 import { createPublicClient } from "@/lib/supabase/public";
 import { createClient } from "@/lib/supabase/server";
+import { ORDERING_PAUSED, ORDERING_PAUSED_MESSAGE } from "@/lib/shop";
 import type { Product } from "@/lib/mock/store";
 
 // Hàm server cho trang bán hàng. Mọi kiểm tra tiền/số lượng nằm trong hàm Postgres (place_order…);
@@ -26,6 +27,7 @@ export type PlaceOrderResult = { ok: true; code: string; subtotal: number; shipp
 const tooBig = (v: unknown) => JSON.stringify(v ?? "").length > 20000;
 
 export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResult> {
+  if (ORDERING_PAUSED) return { ok: false, error: ORDERING_PAUSED_MESSAGE };
   if (!input || tooBig(input)) return { ok: false, error: "Dữ liệu đơn hàng không hợp lệ." };
   // Gọi kèm phiên đăng nhập (nếu có) để DB tự gắn đơn vào tài khoản khách bằng auth.uid(); khách vãng lai vẫn như cũ
   const { data, error } = await (await createClient()).rpc("place_order", { payload: input });
