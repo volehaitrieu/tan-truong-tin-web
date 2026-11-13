@@ -950,3 +950,4 @@
 - Nguyên nhân gốc (đã chứng minh): trang chủ dựng sẵn (ISR) có segment `["","index"]` → trên máy chủ `usePathname()` = "/index", trình duyệt = "/". `StoreBackButton` ẩn khi pathname === "/" nên máy chủ vẽ nút "Quay lại", trình duyệt không → #418. Chỉ trang chủ bị (các trang khác pathname trùng). Đúng cảnh báo trong docs usePathname (prerender + proxy).
 - Sửa: `StoreBackButton` chỉ quyết định hiện sau khi mount (state `clientPath` đặt trong effect sẵn có), máy chủ luôn vẽ null.
 - Kiểm: so DOM máy chủ/trình duyệt tìm phần tử lệch đầu tiên = nút Quay lại; bản xem thử tan-truong-tin-2cz9h3cs1: HTML máy chủ không còn nút; Chrome đối chứng xen kẽ preview (0 lỗi) / production (có #418) / preview (0 lỗi); nút vẫn hiện ở trang sản phẩm. tsc/ESLint đạt. Chưa phát hành production.
+- Phát hành production (chủ shop duyệt): trang chính 200; HTML trang chủ không còn nút Quay lại; Chrome mở trang chủ 2 lần không còn #418; nút vẫn hiện ở trang sản phẩm.
