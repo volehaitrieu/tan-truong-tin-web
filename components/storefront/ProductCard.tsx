@@ -17,14 +17,16 @@ export function StockBadge({ stock, className = "" }: { stock: boolean; classNam
 }
 
 // discountBadge: trang chi tiết đặt nhãn -% trên ảnh; thẻ sản phẩm đặt nó cạnh giá cũ nên tắt.
+// Ảnh dựng sẵn (/ai/…) mới ghi "Ảnh minh họa"; ảnh sản phẩm thật chỉ dùng tên.
+const altFor = (p: { image: string; name: string }) => (p.image.startsWith("/ai/") ? `Ảnh minh họa: ${p.name}` : p.name);
 // badge: nhãn "Ảnh minh họa" (chủ shop đã bỏ nhãn này trên thẻ sản phẩm 08/11; trang chi tiết và bảng so sánh vẫn hiện).
 export function ProductImage({ p, sizes, priority = false, discountBadge = true, badge = true }: { p: Product; sizes: string; priority?: boolean; discountBadge?: boolean; badge?: boolean }) {
   const pct = discountPct(p);
   return (
     <>
       {priority
-        ? <Image src={p.image} alt={`Ảnh minh họa: ${p.name}`} fill sizes={sizes} priority className="product-art object-cover" />
-        : <FadeImage src={p.image} alt={`Ảnh minh họa: ${p.name}`} sizes={sizes} />}
+        ? <Image src={p.image} alt={altFor(p)} fill sizes={sizes} priority className="product-art object-cover" />
+        : <FadeImage src={p.image} alt={altFor(p)} sizes={sizes} />}
       {badge && <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-xs text-ink-2">Ảnh minh họa</span>}
       {discountBadge && pct > 0 && <span className="num absolute right-2 top-2 rounded-full bg-danger px-2 py-0.5 text-xs font-bold text-white">-{pct}%</span>}
     </>

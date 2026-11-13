@@ -6,6 +6,7 @@ import { StoreSearch } from "@/components/storefront/StoreSearch";
 import { HeaderSearchToggle } from "@/components/storefront/HeaderSearchToggle";
 import { CartCount } from "@/components/storefront/CartControls";
 import { MobileBottomNav } from "@/components/storefront/MobileBottomNav";
+import { HeaderMenuButton } from "@/components/storefront/HeaderMenuButton";
 import { StoreBackButton } from "@/components/storefront/StoreBackButton";
 import { FloatActions } from "@/components/storefront/FloatActions";
 import { CompareBar } from "@/components/storefront/compare/CompareBar";
@@ -27,7 +28,8 @@ export async function StoreShell({ children }: { children: ReactNode }) {
     <div className="store flex min-h-screen flex-col pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0">
       <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1180px] items-center gap-3 px-4 py-3 sm:gap-6">
-          <Link href="/" className="hdr-logo shrink-0" aria-label="Tân Trường Tín — Trang chủ">
+          <HeaderMenuButton menu={categoryMenu} />
+          <Link href="/" className="hdr-logo -ml-2 shrink-0 md:ml-0" aria-label="Tân Trường Tín — Trang chủ">
             {/* Điện thoại: chữ thương hiệu như thiết kế v2 (logo ảnh đang hoãn); máy tính vẫn dùng logo hiện có */}
             <span className="flex flex-col leading-tight md:hidden">
               <span className="text-lg font-bold tracking-tight text-[#17324d]">Tân Trường Tín</span>
@@ -117,7 +119,7 @@ export async function StoreShell({ children }: { children: ReactNode }) {
       <CompareBar />
 
       {/* Thanh đáy điện thoại */}
-      <MobileBottomNav menu={categoryMenu} />
+      <MobileBottomNav />
     </div>
   );
 }

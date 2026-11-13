@@ -3,7 +3,17 @@ import { cache } from "react";
 
 // Ảnh cho ô Danh mục con trong tấm Danh mục: đặt file vào public/shop/danh-muc/<slug>.png
 const SUBCATEGORY_TILE_IMAGES: Record<string, string> = {
-  quat: "/shop/danh-muc/quat.png",
+  // Ảnh nền trắng (public/nganh) dùng chung với băng ngành hàng trang chủ
+  quat: "/nganh/quat.webp",
+  "am-binh-dun": "/nganh/am-sieu-toc.webp",
+  "do-cong-nghe-ban-phim": "/nganh/ban-phim.webp",
+  "do-cong-nghe-chuot": "/nganh/chuot.webp",
+  "do-cong-nghe-sac-du-phong": "/nganh/sac-du-phong.webp",
+  "do-cong-nghe-usb": "/nganh/usb.webp",
+  "do-cong-nghe-lot-chuot": "/nganh/lot-chuot.webp",
+  "do-dung-nha-bep-dao": "/nganh/dao.webp",
+  "do-dung-nha-bep-keo": "/nganh/keo.webp",
+  "do-dung-nha-bep-thot": "/nganh/thot.webp",
 };
 import { createPublicClient } from "@/lib/supabase/public";
 import { normalize, type Category, type Product } from "@/lib/mock/store";

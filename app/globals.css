@@ -233,3 +233,10 @@ body[data-buybar][data-compare] .store { padding-bottom: calc(188px + env(safe-a
 .rich-text ol { margin: 0.4em 0; padding-left: 1.4em; list-style: decimal; }
 .rich-text a { color: var(--color-brand); text-decoration: underline; }
 .rich-text > :first-child { margin-top: 0; }
+
+/* Nút ☰ đầu trang: vòng sáng lan ra 3 lần khi khách mới vào, để biết có menu danh mục (chỉ transform/opacity) */
+@keyframes menu-hint-ring { 0% { transform: scale(0.7); opacity: 0.55; } 100% { transform: scale(1.5); opacity: 0; } }
+@keyframes menu-hint-nudge { 0%, 100% { transform: none; } 30% { transform: scale(1.12); } 60% { transform: scale(0.96); } }
+.menu-hint::before { content: ""; position: absolute; inset: 0; border-radius: 9999px; background: var(--color-brand, #1d4ed8); animation: menu-hint-ring 1.4s ease-out 0.6s 3 both; pointer-events: none; }
+.menu-hint > svg { animation: menu-hint-nudge 1.4s ease-in-out 0.6s 3; }
+@media (prefers-reduced-motion: reduce) { .menu-hint::before, .menu-hint > svg { animation: none; } .menu-hint::before { display: none; } }

@@ -89,8 +89,9 @@ export function CategoryIndexClient({ menu, onNavigate }: Props) {
                     onClick={(event) => navigate(event, href)}
                     className="group flex h-[95px] min-w-0 flex-col items-center rounded-lg px-0.5 py-0.5 text-center active:scale-[0.96] motion-safe:transition-transform motion-reduce:transform-none motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand"
                   >
-                    <span className="relative grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-brand-tint text-ink-2">
-                      {child.image ? <Image src={child.image} alt="" fill sizes="48px" className="object-contain p-1" /> : <CategoryIcon icon={selected.icon} className="size-7" />}
+                    {/* Ảnh nền trắng đặt thẳng trên nền trắng, không khung (giống băng ngành hàng trang chủ) */}
+                    <span className="relative grid size-14 shrink-0 place-items-center text-ink-2">
+                      {child.image ? <Image src={child.image} alt="" fill sizes="56px" className="object-contain" /> : <CategoryIcon icon={selected.icon} className="size-7" />}
                     </span>
                     <span className="mt-0.5 line-clamp-2 min-h-9 w-full break-words text-[12px] leading-[18px] text-ink group-hover:text-ink">{child.name}</span>
                   </Link>

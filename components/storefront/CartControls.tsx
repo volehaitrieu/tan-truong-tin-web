@@ -117,6 +117,13 @@ function useToast() {
 // inline: nằm cạnh nút khác trong một hàng (thẻ sản phẩm) thay vì chiếm cả chiều ngang.
 export function AddToCartButton({ sku, name, available = true, inline = false }: { sku: string; name: string; available?: boolean; inline?: boolean }) {
   const [toast, setToast] = useToast();
+  // Đang tạm ngưng đặt hàng: hàng hết không cho "Đặt trước" vào giỏ, mời gọi shop hỏi ngày có hàng.
+  if (!available && ORDERING_PAUSED)
+    return (
+      <a href="tel:0948732064" aria-label={`Hết hàng, gọi shop hỏi ${name}`} className={`${inline ? "min-w-0 flex-1 whitespace-nowrap px-1 text-[13px] sm:text-sm" : "mt-3 w-full text-sm"} flex h-11 items-center justify-center rounded-xl border border-line bg-sunk font-semibold text-ink-2`}>
+        Hết hàng · Gọi shop
+      </a>
+    );
   return (
     <>
       <button
@@ -185,18 +192,20 @@ export function BuyBox({ sku, name, available, price, unit }: { sku: string; nam
         </div>
       </div>
       <div ref={actionsRef} className="mt-4 flex flex-wrap gap-3">
-        <button
+        {!available && ORDERING_PAUSED ? (
+          <a href="tel:0948732064" className="flex h-12 flex-1 items-center justify-center rounded-xl border border-line bg-sunk px-5 font-bold text-ink-2 sm:flex-none">Hết hàng · Gọi shop</a>
+        ) : <button
           type="button"
           onClick={add}
           className={`flex h-12 flex-1 items-center justify-center rounded-xl px-5 font-bold transition duration-150 active:scale-[0.98] sm:flex-none ${available ? "bg-brand text-white hover:bg-brand-deep" : "border border-brand bg-white text-brand"}`}
         >
           {available ? "Thêm vào giỏ" : "Đặt trước"}
-        </button>
+        </button>}
         <a href="https://zalo.me/0948732064" className="flex h-12 items-center rounded-xl border border-brand bg-white px-5 font-semibold text-brand hover:bg-brand-tint">
           Chat Zalo
         </a>
       </div>
-      <div inert={!barOn} aria-hidden={!barOn} className={`fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-[45] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-line bg-surface px-4 py-2.5 shadow-[var(--shadow-soft)] transition-[transform,visibility] duration-200 motion-reduce:transition-none md:bottom-0 ${barOn ? "visible translate-y-0" : "invisible translate-y-full"}`}>
+      <div inert={!barOn} aria-hidden={!barOn} className={`${!available && ORDERING_PAUSED ? "hidden " : ""}fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-[45] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-line bg-surface px-4 py-2.5 shadow-[var(--shadow-soft)] transition-[transform,visibility] duration-200 motion-reduce:transition-none md:bottom-0 ${barOn ? "visible translate-y-0" : "invisible translate-y-full"}`}>
           <div className="min-w-0">
             <span className="block text-xs text-ink-2">Tổng tiền</span>
             <b className="num block truncate text-lg font-extrabold leading-tight">{formatVnd(price * qty)}</b>

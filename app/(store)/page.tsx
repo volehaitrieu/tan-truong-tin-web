@@ -1,9 +1,8 @@
-import Link from "next/link";
 import { ArrowRight, Clock, MapPin, Phone } from "lucide-react";
 import { BrandRotator } from "@/components/storefront/BrandRotator";
 import { ShopBanner } from "@/components/storefront/ShopBanner";
 import { FadeImage } from "@/components/storefront/FadeImage";
-import { CategoryIcon } from "@/components/storefront/CategoryIcon";
+import { IndustryCarousel } from "@/components/storefront/IndustryCarousel";
 import { ProductBrowserShell } from "@/components/storefront/ProductBrowserShell";
 import { getCategories, getProducts } from "@/lib/catalog";
 import { SHOP } from "@/lib/shop";
@@ -18,6 +17,23 @@ export default async function Home() {
   for (const p of PRODUCTS) if (p.brand) brandCounts.set(p.brand, (brandCounts.get(p.brand) ?? 0) + 1);
   const BRANDS = [...brandCounts].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "vi"));
   const INDUSTRIES = [...new Set(PRODUCTS.map((p) => p.industry.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "vi"));
+  // Ảnh đại diện ô ngành: ảnh sản phẩm nền trắng, đã cắt vuông 200px (public/nganh). Ngành mới chưa có ảnh dùng ảnh sản phẩm đầu tiên.
+  const INDUSTRY_IMAGE: Record<string, string> = {
+    "Quạt": "/nganh/quat.webp", "Ấm siêu tốc": "/nganh/am-sieu-toc.webp", "Dao": "/nganh/dao.webp", "Kéo": "/nganh/keo.webp", "Thớt": "/nganh/thot.webp",
+    "Bàn phím": "/nganh/ban-phim.webp", "Chuột": "/nganh/chuot.webp", "Sạc dự phòng": "/nganh/sac-du-phong.webp", "USB": "/nganh/usb.webp", "Lót chuột": "/nganh/lot-chuot.webp",
+  };
+  // Thứ tự ô: theo danh mục gốc (gia dụng, nhà bếp, công nghệ…), mỗi ô lấy ảnh sản phẩm thật đầu tiên của ngành.
+  const INDUSTRY_GROUPS = CATEGORIES.map((c) => ({
+    slug: c.slug,
+    items: INDUSTRIES.filter((industry) => PRODUCTS.some((p) => p.industry.trim() === industry && p.cat === c.slug)).map((industry) => {
+      const inIndustry = PRODUCTS.filter((p) => p.industry.trim() === industry);
+      return { industry, count: inIndustry.length, image: inIndustry.find((p) => !p.image.startsWith("/ai/"))?.image };
+    }),
+  })).filter((g) => g.items.length > 0);
+  // Ngành không gắn danh mục gốc nào vẫn phải hiện
+  const grouped = new Set(INDUSTRY_GROUPS.flatMap((g) => g.items.map((i) => i.industry)));
+  const loose = INDUSTRIES.filter((i) => !grouped.has(i));
+  if (loose.length) INDUSTRY_GROUPS.push({ slug: "khac", items: loose.map((industry) => ({ industry, count: PRODUCTS.filter((p) => p.industry.trim() === industry).length, image: undefined })) });
   // Danh sách ở trang chủ: xen kẽ các ngành hàng (ngành đông sản phẩm trước) để trang đầu thấy đủ ngành, thay vì xếp theo tên.
   const byIndustry = new Map<string, typeof PRODUCTS>();
   for (const p of PRODUCTS) { const key = p.industry.trim() || "-"; byIndustry.set(key, [...(byIndustry.get(key) ?? []), p]); }
@@ -39,21 +55,9 @@ export default async function Home() {
             <h2 id="h-danh-muc" className="text-lg font-bold sm:text-[22px]">Danh mục</h2>
             <a href="#tat-ca" className="flex min-h-11 items-center gap-1 text-sm font-semibold text-brand">Tất cả sản phẩm <ArrowRight className="size-4" aria-hidden /></a>
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {INDUSTRIES.map((industry) => {
-              const count = PRODUCTS.filter((p) => p.industry.trim() === industry).length;
-              const icon: "fan" | "home" = /quạt/i.test(industry) ? "fan" : "home";
-              return (
-                <Link key={industry} href={`/danh-muc?industry=${encodeURIComponent(industry)}`} className="flex min-h-24 min-w-0 items-center justify-between gap-1 overflow-hidden rounded-2xl border border-line bg-surface py-3 pl-3 pr-2 shadow-[var(--shadow-soft)] transition-colors duration-150 hover:border-brand-line hover:bg-brand-tint active:bg-brand-tint sm:pl-4">
-                  <span className="min-w-0">
-                    <span className="block break-words text-[13px] font-bold leading-5 text-ink [overflow-wrap:anywhere] sm:text-sm">{industry}</span>
-                    <span className="num mt-1 block text-xs text-ink-2">{count} sản phẩm</span>
-                  </span>
-                  <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-sunk text-brand"><CategoryIcon icon={icon} className="size-6" /></span>
-                </Link>
-              );
-            })}
-          </div>
+          {INDUSTRIES.length > 0 && (
+            <IndustryCarousel tiles={INDUSTRY_GROUPS.flatMap((g) => g.items.map(({ industry, image }) => ({ name: industry, image: INDUSTRY_IMAGE[industry] ?? image, icon: /quạt/i.test(industry) ? ("fan" as const) : ("home" as const) })))} />
+          )}
           {INDUSTRIES.length === 0 && <p className="rounded-xl border border-line bg-surface p-4 text-sm text-ink-2">Danh sách ngành hàng đang được cập nhật.</p>}
         </div>
       </section>
