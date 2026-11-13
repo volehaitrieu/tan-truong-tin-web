@@ -951,3 +951,11 @@
 - Sửa: `StoreBackButton` chỉ quyết định hiện sau khi mount (state `clientPath` đặt trong effect sẵn có), máy chủ luôn vẽ null.
 - Kiểm: so DOM máy chủ/trình duyệt tìm phần tử lệch đầu tiên = nút Quay lại; bản xem thử tan-truong-tin-2cz9h3cs1: HTML máy chủ không còn nút; Chrome đối chứng xen kẽ preview (0 lỗi) / production (có #418) / preview (0 lỗi); nút vẫn hiện ở trang sản phẩm. tsc/ESLint đạt. Chưa phát hành production.
 - Phát hành production (chủ shop duyệt): trang chính 200; HTML trang chủ không còn nút Quay lại; Chrome mở trang chủ 2 lần không còn #418; nút vẫn hiện ở trang sản phẩm.
+
+## 13/11/2026 — Tạm ngưng đặt hàng trực tuyến (chờ thông báo Bộ Công Thương)
+
+- Chủ shop hỏi về nghĩa vụ thông báo website TMĐT (online.gov.vn; Luật TMĐT 2025 + NĐ 248/2026 hiệu lực 01/07/2026; mức phạt chưa xác minh). Website đã công khai từ trước (Codex 10/11) và Claude đã phát hành nhiều lần 12–13/11. Chủ shop chọn tạm khóa đặt hàng.
+- Commit `26b8415`: `ORDERING_PAUSED` trong `lib/shop.ts` (mặc định tạm ngưng; mở bằng NEXT_PUBLIC_ORDERING_OPEN=1); giỏ hàng đổi thành "Gọi đặt hàng" + thông báo; /thanh-toan chỉ hiện thông báo + Gọi/Zalo; placeOrder từ chối. Phát hành production trước (trang 200, /thanh-toan có thông báo).
+- Migration `20261113130000_pause_online_ordering` (chủ shop duyệt): revoke execute place_order từ public/anon/authenticated. Kiểm: gọi thẳng RPC bằng khóa công khai → 401.
+- Mở lại: grant execute place_order cho anon, authenticated + NEXT_PUBLIC_ORDERING_OPEN=1 trên Vercel + phát hành lại.
+- Việc chủ shop: thông báo website tại online.gov.vn; hỏi chuyên môn về nghĩa vụ và mức phạt.
