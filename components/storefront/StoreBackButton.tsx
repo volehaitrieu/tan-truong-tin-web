@@ -32,6 +32,9 @@ export function StoreBackButton() {
   const currentPath = pathname || "/";
   const lastPath = useRef<string | null>(null);
   const [canGoBack, setCanGoBack] = useState(false);
+  // Đường dẫn chỉ tin sau khi chạy ở trình duyệt: trang chủ dựng sẵn có usePathname() = "/index" trên máy chủ
+  // nhưng "/" ở trình duyệt → vẽ nút ở máy chủ rồi ẩn ở trình duyệt = lỗi hydration React #418.
+  const [clientPath, setClientPath] = useState<string | null>(null);
 
   useEffect(() => {
     let history = readHistory();
@@ -53,6 +56,7 @@ export function StoreBackButton() {
     writeHistory(history);
     lastPath.current = currentPath;
     setCanGoBack(history.length > 1);
+    setClientPath(currentPath);
   }, [currentPath]);
 
   useEffect(() => {
@@ -70,7 +74,7 @@ export function StoreBackButton() {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-  if (!pathname || currentPath === "/") return null;
+  if (!clientPath || clientPath === "/") return null;
 
   function goBack() {
     const history = readHistory();

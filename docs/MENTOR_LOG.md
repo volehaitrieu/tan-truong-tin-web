@@ -944,3 +944,9 @@
 - Chủ shop không bàn giao, Claude làm tiếp. Rà migration `20261112180823_security_audit_hardening.sql` (Codex) với DB: submit_quote giống bản cũ + khóa; place_order giữ logic + kiểm đầu vào, khóa tuần tự, ≤3 đơn bank giữ hàng/SĐT. Thử hoàn tác: anon gọi customer_identifiers_taken bị chặn; COD/bank chạy; SĐT/delivery sai bị chặn. place_order_legacy có sẵn giới hạn đặt liên tiếp. Mã đơn đã nhảy tới TTT001080.
 - 39/39 test (gồm check-security.mjs), tsc, ESLint (4 cảnh báo). Commit `4002b10`. Phát hành mã TRƯỚC (production READY, trang chính 200), rồi áp migration; kiểm grants: probe anon/auth false, place_order/submit_quote mở, có advisory lock.
 - Còn mở: React #418 trên trang chủ production (vẫn tái hiện sau phát hành, nghi Cloudflare chỉnh HTML hoặc cache, chưa điều tra); captcha phía máy chủ cho đặt hàng/tra cứu/báo giá (cần khóa bí mật Turnstile trong Vercel).
+
+## 13/11/2026 — Sửa lỗi hydration React #418
+
+- Nguyên nhân gốc (đã chứng minh): trang chủ dựng sẵn (ISR) có segment `["","index"]` → trên máy chủ `usePathname()` = "/index", trình duyệt = "/". `StoreBackButton` ẩn khi pathname === "/" nên máy chủ vẽ nút "Quay lại", trình duyệt không → #418. Chỉ trang chủ bị (các trang khác pathname trùng). Đúng cảnh báo trong docs usePathname (prerender + proxy).
+- Sửa: `StoreBackButton` chỉ quyết định hiện sau khi mount (state `clientPath` đặt trong effect sẵn có), máy chủ luôn vẽ null.
+- Kiểm: so DOM máy chủ/trình duyệt tìm phần tử lệch đầu tiên = nút Quay lại; bản xem thử tan-truong-tin-2cz9h3cs1: HTML máy chủ không còn nút; Chrome đối chứng xen kẽ preview (0 lỗi) / production (có #418) / preview (0 lỗi); nút vẫn hiện ở trang sản phẩm. tsc/ESLint đạt. Chưa phát hành production.
