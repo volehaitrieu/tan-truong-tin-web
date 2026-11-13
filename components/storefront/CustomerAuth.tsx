@@ -201,7 +201,7 @@ export function CustomerAuth({ mode, oauthError }: { mode: "login" | "register";
 
           {server.error && <p role="alert" className="rounded-2xl border border-danger/40 bg-[#fef2f2] px-3.5 py-3 text-sm leading-6 text-danger">{server.error}</p>}
 
-          <button type="submit" disabled={captcha.waiting || pending} onPointerDown={(e) => rippleAt(e, "rgba(255,255,255,0.35)")} className={`relative mt-1 flex h-[52px] w-full items-center justify-center overflow-hidden rounded-xl bg-[#0B6972] text-[15px] font-semibold text-white transition duration-150 hover:bg-[#07545C] active:scale-[0.98] disabled:opacity-60 ${done.every(Boolean) ? "" : "opacity-70"}`}>
+          <button type="submit" disabled={captcha.blocked || pending} onPointerDown={(e) => rippleAt(e, "rgba(255,255,255,0.35)")} className={`relative mt-1 flex h-[52px] w-full items-center justify-center overflow-hidden rounded-xl bg-[#0B6972] text-[15px] font-semibold text-white transition duration-150 hover:bg-[#07545C] active:scale-[0.98] disabled:opacity-60 ${done.every(Boolean) ? "" : "opacity-70"}`}>
             {captcha.waiting ? "Đang xác minh…" : pending ? "Đang xử lý…" : isLogin ? "Đăng nhập" : "Tạo tài khoản"}
           </button>
           {GOOGLE_READY && (

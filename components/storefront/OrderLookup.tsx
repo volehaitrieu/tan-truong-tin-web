@@ -24,17 +24,23 @@ export function OrderLookup({ initialCode = "", bank = null }: { initialCode?: s
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (busy) return;
     setOrder(null);
     const c = code.trim().toUpperCase();
     const p = phone.replace(/\D/g, "");
     if (!/^TTT\d{6}$/.test(c)) return setError("Mã đơn gồm “TTT” và 6 số, ví dụ TTT001024.");
     if (!/^0\d{9}$/.test(p)) return setError("Số điện thoại cần 10 số, bắt đầu bằng 0.");
     setBusy(true);
-    const found = await lookupOrder(c, p);
-    setBusy(false);
-    if (!found) return setError("Không tìm thấy đơn khớp mã và số điện thoại. Kiểm tra lại, hoặc gọi shop 0948 732 064.");
-    setError("");
-    setOrder(found);
+    try {
+      const found = await lookupOrder(c, p);
+      if (!found) return setError("Không tìm thấy đơn khớp mã và số điện thoại. Kiểm tra lại, hoặc gọi shop 0948 732 064.");
+      setError("");
+      setOrder(found);
+    } catch {
+      setError("Không kết nối được. Kiểm tra mạng rồi thử lại, hoặc gọi shop 0948 732 064.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (

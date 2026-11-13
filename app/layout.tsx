@@ -9,6 +9,7 @@ const beVietnam = Be_Vietnam_Pro({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://tantruongtin.com"),
   title: { default: "Tân Trường Tín", template: "%s · Tân Trường Tín" },
   description: "Điện nước · Kim khí · Dụng cụ · Quạt · Gia dụng — 379 đường 2/4, Bắc Nha Trang.",
   icons: { icon: "/brand/logo-64-favicon.png" },

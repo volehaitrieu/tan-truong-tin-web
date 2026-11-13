@@ -33,10 +33,15 @@ export function QuoteForm({ initial = "" }: { initial?: string }) {
         setErrors(err);
         if (err.list || err.phone) return;
         setBusy(true);
-        const res = await submitQuote(list, phone);
-        setBusy(false);
-        if (res.ok) setSent(true);
-        else setErrors({ phone: res.error });
+        try {
+          const res = await submitQuote(list, phone);
+          if (res.ok) setSent(true);
+          else setErrors({ phone: res.error });
+        } catch {
+          setErrors({ phone: "Chưa nhận được phản hồi. Kiểm tra mạng hoặc gọi shop để xác nhận yêu cầu." });
+        } finally {
+          setBusy(false);
+        }
       }}
       className="mt-5 space-y-4 rounded-md bg-white p-4 sm:p-6"
     >

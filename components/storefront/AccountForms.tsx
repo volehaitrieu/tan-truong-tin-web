@@ -41,7 +41,7 @@ export function PasswordForm() {
     {captcha.enabled && <TurnstileWidget key={captcha.round} onStatus={captcha.setStatus} />}
     {state.error && <p role="alert" className="text-sm text-danger">{state.error}</p>}
     {state.ok && <p role="status" className="text-sm text-ok">Đã đổi mật khẩu.</p>}
-    <button disabled={pending || captcha.waiting} className="h-11 rounded-xl border border-brand px-5 font-semibold text-brand hover:bg-brand-tint disabled:opacity-60">{captcha.waiting ? "Đang xác minh…" : pending ? "Đang đổi…" : "Đổi mật khẩu"}</button>
+    <button disabled={pending || captcha.blocked} className="h-11 rounded-xl border border-brand px-5 font-semibold text-brand hover:bg-brand-tint disabled:opacity-60">{captcha.waiting ? "Đang xác minh…" : pending ? "Đang đổi…" : "Đổi mật khẩu"}</button>
   </form>;
 }
 

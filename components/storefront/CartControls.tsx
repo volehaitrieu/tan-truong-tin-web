@@ -15,7 +15,16 @@ export type CartRow = { sku: string; quantity: number };
 
 function read(): CartRow[] {
   try {
-    return JSON.parse(localStorage.getItem(KEY) ?? "[]") as CartRow[];
+    const value: unknown = JSON.parse(localStorage.getItem(KEY) ?? "[]");
+    if (!Array.isArray(value)) return [];
+    const rows = new Map<string, CartRow>();
+    for (const item of value.slice(0, 50)) {
+      if (!item || typeof item.sku !== "string" || !/^[A-Za-z0-9-]{2,42}$/.test(item.sku)
+        || !Number.isSafeInteger(item.quantity) || item.quantity < 1) continue;
+      const sku = item.sku.toUpperCase();
+      rows.set(sku, { sku, quantity: Math.min(999, (rows.get(sku)?.quantity ?? 0) + item.quantity) });
+    }
+    return [...rows.values()];
   } catch {
     return [];
   }
@@ -27,10 +36,12 @@ function write(rows: CartRow[]) {
   window.dispatchEvent(new Event(EVENT));
 }
 export function addToCart(sku: string, quantity = 1) {
+  if (!/^[A-Za-z0-9-]{2,42}$/.test(sku) || !Number.isSafeInteger(quantity) || quantity < 1) return;
+  sku = sku.toUpperCase();
   const rows = read();
   const found = rows.find((r) => r.sku === sku);
-  if (found) found.quantity += quantity;
-  else rows.push({ sku, quantity });
+  if (found) found.quantity = Math.min(999, found.quantity + quantity);
+  else if (rows.length < 50) rows.push({ sku, quantity: Math.min(999, quantity) });
   write(rows);
 }
 export function clearCart() {

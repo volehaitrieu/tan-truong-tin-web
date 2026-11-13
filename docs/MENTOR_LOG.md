@@ -929,3 +929,12 @@
 ## 13/11/2026 — Claude bàn giao cho Codex
 
 - Tổng hợp tại `docs/website-v2/BAN_GIAO_CHO_CODEX_2026-11-13.md`: trạng thái môi trường (web chính, Vercel env, Supabase Auth, Turnstile, Google, Facebook), việc đã làm 12–13/11, 6 việc tiếp theo cho Codex, bảng việc của chủ shop (Facebook duyệt, ảnh thật, hỏi pháp lý, xử lý SePay, thử chuyển khoản thật, tài khoản ngân hàng riêng, Fanpage…), bài học môi trường. HANDOFF.md và BAN_GIAO_TIEP_TUC.md trỏ về tài liệu này.
+
+## 13/11/2026 — Codex rà soát bảo mật và chức năng (chưa phát hành)
+
+- Đúng worktree website-v2, nền f82b8f9. Chủ shop yêu cầu thử website và vá lỗi bảo mật.
+- Đã sửa trên máy: bỏ cache quyền nhân viên giữa request; bỏ dò tài khoản trước captcha; kiểm cờ OAuth server; xóa yêu thích khi đăng xuất và chặn đồng bộ cũ ghi lại; kiểm dữ liệu giỏ; chặn submit khi captcha lỗi; phục hồi tra cứu/báo giá khi lỗi mạng; metadataBase; vá minimatch công cụ phát triển.
+- 39 test đạt, typecheck/build đạt, lint 0 lỗi / 5 cảnh báo cũ. Quét phụ thuộc sau cập nhật 0 vulnerabilities.
+- Đọc advisor, RLS/grants/functions và thử quyền read-only với UUID giả: không đọc được dữ liệu nhạy cảm. Không tạo đơn/tài khoản, không ghi DB, không commit/push/deploy.
+- Dự thảo migration security_audit_hardening chưa chạy, cần duyệt và kiểm PostgreSQL trước áp dụng. Chống bot/captcha cho API công khai vẫn chưa hoàn tất; React #418 trên production chưa xác định gốc lỗi.
+- Báo cáo, bằng chứng, giới hạn và bước duyệt tiếp: docs/website-v2/KIEM_TRA_BAO_MAT_2026-11-13.md.

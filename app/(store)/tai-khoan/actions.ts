@@ -40,11 +40,8 @@ export async function registerCustomer(form: FormData): Promise<AuthResult> {
   if (Object.keys(fields).length) return { fields };
 
   const db = await createClient();
-  const { data: taken } = await db.rpc("customer_identifiers_taken", { p_phone: phone, p_email: email || "" }).single<{ phone_taken: boolean; email_taken: boolean }>();
-  if (taken?.phone_taken) fields.phone = TAKEN;
-  if (taken?.email_taken) fields.email = TAKEN;
-  if (Object.keys(fields).length) return { fields };
-
+  // Auth kiểm captcha trước; không cho khách chưa xác minh dò SĐT/email bằng RPC.
+  // Ràng buộc unique trong Auth/customers vẫn xử lý trùng sau khi xác minh.
   const { data, error } = await db.auth.signUp({ email: customerLoginEmail(phone!), password, options: captchaOption(form) });
   if (isCaptchaError(error)) return { error: CAPTCHA_FAILED };
   if (error?.code === "user_already_exists") return { fields: { phone: TAKEN } };
@@ -147,6 +144,8 @@ export async function saveAddress(_: AuthResult, form: FormData): Promise<AuthRe
 // Đăng nhập bằng Google/Facebook: Supabase chuyển khách sang trang nhà cung cấp rồi về /auth/callback
 export async function oauthLogin(provider: "google" | "facebook"): Promise<AuthResult> {
   if (provider !== "google" && provider !== "facebook") return { error: "Cách đăng nhập không hợp lệ." };
+  const enabled = provider === "google" ? process.env.NEXT_PUBLIC_GOOGLE_LOGIN : process.env.NEXT_PUBLIC_FACEBOOK_LOGIN;
+  if (enabled !== "1") return { error: "Shop chưa bật cách đăng nhập này. Vui lòng dùng số điện thoại." };
   const h = await headers();
   const origin = h.get("origin") ?? `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`;
   const db = await createClient();

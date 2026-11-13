@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Heart, LogOut, MapPin, PackageCheck, UserRound } from "lucide-react";
+import { ArrowRight, Heart, MapPin, PackageCheck, UserRound } from "lucide-react";
 import { getProducts } from "@/lib/catalog";
 import { ProductCard } from "@/components/storefront/ProductCard";
 import type { Product } from "@/lib/mock/store";
 import { getCustomerSession } from "@/lib/customer";
-import { logoutCustomer } from "@/app/(store)/tai-khoan/actions";
+import { CustomerLogout } from "@/components/storefront/CustomerLogout";
 import { AddressForm, PasswordForm, ProfileForm } from "@/components/storefront/AccountForms";
 import { OrderHistory, type HistoryOrder } from "@/components/storefront/OrderHistory";
 import { createClient } from "@/lib/supabase/server";
@@ -105,9 +105,7 @@ export default async function CustomerAccountPage({ searchParams }: { searchPara
                 <div className="mt-3"><PasswordForm /></div>
               </section>
             )}
-            <form action={logoutCustomer}>
-              <button className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-white px-5 font-semibold text-ink hover:bg-sunk"><LogOut className="size-4" aria-hidden />Đăng xuất</button>
-            </form>
+            <CustomerLogout />
           </div>
           <aside><Link href="/tra-cuu" className="flex min-h-11 items-center justify-center rounded-md border border-brand bg-white px-4 text-sm font-semibold text-brand hover:bg-brand-tint">Tra cứu đơn bằng mã</Link></aside>
         </div>

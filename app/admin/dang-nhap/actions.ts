@@ -2,7 +2,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { forgetStaff, loginEmail } from "@/lib/auth";
+import { loginEmail } from "@/lib/auth";
 import { logEvent } from "@/lib/admin/audit";
 import { CAPTCHA_FAILED, captchaOption, isCaptchaError } from "@/lib/turnstile";
 
@@ -32,13 +32,11 @@ export async function login(_: LoginState, form: FormData): Promise<LoginState> 
     ip: h.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
     device: h.get("user-agent")?.slice(0, 160) || null,
   });
-  forgetStaff();
   redirect("/admin");
 }
 
 export async function logout() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  forgetStaff();
   redirect("/admin/dang-nhap");
 }

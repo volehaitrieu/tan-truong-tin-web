@@ -23,10 +23,19 @@ function writeFavorites(list: string[]) {
 
 // Đồng bộ một lần mỗi lần tải trang: khách đăng nhập → gộp danh sách trên máy vào tài khoản và dùng danh sách tài khoản.
 let synced: Promise<boolean> | null = null;
+let generation = 0;
+export function clearFavorites() {
+  generation++;
+  synced = null;
+  try { localStorage.removeItem(KEY); } catch { /* bộ nhớ bị chặn */ }
+  window.dispatchEvent(new Event(EVENT));
+}
 function syncOnce(): Promise<boolean> {
   // Chưa có cookie đăng nhập Supabase → chắc chắn là khách vãng lai, khỏi gọi máy chủ
   if (!document.cookie.includes("-auth-token")) return Promise.resolve(false);
+  const started = generation;
   synced ??= syncFavorites(readFavorites()).then((list) => {
+    if (started !== generation) return false;
     if (list) writeFavorites(list);
     return list !== null;
   }).catch(() => false);
@@ -41,10 +50,14 @@ export function FavoriteButton({ sku, name }: { sku: string; name: string }) {
     sync();
     void syncOnce();
     window.addEventListener(EVENT, sync);
-    window.addEventListener("storage", sync);
+    const storageChanged = (e: StorageEvent) => {
+      if (e.key === KEY && e.newValue === null) { generation++; synced = null; }
+      sync();
+    };
+    window.addEventListener("storage", storageChanged);
     return () => {
       window.removeEventListener(EVENT, sync);
-      window.removeEventListener("storage", sync);
+      window.removeEventListener("storage", storageChanged);
     };
   }, [sku]);
 

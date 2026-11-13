@@ -1,7 +1,7 @@
 "use server";
 import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
-import { forgetStaff, requireStaff, STAFF_EMAIL_DOMAIN } from "@/lib/auth";
+import { requireStaff, STAFF_EMAIL_DOMAIN } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { logEvent } from "@/lib/admin/audit";
@@ -40,7 +40,6 @@ export async function setActive(id: string, active: boolean) {
   await requireStaff("manage_staff");
   const db = await createClient();
   const { error } = await db.from("profiles").update({ is_active: active }).eq("id", id).select("id").single();
-  forgetStaff();
   revalidatePath("/admin/nhan-vien");
   return { ok: !error, error: error ? "Không đổi được trạng thái tài khoản." : undefined };
 }
@@ -51,7 +50,6 @@ export async function setPermission(role: string, permission: string, allowed: b
   if (!ROLES.includes(role as (typeof ROLES)[number])) return { ok: false, error: "Không đổi được quyền của chủ shop." };
   const db = await createClient();
   const { data, error } = await db.from("role_permissions").update({ allowed }).eq("role", role).eq("permission", permission).select("role");
-  forgetStaff();
   revalidatePath("/admin/nhan-vien");
   return { ok: !error && !!data?.length, error: error || !data?.length ? "Chỉ chủ shop được đổi quyền." : undefined };
 }

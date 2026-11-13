@@ -59,7 +59,7 @@ export function LoginForm() {
         )}
       </label>
       {captcha.enabled && <TurnstileWidget key={captcha.round} onStatus={captcha.setStatus} />}
-      <button type="submit" disabled={pending || captcha.waiting} onPointerDown={(e) => rippleAt(e, "rgba(255,255,255,0.35)")} className="relative mt-1.5 flex overflow-hidden h-[52px] w-full items-center justify-center rounded-full bg-[#181818] text-[15px] font-semibold text-[#ECE7E9] shadow-[0_10px_22px_-10px_rgba(24,24,24,0.55)] transition duration-150 hover:bg-[#2F2F2F] active:scale-[0.98] disabled:opacity-60">
+      <button type="submit" disabled={pending || captcha.blocked} onPointerDown={(e) => rippleAt(e, "rgba(255,255,255,0.35)")} className="relative mt-1.5 flex overflow-hidden h-[52px] w-full items-center justify-center rounded-full bg-[#181818] text-[15px] font-semibold text-[#ECE7E9] shadow-[0_10px_22px_-10px_rgba(24,24,24,0.55)] transition duration-150 hover:bg-[#2F2F2F] active:scale-[0.98] disabled:opacity-60">
         {pending ? "Đang đăng nhập…" : captcha.waiting ? "Đang xác minh…" : "Đăng nhập"}
       </button>
       <Link href="/" onPointerDown={(e) => rippleAt(e, "rgba(24,24,24,0.14)")} className="relative flex overflow-hidden h-[52px] w-full items-center justify-center rounded-full border border-[#B8B2AB] text-[15px] font-semibold text-[#181818] transition duration-150 hover:bg-white/50 active:scale-[0.98]">
