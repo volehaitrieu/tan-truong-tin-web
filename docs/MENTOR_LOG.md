@@ -959,3 +959,9 @@
 - Migration `20261113130000_pause_online_ordering` (chủ shop duyệt): revoke execute place_order từ public/anon/authenticated. Kiểm: gọi thẳng RPC bằng khóa công khai → 401.
 - Mở lại: grant execute place_order cho anon, authenticated + NEXT_PUBLIC_ORDERING_OPEN=1 trên Vercel + phát hành lại.
 - Việc chủ shop: thông báo website tại online.gov.vn; hỏi chuyên môn về nghĩa vụ và mức phạt.
+
+## 13/11/2026 — Thêm 24 sản phẩm mẫu
+
+- Chủ shop yêu cầu thêm ngành Đồ công nghệ (bàn phím, chuột, sạc dự phòng, USB, lót chuột) và Đồ dùng nhà bếp (dao, kéo, thớt), hiển thị như hàng thật, ảnh thật, tồn giả định. ChatGPT web (chế độ Tức thì) cho dữ liệu thiếu nguồn/ảnh → bỏ; Codex (chuyên sâu) ghi `Downloads/san-pham-mau.json`: 24 mẫu, nguồn TGDĐ/ĐMX, 42/42 ảnh tải được.
+- Đã bỏ câu ưu đãi riêng của nguồn, chuẩn hóa bảo hành. Ảnh `public/mau/` (commit `7451bd3`, phát hành trước). DB: 10 danh mục, thương hiệu, 24 SP, 42 ảnh, tồn 132 (8 mẫu hết hàng). Kiểm production: trang chủ có ngành mới, /danh-muc có 2 nhóm, trang SP hiện giá/thông số/ảnh.
+- Danh sách SKU + cách xóa: `docs/website-v2/SAN_PHAM_MAU_2026-11-13.md`. Phải xóa/thay trước khi mở lại đặt hàng.

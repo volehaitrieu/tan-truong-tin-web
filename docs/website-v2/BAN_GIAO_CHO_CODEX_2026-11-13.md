@@ -67,6 +67,7 @@ Tổng hợp việc Claude làm từ 12/11 đến 13/11/2026. **Ưu tiên tài l
 
 | Việc | Ghi chú |
 |---|---|
+| **Xóa/thay 24 sản phẩm mẫu** | Thêm 13/11 để thiết kế, hiển thị như hàng thật. Danh sách: `docs/website-v2/SAN_PHAM_MAU_2026-11-13.md`. Phải xử lý TRƯỚC khi mở lại đặt hàng. |
 | **Thông báo website với Bộ Công Thương (online.gov.vn)** | **Đặt hàng trực tuyến đang TẠM NGƯNG** từ 13/11 (giao diện + DB). Mở lại sau khi thông báo xong: grant execute `place_order` cho anon/authenticated, đặt `NEXT_PUBLIC_ORDERING_OPEN=1` trên Vercel, phát hành lại. Hỏi chuyên môn về nghĩa vụ và mức phạt. |
 | **Facebook: xác minh doanh nghiệp + App Review** | developers.facebook.com → app Tan Truong Tin. Cần giấy đăng ký kinh doanh. Duyệt xong → thêm `NEXT_PUBLIC_FACEBOOK_LOGIN=1` vào Vercel production rồi phát hành. Có thể cần **Data deletion instructions URL** — trang chính sách hiện chưa có hướng dẫn xóa dữ liệu, cần soạn. |
 | **Ảnh thật sản phẩm** | Đang dùng ảnh minh họa. Gửi dần, ưu tiên mẫu bán chạy và mẫu thuyết trình. |
