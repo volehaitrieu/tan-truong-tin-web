@@ -980,3 +980,4 @@
 - Voucher tạm hoãn; quyết định đã chốt ở docs/website-v2/KE_HOACH_VOUCHER_2026-11-14.md.
 - Ảnh sản phẩm: chủ shop nhập trực tiếp từ hãng, hãng cho dùng ảnh web chính hãng. KHÔNG dùng ảnh AI (đã thử ChatGPT, góc sau sai). Lifan: 37 ảnh từ lifan.com.vn cho 32 mẫu, lưu public/sp/lifan (vuông 1000px webp); thay hình minh họa trong product_images (xóa 32 dòng /minh-hoa, thêm 37 dòng). Commit cb4653c, deploy READY, đã kiểm trang T-16CH hiện ảnh mới.
 - Còn: các hãng khác (Senko senko.com.vn, Hali hali.vn, ChingHai chưa có web riêng — chinghai.com.vn chuyển về meta.vn).
+- 14/11 Senko: 45 ảnh từ senko.com.vn cho 15 mẫu (2–4 ảnh/mẫu, phần lớn là các màu khác nhau của cùng mẫu), lưu public/sp/senko; thay 15 dòng /minh-hoa. TC1886 không có trên web hãng, vẫn dùng hình minh họa.
