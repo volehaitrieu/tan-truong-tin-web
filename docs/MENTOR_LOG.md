@@ -973,3 +973,10 @@
 - Header điện thoại: nút ☰ (`HeaderMenuButton`) mở bảng danh mục (CategoryDrawer có sẵn); vòng sáng gợi ý 3 lần cho khách mới (localStorage `ttt-menu-hint-seen`).
 - Thanh dưới: bỏ Danh mục, thêm Voucher → `/voucher` trạng thái trống (chưa có hệ thống voucher; cần làm phần quản lý khi có chương trình thật).
 - Kiểm: tsc, eslint sạch; xem trên máy thử 375px. Commit 798bf4b, đẩy nhánh và main; `vercel deploy --prod` READY, tantruongtin.com: /, /voucher, /danh-muc, ảnh /nganh 200. Chưa rà bản máy tính kỹ.
+
+## 14/11 — Banner, footer, header máy tính, ảnh chính hãng Lifan (Claude)
+- Học từ video YC (docs/website-v2/HOC_TU_VIDEO_YC_VIBE_CODING_2026-11-13.md): banner có H1 rõ "Điện nước, quạt, gia dụng tại Nha Trang", nút gọi khi tạm ngưng đặt hàng; băng ngành hàng dừng tự chuyển khi khách đã vuốt/kéo; rà máy tính: thêm Danh mục, Voucher vào header ≥1024px, máy tính bảng dùng nút ☰.
+- Footer mới (StoreFooter): khối hỗ trợ (số chính/phụ, giờ, địa chỉ, Zalo, chỉ đường), Chính sách/Hỗ trợ, thanh toán (chữ), Facebook tạm trang cá nhân. Chưa có thông tin pháp lý (HKD Tân Trường Tín, MST 054184012838, chủ hộ Lê Thị Thùy Trâm) vì chủ shop chưa chốt hiện.
+- Voucher tạm hoãn; quyết định đã chốt ở docs/website-v2/KE_HOACH_VOUCHER_2026-11-14.md.
+- Ảnh sản phẩm: chủ shop nhập trực tiếp từ hãng, hãng cho dùng ảnh web chính hãng. KHÔNG dùng ảnh AI (đã thử ChatGPT, góc sau sai). Lifan: 37 ảnh từ lifan.com.vn cho 32 mẫu, lưu public/sp/lifan (vuông 1000px webp); thay hình minh họa trong product_images (xóa 32 dòng /minh-hoa, thêm 37 dòng). Commit cb4653c, deploy READY, đã kiểm trang T-16CH hiện ảnh mới.
+- Còn: các hãng khác (Senko senko.com.vn, Hali hali.vn, ChingHai chưa có web riêng — chinghai.com.vn chuyển về meta.vn).
