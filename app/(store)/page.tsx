@@ -44,7 +44,6 @@ export default async function Home() {
     <>
       {/* Đánh dấu trang đã áp bảng màu mới (xem khối .store:has([data-theme-v2]) trong globals.css) */}
       <div hidden data-theme-v2 />
-      <h1 className="sr-only">Tân Trường Tín: điện nước, kim khí, dụng cụ, quạt, gia dụng tại Nha Trang</h1>
 
       <ShopBanner />
 

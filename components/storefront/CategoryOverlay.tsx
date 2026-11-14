@@ -50,7 +50,7 @@ export function CategoryOverlay({ menu, closing, closeButtonRef, onClose, onNavi
       aria-modal="false"
       aria-label="Danh mục sản phẩm"
       style={{ transitionDuration: closing ? "160ms" : "220ms" }}
-      className={`fixed inset-x-0 top-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-[60] flex flex-col bg-ground transition-[opacity,transform] ease-out motion-reduce:translate-y-0 motion-reduce:transition-none ${closing ? "translate-y-4 opacity-0" : entered ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
+      className={`fixed inset-x-0 top-0 bottom-[calc(64px+env(safe-area-inset-bottom))] md:bottom-0 z-[60] flex flex-col bg-ground transition-[opacity,transform] ease-out motion-reduce:translate-y-0 motion-reduce:transition-none ${closing ? "translate-y-4 opacity-0" : entered ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
     >
       <header className="flex h-12 shrink-0 items-center justify-between bg-surface px-3">
         <h2 className="text-[14px] font-medium text-ink">Danh mục sản phẩm</h2>

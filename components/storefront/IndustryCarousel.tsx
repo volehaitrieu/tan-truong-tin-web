@@ -8,7 +8,8 @@ import { CategoryIcon } from "@/components/storefront/CategoryIcon";
 export type IndustryTile = { name: string; image?: string; icon: "fan" | "home" };
 
 // Băng ô ngành hàng ở trang chủ: điện thoại 4 ô/trang, máy tính 10 ô/trang. Vuốt bằng tay (cuộn ngang có snap),
-// tự sang trang kế sau 4 giây; dừng khi khách đang chạm/rê chuột, và không tự chạy nếu máy bật giảm chuyển động.
+// tự sang trang kế sau 4 giây; tạm dừng khi rê chuột, DỪNG HẲN khi khách đã tự vuốt/kéo/bấm chấm (để khách đọc yên),
+// và không tự chạy nếu máy bật giảm chuyển động.
 const DELAY = 4000;
 
 export function IndustryCarousel({ tiles }: { tiles: IndustryTile[] }) {
@@ -16,6 +17,7 @@ export function IndustryCarousel({ tiles }: { tiles: IndustryTile[] }) {
   const [page, setPage] = useState(0);
   const [pages, setPages] = useState(1);
   const [hold, setHold] = useState(false);
+  const [stopped, setStopped] = useState(false);
 
   useEffect(() => {
     const el = track.current;
@@ -38,14 +40,15 @@ export function IndustryCarousel({ tiles }: { tiles: IndustryTile[] }) {
 
   useEffect(() => {
     const el = track.current;
-    if (!el || hold || pages < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!el || hold || stopped || pages < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const t = window.setTimeout(() => el.scrollTo({ left: ((page + 1) % pages) * el.clientWidth, behavior: "smooth" }), DELAY);
     return () => window.clearTimeout(t);
-  }, [page, pages, hold]);
+  }, [page, pages, hold, stopped]);
 
   // Kéo bằng chuột (máy tính / khung xem thử): cảm ứng đã tự vuốt được nhờ cuộn ngang, chuột thì phải tự xử lý.
   const drag = useRef<{ x: number; left: number; moved: boolean } | null>(null);
   const onPointerDown = (e: ReactPointerEvent) => {
+    setStopped(true);
     if (e.pointerType !== "mouse" || !track.current) return;
     drag.current = { x: e.clientX, left: track.current.scrollLeft, moved: false };
     track.current.style.scrollSnapType = "none";
@@ -74,7 +77,7 @@ export function IndustryCarousel({ tiles }: { tiles: IndustryTile[] }) {
   const go = (i: number) => track.current?.scrollTo({ left: i * track.current.clientWidth, behavior: "smooth" });
 
   return (
-    <div className="rounded-2xl bg-white px-1.5 pb-1 pt-3" onPointerEnter={() => setHold(true)} onPointerLeave={() => setHold(false)} onTouchStart={() => setHold(true)} onTouchEnd={() => setHold(false)} onFocus={() => setHold(true)} onBlur={() => setHold(false)}>
+    <div className="rounded-2xl bg-white px-1.5 pb-1 pt-3" onPointerEnter={() => setHold(true)} onPointerLeave={() => setHold(false)} onTouchStart={() => setStopped(true)} onKeyDown={() => setStopped(true)}>
       <div ref={track} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={endDrag} onPointerLeave={endDrag} onDragStart={(e) => e.preventDefault()} className="grid cursor-grab select-none active:cursor-grabbing snap-x snap-mandatory auto-cols-[25%] grid-flow-col overflow-x-auto [scrollbar-width:none] lg:auto-cols-[10%] [&::-webkit-scrollbar]:hidden">
         {tiles.map((t) => (
           <Link key={t.name} href={`/danh-muc?industry=${encodeURIComponent(t.name)}`} className="group flex snap-start flex-col items-center gap-2 rounded-xl px-1 pb-1 pt-0.5 text-center outline-offset-2 active:scale-[0.97] motion-safe:transition-transform">
@@ -91,7 +94,7 @@ export function IndustryCarousel({ tiles }: { tiles: IndustryTile[] }) {
       {pages > 1 && (
         <div className="flex justify-center" role="tablist" aria-label="Trang ngành hàng">
           {Array.from({ length: pages }, (_, i) => (
-            <button key={i} type="button" role="tab" aria-selected={i === page} aria-label={`Trang ${i + 1}`} onClick={() => go(i)} className="grid h-6 place-items-center px-[3px]">
+            <button key={i} type="button" role="tab" aria-selected={i === page} aria-label={`Trang ${i + 1}`} onClick={() => { setStopped(true); go(i); }} className="grid h-6 place-items-center px-[3px]">
               <span className={`block h-1 rounded-full transition-[width,background-color] duration-300 ${i === page ? "w-4 bg-brand" : "w-1 bg-line"}`} />
             </button>
           ))}

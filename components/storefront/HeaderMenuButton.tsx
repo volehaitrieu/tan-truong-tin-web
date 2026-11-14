@@ -25,7 +25,7 @@ export function HeaderMenuButton({ menu }: { menu: CategoryMenuTab[] }) {
   return (
     <CategoryDrawer menu={menu}>
       {({ isOpen, toggle, openerRef }) => (
-        <button ref={openerRef} type="button" onClick={() => { setHint(false); toggle(); }} aria-label="Danh mục sản phẩm" aria-expanded={isOpen} aria-haspopup="dialog" className={`relative -ml-2 grid size-11 shrink-0 place-items-center rounded-full text-ink transition-colors duration-150 hover:bg-sunk active:bg-sunk md:hidden ${hint ? "menu-hint" : ""}`}>
+        <button ref={openerRef} type="button" onClick={() => { setHint(false); toggle(); }} aria-label="Danh mục sản phẩm" aria-expanded={isOpen} aria-haspopup="dialog" className={`relative -ml-2 grid size-11 shrink-0 place-items-center rounded-full text-ink transition-colors duration-150 hover:bg-sunk active:bg-sunk lg:hidden ${hint ? "menu-hint" : ""}`}>
           <Menu className="relative size-6" aria-hidden />
         </button>
       )}
