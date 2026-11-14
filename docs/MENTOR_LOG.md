@@ -982,3 +982,4 @@
 - Còn: các hãng khác (Senko senko.com.vn, Hali hali.vn, ChingHai chưa có web riêng — chinghai.com.vn chuyển về meta.vn).
 - 14/11 Senko: 45 ảnh từ senko.com.vn cho 15 mẫu (2–4 ảnh/mẫu, phần lớn là các màu khác nhau của cùng mẫu), lưu public/sp/senko; thay 15 dòng /minh-hoa. TC1886 không có trên web hãng, vẫn dùng hình minh họa.
 - 14/11 Hali: không có web hãng (hali.vn là công ty thiết kế). Chủ shop cho lấy ảnh từ bất kỳ nguồn nào miễn mã khớp, rồi chuẩn hóa thành ảnh của shop. Chỉ SN199 và TR2 có mã khớp (meta.vn): 5 ảnh, làm trắng nền, khung vuông, public/sp/hali. 7 mẫu còn lại (DC199, LC168, LU168, LS199, LS209, SN209, TR2-R) không tìm thấy ảnh đúng mã.
+- 14/11 ChingHai: ảnh từ meta.vn cho 21 mẫu mã khớp (24 ảnh), chỉ giữ ảnh sản phẩm sạch (bỏ ảnh có chữ META.vn, chú thích, nền phòng), chuẩn hóa nền trắng, public/sp/chinghai. Chưa có: FF9199 (mọi ảnh dính chữ/nền phòng), W615A2 (meta chỉ có W615A, khác mã). Tổng quạt có ảnh thật: 71/100.
